@@ -1,4 +1,4 @@
-const { compareAsc, format } = require("date-fns")
+const moment = require('moment');
 
 
 
@@ -32,10 +32,14 @@ const contoller = {
      */
     initPendingEvents : ({startTime, tokens = []}) => {
         // set clock by converting from iso 8601 to unix time
-        clock = date.parse(startTime);
+        clock = Date.parse(startTime);
         tokens.forEach(token => {
             // look at what type of distribution and add elements to list accordingly0
-            console.log(token.distribution.frequency)
+            const {frequency} = token.distribution             
+            var durationAsSeconds = moment.duration(frequency, moment.ISO_8601).asSeconds()
+            console.log(durationAsSeconds)
+
+            //convert frequency to seconds
         });
 
 
