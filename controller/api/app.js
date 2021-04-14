@@ -22,10 +22,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
-//trim camunda from request
-
-
-
 app.use('/camunda', createProxyMiddleware({ target: 'http://localhost:8080', changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
 
 // catch 404 and forward to error handler

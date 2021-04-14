@@ -1,0 +1,23 @@
+{
+    "bpmm":"",
+    "graphdb":"",
+    "input":{
+        "startTime":"2021-04-14T19:15:30+0000",
+        "tokens":[{
+            "distribution":"",
+            "body":{}
+        }]
+    }
+}
+
+{
+    "bpmm":"none",
+    "graphdb":"none",
+    "input":{
+        "startTime":"2021-04-14T19:15:30+0000",
+        "tokens":[{
+            "distribution":"constant",
+            "body":{"name":"troy", "animal":"dog"}
+        }]
+    }
+}

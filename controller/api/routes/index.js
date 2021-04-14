@@ -7,7 +7,11 @@ router.get('/', function(req, res, next) {
 });
 
 
-router.get('/start', function(req, res, next) {
+router.post('/start', function(req, res, next) {
+  console.log("asd")
+
+  
+
   res.send(200)
 });
 
