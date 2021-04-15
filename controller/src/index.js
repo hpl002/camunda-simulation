@@ -2,60 +2,49 @@ const moment = require('moment');
 
 
 
-class PendingEvent {
-    constructor(time, event) {
-      this.time = time;
-      this.events = [event];
-    }
-    //write function for adding token
-    //list is always sorted by time in accending order such that we can pop()
-    //
+
+class Event {
+  constructor({priority = -1, description}) {
+    this.priority = priority;
+    this.description = description;
   }
-
-  class Event {
-    constructor(priority = -1, description) {
-      this.priority = priority;
-      this.description = description;
-    }     
-  }
-
-const pendingEvents = [];
-
-
-var clock = ""; 
-
-const contoller = {
-    /**
-     * @param  {} {startTime
-     * @param  {} tokens}
-     * Take the token input and generate a list of pending start events
-     */
-    initPendingEvents : ({startTime, tokens = []}) => {
-        // set clock by converting from iso 8601 to unix time
-        clock = Date.parse(startTime);
-        tokens.forEach(token => {
-            // look at what type of distribution and add elements to list accordingly0
-            const {frequency} = token.distribution             
-            var durationAsSeconds = moment.duration(frequency, moment.ISO_8601).asSeconds()
-            console.log(durationAsSeconds)
-
-            //convert frequency to seconds
-        });
-
-
-         
-        
-        return 'Jim';
-    },
-    getSimulationTime : () => {
-        return clock ;
-    },
-    getPendingEvents : () => {
-        return pendingEvents;
-    }
 }
 
 
-  
-  exports.controller = contoller;
-  
+class Contoller {
+  constructor({startTime}) {
+    this.clock = Date.parse(startTime);
+    this.pendingEvents = {};
+  }
+
+  initPendingEvents({ tokens = [] }) {
+    let startTime = this.clock;
+
+    tokens.forEach(token => {
+      const { frequency, type, amount } = token.distribution
+      // look at what type of distribution and add elements to list accordingly
+      if (type.toUpperCase() === "CONSTANT") {
+        const frequencyAsSeconds = moment.duration(frequency, moment.ISO_8601).asSeconds()
+        for (let index = 0; index < amount; index++) {
+          this.pendingEvents[startTime] = new Event({description: "description yo"})
+          startTime = startTime + frequencyAsSeconds
+        }
+      }
+      else {
+        throw new Error("type not supported")
+      }
+    });
+  }
+
+  getSimulationTime() {
+    return this.clock
+  }
+
+  getPendingEvents() {
+    return this.pendingEvents;
+  }
+}
+
+
+
+exports.Controller = Contoller;
