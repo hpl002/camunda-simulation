@@ -9,11 +9,12 @@ router.get('/', function(req, res, next) {
 
 
 router.post('/start', function(req, res, next) {
-const {body} = req
-// initialize new pending events list
-const controller = new Controller({...body.input})
-controller.initPendingEvents({...body.input})
-  res.send(controller.getPendingEvents())
+    const {body} = req
+    // initialize new pending events list
+    const controller = new Controller({...body.input})
+    controller.initPendingEvents({...body.input})
+     
+  res.send(controller.execute())
 });
 
 module.exports = router;
