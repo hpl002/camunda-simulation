@@ -37,7 +37,7 @@ class PendingEvents {
   }
 
   delete(p) {
-    delete this.pendingEvents[p]     
+    delete this.pendingEvents[p]
   }
 }
 
@@ -46,7 +46,7 @@ class Contoller {
   constructor({ startTime }) {
     this.clock = Date.parse(startTime);
     this.pendingEvents = new PendingEvents()
-    this.pendingEventsCopy;
+    this.pendingEventsCopy = {}
   }
 
   initPendingEvents({ tokens = [] }) {
@@ -57,15 +57,17 @@ class Contoller {
       if (type.toUpperCase() === "CONSTANT") {
         const frequencyAsSeconds = moment.duration(frequency, moment.ISO_8601).asSeconds()
         for (let index = 0; index < amount; index++) {
+          //First event in list always set at time zero (do not offset first event from clock init)
+          startTime = Object.keys(this.pendingEvents) === 0 ? this.clock : startTime + frequencyAsSeconds
           this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ data: token.body }) })
-          startTime = startTime + frequencyAsSeconds
         }
-        this.pendingEventsCopy = this.getPendingEvents()
       }
       else {
         throw new Error("type not supported")
       }
     });
+    const events = this.getPendingEvents()
+    this.pendingEventsCopy = { ...events }
   }
   popNextPendingEvent() {
     const p = this.getPendingEvents()
@@ -73,8 +75,8 @@ class Contoller {
     keys.sort((a, b) => { return b - a })
     const nextEventKey = keys.pop()
     const event = p[nextEventKey]
-    this.pendingEvents.delete(nextEventKey)     
-    return {time:nextEventKey, arr:event}
+    this.pendingEvents.delete(nextEventKey)
+    return { time: nextEventKey, arr: event }
   }
 
   execute() {
@@ -82,14 +84,14 @@ class Contoller {
     keys = Object.keys(keys)
 
     keys.forEach(key => {
-      const {time, arr} = this.popNextPendingEvent()
-      console.info("Executing event at time", time)
+      const { time, arr } = this.popNextPendingEvent()
+      const timestamp = moment.unix(time);
+      console.info("Executing event at time", timestamp.format("HH:mm:ss"))
       this.setSimulationTime(time)
       arr.forEach(event => {
         console.log("execute", event)
       });
     });
-
 
     /*
     1  - pop event from pendingevents list
@@ -97,17 +99,7 @@ class Contoller {
     3  - pop each element from this list in order
     4  - when list is empty then get the timepoint of the events object and update the simulation clock to this    
     */
-
-
-
-
-
   }
-
-  getSimulationTime() {
-    return this.clock
-  }
-
 
   setSimulationTime(pTime) {
     if (this.clock && pTime < this.clock) {
@@ -119,8 +111,7 @@ class Contoller {
 
   getPendingEvents(copy = false) {
     if (copy) return this.pendingEventsCopy
-    const s = this.pendingEvents.getList()
-    return s
+    return this.pendingEvents.getList()
   }
 }
 
