@@ -14,8 +14,9 @@ router.post('/start', async function (req, res, next) {
   const controller = new Controller({ ...body })
   controller.initPendingEvents({ ...body.input })
   try {
-    const r = await controller.execute()
-    res.json({ tokens: r.map(e=>e.data) })
+    let r = await controller.execute()
+    r = r.map(e=>e.data)
+    res.json({ tokens: r})
   } catch (error) {
     console.error(error)
     next(error)
@@ -23,4 +24,3 @@ router.post('/start', async function (req, res, next) {
 });
 
 module.exports = router;
-
