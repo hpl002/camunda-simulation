@@ -1,18 +1,21 @@
 const moment = require('moment');
-const { Event,PendingEvents, Worker } = require('./helper')
- 
+const axios = require('axios');
+const { Event, PendingEvents, Worker } = require('./helper')
+
 
 
 class Contoller {
-  constructor({ startTime }) {
-    this.clock = Date.parse(startTime);
+  constructor({ processID, input }) {
+    this.clock = Date.parse(input.startTime);
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
+    this.processID = processID
   }
 
   initPendingEvents({ tokens = [] }) {
     let startTime = this.clock;
-    tokens.forEach(token => {
+
+    for (const token of tokens) {
       const { frequency, type, amount } = token.distribution
       // look at what type of distribution and add elements to list accordingly
       if (type.toUpperCase() === "CONSTANT") {
@@ -20,13 +23,13 @@ class Contoller {
         for (let index = 0; index < amount; index++) {
           //First event in list always set at time zero (do not offset first event from clock init)
           startTime = Object.keys(this.pendingEvents) === 0 ? this.clock : startTime + frequencyAsSeconds
-          this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ data: token.body }) })
+          this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ data: token.body, type: "start" }) })
         }
       }
       else {
         throw new Error("type not supported")
       }
-    });
+    }
     const events = this.getPendingEvents()
     this.pendingEventsCopy = { ...events }
   }
@@ -40,27 +43,27 @@ class Contoller {
     return { time: nextEventKey, arr: event }
   }
 
-  execute() {
+  async execute() {
     let keys = this.getPendingEvents()
     keys = Object.keys(keys)
-
-    keys.forEach(key => {
+    let promises
+    for (const key of keys) {
       const { time, arr } = this.popNextPendingEvent()
       const timestamp = moment.unix(time);
       console.info("Executing event at time", timestamp.format("HH:mm:ss"))
       this.setSimulationTime(time)
-      arr.forEach(event => {
-        //TODO: here we can start the process via a POST request to process engine
-        console.log("execute", event)
-      });
-    });
-
-    /*
-    1  - pop event from pendingevents list
-    2  - update the simulation clock to this timestamp
-    3  - pop each element from this list in order
-    4  - when list is empty then get the timepoint of the events object and update the simulation clock to this    
-    */
+      promises = arr.map(async event => {
+        if (event.type === "start") {
+          const responses = await this.startProcess(event, this.processID)
+          return responses
+        }
+        else {
+          throw new Error("could not read event type")
+        }
+      })
+    }
+    const r = await Promise.all(promises)
+    return r;
   }
 
   setSimulationTime(pTime) {
@@ -69,12 +72,25 @@ class Contoller {
     } else {
       this.clock = pTime
     }
-  }
-
+  };
+  async startProcess(event, processID) {
+    const basePath = process.env.PROCESS_ENGINE     
+    const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
+    try {
+      const response = await axios.post(reqUrl, { ...event }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return response
+    } catch (error) {
+      throw error
+    }
+  };
   getPendingEvents(copy = false) {
     if (copy) return this.pendingEventsCopy
     return this.pendingEvents.getList()
-  }
+  };
 }
 
 

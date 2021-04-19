@@ -1,7 +1,8 @@
 class Event {
-    constructor({ priority = -1, data = {} }) {
+    constructor({ priority = -1, data = {}, type }) {
       this.priority = priority;
       this.data = data;
+      this.type = type;
     }
   }
 
@@ -40,10 +41,7 @@ class Event {
   }
 
   class Worker {
-    constructor({ startTime }) {
-      this.clock = Date.parse(startTime);
-      this.pendingEvents = new PendingEvents()
-      this.pendingEventsCopy = {}
+    constructor() {       
     }
   }
 
