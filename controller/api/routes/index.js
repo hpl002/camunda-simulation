@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { Controller } = require('../../src/index')
+const { Controller, Executor } = require('../../src/index')
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -14,9 +14,10 @@ router.post('/start', async function (req, res, next) {
   const controller = new Controller({ ...body })
   controller.initPendingEvents({ ...body.input })
   try {
-    let r = await controller.execute()
-    r = r.map(e=>e.data)
-    res.json({ tokens: r})
+    const r = await Executor.execute2(controller)
+    /* r = r.map(e=>e.data)
+    res.json({ tokens: r}) */
+    res.sendStatus(200)
   } catch (error) {
     console.error(error)
     next(error)
