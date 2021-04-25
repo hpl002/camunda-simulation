@@ -25,9 +25,11 @@ app.use(express.urlencoded({ extended: false }));
 //app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/camunda', createProxyMiddleware({ target: process.env.PROCESS_ENGINE, changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
-function errorHandler (err, req, res, next) {
-  res.status(500)
-  res.render('error', { error: err })
+function errorHandler (error, req, res, next) {   
+  const {response }= error
+  const {status, data} = response
+  res.status(status || 500).send(data || "no erorr message available")
+   
 }
 app.use(errorHandler)
 module.exports = app;
