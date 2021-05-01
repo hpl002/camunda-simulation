@@ -1,55 +1,49 @@
-const moment = require('moment');
 const axios = require('axios');
-const { Event, PendingEvents, Worker } = require('./helper')
+const { words } = require('lodash');
+var moment = require('moment');
+const { Event, PendingEvents, Worker, Common, ModelReader } = require('./helper')
 const Executor = {
-  execute: async () => {
-    const arr = [1, 2, 3, 4, 5, 6, 111]
+  execute: async (controller) => {
+    const messages = []
 
-    while (arr.length > 0) {
-      const s = arr.pop()
-      try {
-        const response = await axios.get(`https://jsonplaceholder.typicode.com/todos/${s}`)
-        console.log(response.data.id);
-      } catch (error) {
-        console.log(error);
-      }
-
-    }
-
-  },
-  //const re = await axios.get(`https://jsonplaceholder.typicode.com/todos/${controller.getPendingEventsLength()}`)
-  //console.log(re.data.id);
-  execute2: async (controller) => {
-    let sdd = []
     while (controller.getPendingEventsLength() !== 0) {
-      console.log("controller.getPendingEventsLength()", controller.getPendingEventsLength())
-      const { time, arr } = controller.popNextPendingEvent()
+      let { time, arr } = controller.popNextPendingEvent()
       const timestamp = moment.unix(time);
+      messages.push("Executing event at time", timestamp.format("HH:mm:ss"))
       console.info("Executing event at time", timestamp.format("HH:mm:ss"))
       controller.setSimulationTime(time)
-      // change this to some other form of loop that pause execution
       while (arr.length !== 0) {
         const event = arr.pop()
-        if (event.type === "start") {
-          const response = await controller.startProcess(event, controller.processID)
-          Worker.addTaskToEvents({response, controller})
-           
-          // worker queries the process engine for new task and adds this to existing pendingEvents map 
-          
-          // add function that pulls task api and filters on:
-          //process id
-           
-          // generate completion link and add this to the new pendingEvents map
-          // update the task itslef with a variable or flag that indicates that its already been processed
+        if (event.type === "start process") {
+          messages.push(" -- start process")
+          console.log(" -- start process")
+          const { data } = await Worker.startProcess({event, controller})
+          await Worker.fetchAndAppendNewTasks({ processInstanceId: data.id, controller })
+        }
+        else if (event.type === "start task") {           
+          console.log(" -- start task")
+          messages.push(" -- start task")
 
-
+          const {startTime, task, type} = await Worker.startTask({ task:event.task, controller })           
+          controller.addEvent({ startTime, event: new Event({ task , type }) })
+        }
+        else if (event.type === "complete task") {
+          console.log(" -- complete task")
+          messages.push(" -- complete task")
+          await Worker.completeTask({ ...event })
+          await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
+          // fetch new tasks
+          // 
         }
         else {
           throw new Error("could not read event type")
         }
+
       };
+      controller.deleteEvent(time)
     }
-    return sdd
+    console.log(" -- simulation terminated")
+    return messages
   }
 }
 
@@ -60,6 +54,12 @@ class Contoller {
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID
+    this.resourceMap = { "walker": { available: true, lockedUntil: "", task: "" } }
+    this.attributesMap = {}
+  }
+
+  addEvent({ startTime, event }) {
+    this.pendingEvents.addEvent({ timestamp: startTime, event: event })
   }
 
   initPendingEvents({ tokens = [] }) {
@@ -68,11 +68,12 @@ class Contoller {
       const { frequency, type, amount } = token.distribution
       // look at what type of distribution and add elements to list accordingly
       if (type.toUpperCase() === "CONSTANT") {
-        const frequencyAsSeconds = moment.duration(frequency, moment.ISO_8601).asSeconds()
+
+        const frequencyAsSeconds = Common.isoToSeconds(frequency)
         for (let index = 0; index < amount; index++) {
           //First event in list always set at time zero (do not offset first event from clock init)
           startTime = Object.keys(this.pendingEvents) === 0 ? this.clock : startTime + frequencyAsSeconds
-          this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ data: token.body, type: "start" }) })
+          this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
         }
       }
       else {
@@ -82,16 +83,36 @@ class Contoller {
     const events = this.getPendingEvents()
     this.pendingEventsCopy = { ...events }
   }
+
+
+
+
+  async init({ tokens = [] }) {
+    this.initPendingEvents({tokens})
+     await this.initAttributesMap()
+
+  }
+
+
+  async initAttributesMap() {     
+    const modeler = new ModelReader({ key: this.processID })
+    this.attributesMap = await modeler.init()
+  }
+
+
   popNextPendingEvent() {
     const p = this.getPendingEvents()
     const keys = Object.keys(p)
     keys.sort((a, b) => { return b - a })
     const nextEventKey = keys.pop()
     const event = p[nextEventKey]
-    this.pendingEvents.delete(nextEventKey)
+    //    this.pendingEvents.delete(nextEventKey)
     return { time: nextEventKey, arr: event }
   }
 
+  deleteEvent(key) {
+    this.pendingEvents.delete(key)
+  }
 
   setSimulationTime(pTime) {
     if (this.clock && pTime < this.clock) {
@@ -100,15 +121,7 @@ class Contoller {
       this.clock = pTime
     }
   };
-  async startProcess(event, processID) {
-    const basePath = process.env.PROCESS_ENGINE
-    const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
-    return axios.post(reqUrl, { ...event }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-  };
+
   getPendingEvents(copy = false) {
     if (copy) return this.pendingEventsCopy
     return this.pendingEvents.getList()
