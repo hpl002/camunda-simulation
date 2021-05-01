@@ -67,6 +67,19 @@ const Worker = {
     const arr = controller.resourceArr.filter(e => e.id === workerId && e.available === true)
     return arr.length > 0
   },
+  /**
+   * @param  {} {workerId
+   * @param  {} controller}
+   * calculates the earliest at which the specified resource is available
+   */
+  howLongUntilResourceAvailable: ({ workerId, controller }) => {
+    // get earliest time at which a resource of specified id is available
+    Worker.resourceExists({ workerId, controller })
+    let arr = controller.resourceArr.filter(e => e.id === workerId)
+    arr = arr.map(e=>e.lockedUntil)   
+    arr.sort((a, b) => b - a);  
+    return arr[0]
+  },
 
   resourceExists: ({ workerId, controller }) => {
     const type = controller.resourceArr.filter(e => e.id === workerId)
@@ -162,7 +175,7 @@ const Worker = {
 
   startTask: async ({ task, controller, messages }) => {
     let workerId = Worker.getAttribute({ task, ...controller, key: "RESOURCE" })
-    const completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
+    let completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
 
     const start = async (workerId) => {
       console.log(" -- start task")
@@ -197,8 +210,13 @@ const Worker = {
       return s
     }
     else if (!Worker.isResourceAvailable({ workerId, controller })) {
-      console.log(" -- start task: Worker unavailable -> Reschedule")
-      messages.push(" -- start task: Worker unavailable -> Reschedule")
+
+      // how long until resource is available again? 
+      completionTime = Worker.howLongUntilResourceAvailable({workerId, controller})
+      const timestamp = moment.unix(completionTime);
+      const m = ` -- start task: Worker unavailable -> Reschedule to ${timestamp.format("HH:mm:ss")}`
+      console.log(m)
+      messages.push(m)
       return { task, startTime:completionTime, type: "start task" }
     }
 
