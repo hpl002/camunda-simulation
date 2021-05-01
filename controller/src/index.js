@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { words } = require('lodash');
 var moment = require('moment');
-const { Event, PendingEvents, Worker, Common, ModelReader } = require('./helper')
+const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('./helper')
 const Executor = {
   execute: async (controller) => {
     const messages = []
@@ -15,25 +15,20 @@ const Executor = {
       while (arr.length !== 0) {
         const event = arr.pop()
         if (event.type === "start process") {
+          const { data } = await Worker.startProcess({ event, controller })
+          await Worker.fetchAndAppendNewTasks({ processInstanceId: data.id, controller })
           messages.push(" -- start process")
           console.log(" -- start process")
-          const { data } = await Worker.startProcess({event, controller})
-          await Worker.fetchAndAppendNewTasks({ processInstanceId: data.id, controller })
         }
-        else if (event.type === "start task") {           
-          console.log(" -- start task")
-          messages.push(" -- start task")
-
-          const {startTime, task, type} = await Worker.startTask({ task:event.task, controller })           
-          controller.addEvent({ startTime, event: new Event({ task , type }) })
+        else if (event.type === "start task") {
+          const { startTime, task, type } = await Worker.startTask({ task: event.task, controller, messages })
+          controller.addEvent({ startTime, event: new Event({ task, type }) })           
         }
         else if (event.type === "complete task") {
+          await Worker.completeTask({ ...event, controller })
+          await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
           console.log(" -- complete task")
           messages.push(" -- complete task")
-          await Worker.completeTask({ ...event })
-          await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
-          // fetch new tasks
-          // 
         }
         else {
           throw new Error("could not read event type")
@@ -43,6 +38,7 @@ const Executor = {
       controller.deleteEvent(time)
     }
     console.log(" -- simulation terminated")
+    messages.push(" -- simulation terminated")
     return messages
   }
 }
@@ -54,7 +50,7 @@ class Contoller {
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID
-    this.resourceMap = { "walker": { available: true, lockedUntil: "", task: "" } }
+    this.resourceArr = [new Resource({ id: "walker" })]
     this.attributesMap = {}
   }
 
@@ -88,13 +84,13 @@ class Contoller {
 
 
   async init({ tokens = [] }) {
-    this.initPendingEvents({tokens})
-     await this.initAttributesMap()
+    this.initPendingEvents({ tokens })
+    await this.initAttributesMap()
 
   }
 
 
-  async initAttributesMap() {     
+  async initAttributesMap() {
     const modeler = new ModelReader({ key: this.processID })
     this.attributesMap = await modeler.init()
   }
