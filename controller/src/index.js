@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { words } = require('lodash');
 var moment = require('moment');
-const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('./helper')
+const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('../src/helpers/index.js')
 const Executor = {
   execute: async (controller) => {
     const messages = []
