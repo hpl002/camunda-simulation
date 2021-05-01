@@ -46,10 +46,55 @@ class PendingEvents {
   }
 }
 
+
+class Resource {
+  constructor({ available = true, lockedUntil = "", task = "", id }) {
+    this.id = id,
+      this.available = available
+    this.lockedUntil = lockedUntil
+    this.task = task
+  }
+}
+
 const Worker = {
+  /**
+   * @param  {} {id
+   * @param  {} task}
+   * check if there is an available resource with the provided identifier
+   */
+  isResourceAvailable: ({ workerId, controller }) => {
+    Worker.resourceExists({ workerId, controller })
+    const arr = controller.resourceArr.filter(e => e.id === workerId && e.available === true)
+    return arr.length > 0
+  },
+
+  resourceExists: ({ workerId, controller }) => {
+    const type = controller.resourceArr.filter(e => e.id === workerId)
+    if (type.length < 1) throw new Error(`could not find any resource with the provided workerId: ${workerId}. \n Possible workerIds: ${controller.resourceArr.map(e => e.id)}`)
+  },
+
+
+  lockResource: ({ workerId, task, controller, lockedUntil }) => {
+    /* find index of first resource that matches id and update this */
+    Worker.resourceExists({ workerId, controller })
+    const index = controller.resourceArr.findIndex(e => e.id === workerId && e.available === true)
+    if (index === -1) throw new Error("could not find any resource with the provided workerId")
+    controller.resourceArr[index].task = task
+    controller.resourceArr[index].available = false
+    controller.resourceArr[index].lockedUntil = lockedUntil
+  },
+
+  freeResource: ({ task, controller }) => {
+    /* find index of first resource that matches id and update this */
+    const index = controller.resourceArr.findIndex(e => e.task.id === task.id)
+    if (index === -1) throw new Error("could not find any resource tied to provied task")
+    controller.resourceArr[index].task = ""
+    controller.resourceArr[index].available = true
+    controller.resourceArr[index].lockedUntil = ""
+  },
 
   getAttribute: ({ task, attributesMap, key }) => {
-    let value = attributesMap[task.activityId]
+    let value = attributesMap[task.activityId] || []     
     value = value.filter(e => e.name.toUpperCase() === key)
     return value?.[0]?.value
   },
@@ -74,9 +119,18 @@ const Worker = {
     }
   },
 
-  calculateInsertionTime: ({ task, attributesMap, clock }) => {
-    const duration = Worker.getWaiting({ task: task, attributesMap })
-    return parseInt(clock) + duration
+  calculateInsertionTime: ({ task, attributesMap, clock, type }) => {
+    let time;
+    if (type === "start") {
+      time = Worker.getWaiting({ task, attributesMap })
+    }
+    else if (type === "completion") {
+      time = Worker.getDuration({ task, attributesMap })
+    }
+    else {
+      throw new Error("could not calcualte insertion type for this unknown type", type)
+    }
+    return parseInt(clock) + time
   },
 
   getTasks: async ({ processInstanceId }) => {
@@ -106,56 +160,55 @@ const Worker = {
     })
   },
 
-  startTask: async ({ task, controller }) => {     
-    const startTime = Worker.calculateInsertionTime({ task, ...controller })
-     
-
+  startTask: async ({ task, controller, messages }) => {
     let workerId = Worker.getAttribute({ task, ...controller, key: "RESOURCE" })
-    let resource = controller.resourceMap[workerId]
-    if (workerId && resource) {
-      console.log("yay resource", resource)
-    }
-    if (!resource) workerId = "generic-worker"
-    task.workerId = workerId
+    const completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
 
-    /*
-    
-    resolve query against graph db and get resource identifier
+    const start = async (workerId) => {
+      console.log(" -- start task")
+      messages.push(" -- start task")
+      try {
+        task.workerId = workerId
+        const body = {
+          "workerId": workerId,
+          "lockDuration": 1800000
+        }
+        const response = await axios.post(`http://localhost:8080/engine-rest/external-task/${task.id}/lock`, body)
+        if (response.status !== 204) throw new Error("could not lock task")
 
-    check if resource or resources are available:
-    -  is resource locked, if so then when is the next time we can check for it
-        - add event for checking for resource availability
-    -  if not locked then check availability against timetable if this is defined
-        - if not available then create event for checking once it becomes available again
-    - if available then lock resource for set duration
-
-
-    */
-     
-     
-
-
-    try {
-      const body = {
-        "workerId": workerId,
-        "lockDuration": 1800000
+        return { task, startTime:completionTime, type: "complete task" }
+      } catch (error) {
+        console.error(error);
+        throw error
       }
-      const response = await axios.post(`http://localhost:8080/engine-rest/external-task/${task.id}/lock`, body)
-      if (response.status !== 204) throw new Error("could not lock task")
-      return { task, startTime, type:"complete task" }
-    } catch (error) {
-      console.error(error);
-      throw error
     }
+
+
+    if (!workerId) {
+      workerId = "generic-worker"
+      const s = await start(workerId)
+      return s
+    }
+    else if (Worker.isResourceAvailable({ workerId, controller })) {
+
+      //TODO: get workerid by querying db
+      Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
+      const s = await start(workerId)
+      return s
+    }
+    else if (!Worker.isResourceAvailable({ workerId, controller })) {
+      console.log(" -- start task: Worker unavailable -> Reschedule")
+      messages.push(" -- start task: Worker unavailable -> Reschedule")
+      return { task, startTime:completionTime, type: "start task" }
+    }
+
+
   },
 
-  completeTask: async ({ task }) => {
-
-    /* 
-      try to complete task by using the resource specified on task
-    */
-
-
+  completeTask: async ({ task, controller }) => {
+    if (task.workerId && task.workerId !== "generic-worker") {
+      Worker.freeResource({ task, controller })
+    }
 
     try {
       const body = {
@@ -175,7 +228,7 @@ const Worker = {
     const tasks = await Worker.getTasks({ processInstanceId })
     while (tasks.length !== 0) {
       const currTask = tasks.pop()
-      const timeStamp = Worker.calculateInsertionTime({ task: currTask, ...controller })
+      const timeStamp = Worker.calculateInsertionTime({ task: currTask, ...controller, type: "start" })
       controller.addEvent({ startTime: timeStamp, event: new Event({ task: { ...currTask }, type: "start task" }) })
       await Worker.setPriority({ processInstanceId: currTask.id })
     }
@@ -259,6 +312,11 @@ class ModelReader {
         if (Array.isArray(properties)) {
           properties.forEach(p => {
             const obj = _.find(p, function (o) { return o.name !== undefined; });
+            Object.keys(obj).forEach(key => {
+              if(typeof obj[key] === 'string' || obj[key] instanceof String){
+                obj[key] = obj[key].trim()
+              }  
+            });
             attributesMap[id.id].push(obj)
           });
         }
@@ -304,3 +362,5 @@ exports.PendingEvents = PendingEvents;
 exports.Worker = Worker;
 exports.ModelReader = ModelReader;
 exports.Common = Common;
+exports.Resource = Resource;
+
