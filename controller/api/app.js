@@ -27,8 +27,12 @@ app.use('/', indexRouter);
 app.use('/camunda', createProxyMiddleware({ target: process.env.PROCESS_ENGINE, changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
 function errorHandler (error, req, res, next) {   
   const {response }= error
-  const {status, data} = response
-  res.status(status || 500).send(data || "no erorr message available")
+  if(response){
+    const {status, data} = response
+    res.status(status).send(data)
+  }
+  res.status(500).send(error.message || "no erorr message available")
+   
    
 }
 app.use(errorHandler)
