@@ -1,5 +1,3 @@
-const axios = require('axios');
-const { words } = require('lodash');
 var moment = require('moment');
 const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('../src/helpers/index.js')
 const Executor = {
@@ -21,7 +19,7 @@ const Executor = {
           console.log(" -- start process")
         }
         else if (event.type === "start task") {
-          const { startTime, task, type } = await Worker.startTask({ task: event.task, controller, messages })
+          const { startTime, task, type } = await Worker.startTask({ task: event.task, controller, messages })           
           controller.addEvent({ startTime, event: new Event({ task, type }) })           
         }
         else if (event.type === "complete task") {
