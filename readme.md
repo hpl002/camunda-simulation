@@ -2,12 +2,26 @@
 ## Camunda
 REST api - https://docs.camunda.org/manual/7.5/reference/rest/
 
+## H2 in-memory db
+localhost:8080/h2-console 
+JDBC URL: jdbc:h2:./camunda-h2-default/process-engine
+
 
 # todo
+ - have a look at the h2 database
+ - here we want to update the runtime start and end times with the relevant simulation times
+ - effectively replacing the run time timepstamps with those from the simulation
+
+ACT_RU_*: RU stands for runtime. These are the runtime tables that contain the runtime data of process instances, user tasks, variables, jobs, etc. The engine only stores the runtime data during process instance execution and removes the records when a process instance ends. This keeps the runtime tables small and fast.
+
+TODO: create a db trigger that runs whenever a new entry is added to the runtime table. This then fetched the new simulation time from process variable and replaces it
+ - initial test: create a simple trigger that just appends some random data
 
 
-## now:
-  - find some way to output a proper event log that can be processed in some other software
+tigger:
+ - on insert check event type
+ - grab the correct variable and update row
+ - drop the variable
 
 ## Problem
  
