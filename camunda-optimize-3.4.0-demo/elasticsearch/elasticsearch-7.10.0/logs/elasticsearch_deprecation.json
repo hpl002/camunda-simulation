@@ -1,0 +1,1 @@
+{"type": "deprecation", "timestamp": "2021-05-02T10:03:54,181+02:00", "level": "DEPRECATION", "component": "o.e.d.n.Node", "cluster.name": "elasticsearch", "node.name": "HERMANs-MacBook-Pro-2.local", "message": "no-jdk distributions that do not bundle a JDK are deprecated and will be removed in a future release" }

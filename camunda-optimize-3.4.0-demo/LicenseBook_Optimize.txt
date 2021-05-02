@@ -1,0 +1,3 @@
+Licensing Information for Camunda Optimize extension 2.5.0
+
+Please obtain the licensing information from https://docs.camunda.org/optimize/2.5/technical-guide/third-party-libraries/

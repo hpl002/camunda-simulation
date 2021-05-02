@@ -1,0 +1,1160 @@
+{
+  "appName": "Camunda Optimize",
+  "navigation": {
+    "homepage": "Home",
+    "analysis": "Analyse",
+    "events": "Eventbasierte Prozesse",
+    "telemetry": "Telemetrie-Einstellungen",
+    "logout": "Abmelden",
+    "logoutFailed": "Abmeldung fehlgeschlagen",
+    "logoutSuccess": "Sie haben sich erfolgreich abgemeldet.",
+    "configLoadingError": "Beim Laden der UI-Konfigurationen ist ein Fehler aufgetreten"
+  },
+  "login": {
+    "appName": "Optimize",
+    "username": "Nutzername",
+    "password": "Passwort",
+    "btn": "Einloggen",
+    "error": "Bei der Anmeldung ist ein Fehler aufgetreten.",
+    "timeout": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an, um die Aktion abzuschließen.",
+    "telemetry": "Durch Anmelden akzeptieren Sie unsere <a href=\"https://camunda.com/legal/terms/\" target=\"_blank\" rel=\"noopener noreferrer\">AGB</a> und <a href=\"https://camunda.com/legal/privacy/\" target=\"_blank\" rel=\"noopener noreferrer\">Datenschutzerklärung</a>"
+  },
+  "footer": {
+    "importing": "wird importiert ...",
+    "connected": "ist verbunden",
+    "notConnected": "ist nicht verbunden",
+    "rightsReserved": "Alle Rechte vorbehalten",
+    "connectionError": "Verbindungsstatus unbekannt (Websocket-Verbindung kann nicht hergestellt werden)",
+    "timezone": "Datum und Uhrzeit werden in der lokalen Zeitzone angezeigt:"
+  },
+  "license": {
+    "licensedFor": "Lizenziert für",
+    "validUntil": "Gültig bis",
+    "redirectMessage": "Sie werden in Kürze zur Anmeldeseite weitergeleitet. <a href=\"./\">Klicken Sie hier, um sofort zur Anmeldeseite zu gelangen</a> ",
+    "licenseKey": "Lizenzschlüssel",
+    "enterLicense": "Bitte geben Sie den Lizenzschlüssel ein",
+    "submit": "Absenden"
+  },
+  "saveGuard": {
+    "header": "Ungespeicherte Änderungen",
+    "text": "{label} hat ungespeicherte Änderungen. Wollen Sie speichern?",
+    "yes": "Änderungen Speichern",
+    "no": "Nicht Speichern"
+  },
+  "whatsNew": {
+    "buttonTitle": "Was ist neu",
+    "modalHeader": "Neues in Optimize"
+  },
+  "telemetry": {
+    "updated": "Telemetrie-Einstellungen aktualisiert.",
+    "header": "Telemetrie-Einstellungen",
+    "text": "Um die Benutzererfahrung zu verbessern, kann Camunda Optimize mit der Camunda Services GmbH kommunizieren, was externe Netzwerkanfragen erfordert. Bitte wählen Sie aus der untenstehenden Einstellung.",
+    "enable": "Nutzungsstatistiken aktivieren",
+    "info": "Erlauben Sie Camunda Optimize, anonyme Nutzungsstatistiken zu senden. Wir verwenden diese Informationen, um Ihnen eine stabile und verbesserte Produkterfahrung in der von Ihnen verwendeten Umgebung zu bieten. Auf diese Weise kann Camunda Informationen über die Produktversion und die technische Umgebung, die Sie verwenden, und darüber, wie Sie diese verwenden, sammeln.",
+    "respectPrivacy": "Wir respektieren Ihre Privatsphäre.",
+    "personalData": "Keine persönlichen Informationen oder gespeicherten Daten werden übermittelt. Für weitere Informationen, lesen Sie unsere",
+    "orView": "oder sehen Sie sich unsere <a href='{link}' target='_blank' rel='noopener noreferrer'>{policy}</a> an.",
+    "privacyPolicy": "Datenschutzerklärung"
+  },
+  "templates": {
+    "noProcessHint": "Leeres Dashboard erstellen",
+    "noXmlHint": "Prozessdefinition auswählen um Diagram anzuzeigen"
+  },
+  "home": {
+    "createBtn": {
+      "default": "Neu erstellen",
+      "collection": "Neue Sammlung",
+      "dashboard": "Neues Dashboard",
+      "report": {
+        "default": "Neuer Bericht",
+        "process": "Prozessbericht",
+        "combined": "Kombinierter Prozessbericht",
+        "decision": "Entscheidungsbericht"
+      }
+    },
+    "title": "Sammlungen, Dashboards, und Berichte",
+    "contents": "Inhalt",
+    "members": "Mitglieder",
+    "search": {
+      "generic": "Zum Suchen eingeben...",
+      "name": "Nach Namen suchen..."
+    },
+    "collectionTitle": "Dashboards und Berichte",
+    "collectionTitleWithAmpersand": "Dashboards & Berichte",
+    "userTitle": "Benutzer und Benutzergruppen",
+    "copy": {
+      "subEntity": "{entityType} enthält 1 Bericht. Dieser wird ebenfalls kopiert.",
+      "subEntities": "{entityType} enthält {number} Berichte. Diese werden ebenfalls kopiert.",
+      "inputLabel": "Name der Kopie",
+      "moveLabel": "Verschiebe Kopie nach …",
+      "noCollections": "Es wurden keine Sammlungen erstellt",
+      "pleaseSelect": "Bitte auswählen",
+      "gotoNew": "Gehe zu Zielort",
+      "copyCollectionInfo": "Alle Elemente und Benutzer werden kopiert."
+    },
+    "types": {
+      "process": "Prozessbericht",
+      "decision": "Entscheidungsbericht",
+      "combined": "Kombinierter Prozessbericht",
+      "unknown": "Unbekannte Entität"
+    },
+    "roles": {
+      "addUserTitle": "Benutzer oder Benutzergruppe hinzufügen",
+      "userRole": "Benutzer-Rolle",
+      "role": "Rolle",
+      "viewer": "Betrachter",
+      "viewer-description": "Nur lesender Zugriff auf alle Objekte",
+      "editor": "Editor",
+      "editor-description": "Erstellen, bearbeiten und löschen von Dashboards, Berichten und Alarmen",
+      "manager": "Manager",
+      "manager-description": "Volle Rechte beim Bearbeiten von Sammlungen und Benutzern",
+      "existing-identity": "Ein Benutzer oder eine Gruppe mit dieser ID existiert schon",
+      "inCollection": "in dieser Sammlung",
+      "missingAuthorizationsWarning": "Einige Daten können aufgrund fehlender Berechtigungen für Benutzer ausgeblendet sein.",
+      "deleteWarning": "'{name}' {type} wird von der Sammlung entfernt."
+    },
+    "sources": {
+      "title": "Datenquellen",
+      "decision": "Entscheidungstabelle",
+      "process": "Prozess",
+      "notCreated": "Es wurden noch keine Quellen hinzugefügt",
+      "add": "Quelle hinzufügen",
+      "definitionName": "Definitionsname",
+      "deleteWarning": "Die '{name}' Datenquelle wird von der Sammlung entfernt.",
+      "saveConflict": {
+        "header": "Die Änderungen sind nicht kompatibel mit diesen Berichten:",
+        "message": "Warnung: Beim Speichern werden Mandanten aus den Berichten entfernt."
+      },
+      "definition": {
+        "label": "Definition",
+        "label-plural": "Definitionen"
+      },
+      "unauthorizedTenant": "(nicht autorisierter Mandant)"
+    },
+    "empty": "Es wurde noch nichts erstellt",
+    "welcome": "Willkommen"
+  },
+  "events": {
+    "new": "Neuer Prozess",
+    "autogenerate": "Autogenerieren",
+    "generate": "Generieren",
+    "addedSources": "Added sources",
+    "modelProcess": "Prozess modellieren",
+    "upload": ".bpmn hochladen",
+    "empty": "Es wurden noch keine Eventbasierten Prozesse erstellt",
+    "label": "Eventbasierter Prozess",
+    "parseError": "Konnte Datei nicht verarbeiten. Bitte wählen Sie eine valide BPMN-Datei aus.",
+    "list": "Event Liste",
+    "cancelPublish": "Veröffentlichung Abbrechen",
+    "publish": "Veröffentlichen",
+    "publishStart": "Veröffentliche Prozess. Das kann eine Weile dauern.",
+    "publishSuccess": "{name} wurde veröffentlicht.",
+    "stateColumn": "Status",
+    "generationInfo": "Fügen Sie Eventquellen hinzu, um automatisch einen End-to-End-Prozess zu generieren. Generierte Prozesse basieren auf einer Stichprobe von Daten und repräsentieren möglicherweise nicht alle Events. Bearbeiten Sie den generierten Prozess, um ihn manuell zu verfeinern.",
+    "generationWarning": "Autogenerierte Prozesse basieren auf einer Stichprobe von Daten und repräsentieren möglicherweise nicht alle Events. Bearbeiten Sie den generierten Prozess, um ihn manuell zu verfeinern.",
+    "table": {
+      "group": "Gruppe",
+      "mapping": "Zugeordnet als…",
+      "source": "Quelle",
+      "name": "Event Name",
+      "count": "Anzahl",
+      "end": "Ende",
+      "start": "Start",
+      "noResults": "Keine Ergebnisse gefunden",
+      "allMapped": "Keine Events verfügbar.",
+      "seeDocs": "Keine Events verfügbar. Informationen zum Hinzufügen von Events finden Sie in der ",
+      "documentation": "Dokumentation",
+      "showSuggestions": "Zeige empfohlene Events"
+    },
+    "deleteWarning": "Der '{name}' Prozess wird endgültig gelöscht. Dies wird alle assoziierten Berichte, innerhalb und außerhalb von Sammlungen löschen.",
+    "publishModal": {
+      "head": "Prozess Veröffentlichen",
+      "republishHead": "Prozess Neu-Veröffentlichen",
+      "republishText": "Neu-Veröffentlichung wird Daten in allen assoziierten Berichten aktualisieren.",
+      "text": "Veröffentlichte Eventbasierte Prozesse werden von ausgewählten Benutzern in Reports zur Verfügung stehen."
+    },
+    "state": {
+      "unmapped": "Unzugeordnet",
+      "mapped": "Zugeordnet",
+      "publish_pending": "Veröffentlichen {publishingProgress}%",
+      "published": "Veröffentlicht",
+      "unpublished_changes": "Unveröffentlichte Änderungen"
+    },
+    "permissions": {
+      "private": "Privat - Nur Sie",
+      "noUsers": "Es wurden keine Benutzer hinzugefügt",
+      "whoHasAccess": "Wer kann diesen Prozess nutzen?",
+      "userGranted": "Benutzerzugriff gewährt",
+      "description": "Ermöglichen Sie den folgenden Benutzern und Gruppen die Erstellung von Berichten, die auf diesem Prozess basieren..."
+    },
+    "sources": {
+      "add": "Eventquelle hinzufügen",
+      "externalEvents": "Externe Events",
+      "editSource": "Eventquelle bearbeiten",
+      "addEvents": "Prozessevents hinzufügen",
+      "alreadyExists": "Der ausgewählte Prozess wurde bereits hinzugefügt",
+      "defineTrace": "Trace ID Ort",
+      "byVariable": "Variable",
+      "byKey": "Business Key",
+      "startAndEnd": "Prozessbeginn und -ende",
+      "flownodeEvents": "Start und Ende der Prozessknotenevents",
+      "allEvents": "Alle Prozessknotenevents",
+      "selectProcess": "Bitte wählen Sie eine Prozessdefinition aus",
+      "display": "Wählen Sie die anzuzeigenden Events aus",
+      "deleteWarning": "Durch das Entfernen der Events aus dieser Eventquelle werden alle erstellten Mappings gelöscht.",
+      "camundaEvents": "Camunda Events",
+      "empty": "Es wurden keine Eventquellen hinzugefügt",
+      "selectExternal": "Wählen Sie Externe Events aus",
+      "allExternal": "Alle Events",
+      "hide": "In Tabelle ausblenden",
+      "show": "In Tabelle anzeigen",
+      "learnMore": "Mehr Informationen",
+      "generatedEvents": "Wählen Sie Events zur automatischen Generierung aus",
+      "editScope": "Event-Liste bearbeiten",
+      "eventListTip": "Konfigurieren Sie, welche Events in der Tabelle angezeigt werden.",
+      "definitionChangeWarning": "Durch die Änderung der Prozessdefinition können Events hinzugefügt oder entfernt werden. Vorhandene Event Mappings können entfernt werden.",
+      "eventListChangeWarning": "Durch die Änderung der Event-Liste können Events hinzugefügt oder entfernt werden. Vorhandene Event Mappings können entfernt werden.",
+      "remove": "Quelle entfernen",
+      "camundaProcess": "Camunda Prozess",
+      "allInOne": "Alle Events in einer einzigen Gruppe kombinieren",
+      "eventGroups": "Eventgruppen",
+      "ungrouped": "Ungruppiert",
+      "search": "Suche nach Eventgruppen",
+      "noGroups": "Keine Eventgruppen gefunden",
+      "addExternalInfo": "Alle Verarbeitete externe Events werden hinzugefügt."
+    },
+    "ingested": {
+      "label": "Verarbeitete externe Events",
+      "id": "Event ID",
+      "traceId": "Trace ID",
+      "group": "Gruppe",
+      "source": "Quelle",
+      "eventName": "Type",
+      "timestamp": "Timestamp",
+      "eventSources": "Externe Events",
+      "search": "Suche nach Werten",
+      "deleteWarning": "Alle Prozesse, die diese Events verwenden, müssen neu veröffentlicht werden, um den gelöschten Zustand wiederzugeben.",
+      "deleteLimitReached": "Das Löschen von mehr als 1.000 Events ist nicht möglich",
+      "noData": "Keine verarbeiteten Events gefunden."
+    }
+  },
+  "report": {
+    "label": "Bericht",
+    "label-plural": "Berichte",
+    "create": "Bericht Erstellen",
+    "createNew": "Neuen Bericht Erstellen",
+    "new": "Neuer Bericht",
+    "addName": "Berichtname",
+    "reportSetup": "Einstellungen",
+    "downloadCSV": "CSV herunterladen",
+    "measure": "Maß",
+    "addMeasure": "Maß hinzufügen",
+    "templates": {
+      "blank": "Leerer Bericht",
+      "heatmap": "Heatmap: Prozessknoten Anzahl",
+      "number": "Nummer: Prozessinstanz Dauer",
+      "table": "Datentabelle: Benutzeraufgaben Anzahl",
+      "chart": "Balkendiagram: Prozessinstanz Anzahl"
+    },
+    "instanceCount": {
+      "appliedFilters": "Angewandte Filter",
+      "reportFiltersHeading": "Berichtsfilter",
+      "additionalFiltersHeading": "Dashboardfilter",
+      "process": {
+        "label": "Zeigt Daten von {count} Instanz.",
+        "label-plural": "Zeigt Daten von {count} Instanzen.",
+        "label-withFilter": "Zeigt Daten von {count} aus {totalCount} Instanz.",
+        "label-plural-withFilter": "Zeigt Daten von {count} aus {totalCount} Instanzen."
+      },
+      "decision": {
+        "label": "Zeigt Daten von {count} Evaluierung.",
+        "label-plural": "Zeigt Daten von {count} Evaluierungen.",
+        "label-withFilter": "Zeigt Daten von {count} aus {totalCount} Evaluierung.",
+        "label-plural-withFilter": "Zeigt Daten von {count} aus {totalCount} Evaluierungen."
+      }
+    },
+    "view": {
+      "label": "Ansicht",
+      "rawData": "Rohdaten",
+      "pi": "Prozessinstanz",
+      "in": "Zwischenfall",
+      "resolutionDuration": "Auflösung Dauer",
+      "fn": "Prozessknoten",
+      "userTask": "Benutzeraufgabe",
+      "count": "Anzahl",
+      "duration": "Dauer",
+      "multi": "Anzahl und Dauer",
+      "evaluationCount": "Evaluierungsanzahl",
+      "variable": "Variable",
+      "process": "Prozessansicht",
+      "decision": "Entscheidungsansicht"
+    },
+    "groupBy": {
+      "label": "Gruppiere nach",
+      "none": "Keiner",
+      "flowNodes": "Prozessknoten",
+      "userTasks": "Benutzeraufgaben",
+      "duration": "Dauer",
+      "startDate": "Startdatum",
+      "runningDate": "Ausführungsdatum",
+      "automatic": "Automatisch",
+      "endDate": "Enddatum",
+      "variable": "Variable",
+      "userAssignee": "Bearbeiter",
+      "userGroup": "Potenzielle Gruppe",
+      "evaluationDate": "Evaluierungsdatum",
+      "rules": "Regeln",
+      "inputVariable": "Eingabevariable",
+      "outputVariable": "Ausgabevariable",
+      "year": "Jahr",
+      "month": "Monat",
+      "week": "Woche",
+      "day": "Tag",
+      "hour": "Stunde"
+    },
+    "visualization": {
+      "label": "Visualisierung",
+      "number": "Nummer",
+      "bar": "Balkendiagramm",
+      "line": "Liniendiagramm",
+      "pie": "Tortendiagramm",
+      "table": "Tabelle",
+      "heat": "Heatmap"
+    },
+    "processPart": {
+      "label": "Prozessinstanz-Abschnitt",
+      "title": "Prozessinstanz-Abschnitt festlegen",
+      "description": "Betrachte nur den Teil zwischen",
+      "selectStart": "Start auswählen",
+      "selectEnd": "Ende auswählen",
+      "noPathWarning": "Sie haben zwei Knoten ausgewählt, es besteht jedoch keine offensichtliche Verbindung zwischen diesen Knoten. Die Berichtsergebnisse sind möglicherweise leer oder irreführend."
+    },
+    "heatTarget": {
+      "label": "Sollwert",
+      "title": "Sollwertvergleich",
+      "table": {
+        "activity": "Aktivität",
+        "value": "Tatsächlicher Wert",
+        "target": "Sollwert"
+      },
+      "noChangeWarning": "Bitte ändern Sie mindestens einen Wert",
+      "invalidValue": "Alle Felder sollten einen numerischen Wert haben",
+      "targetDuration": "Solldauer",
+      "actualDuration": "<b>{duration}</b><br/>{percentage}% des Sollwerts",
+      "duration": {
+        "avg": "Durchschnittliche Dauer: ",
+        "min": "Mindestdauer: ",
+        "median": "Mediane Dauer: ",
+        "max": "Maximale Dauer: "
+      },
+      "exceededInstances": "Uberschrittene-Instanzen-{name}",
+      "noValueAvailable": "Kein aktueller Wert verfügbar.<br/>Soll- und Istwert können nicht verglichen werden."
+    },
+    "invalidCombinationError": "Es können keine Daten für die angegebenen Einstellungen angezeigt werden. Bitte wählen Sie eine andere Kombination!",
+    "noDataNotice": "Keine Daten zur Ansicht vorhanden",
+    "errorNotice": "Fehler beim Laden von Daten",
+    "editSetupMessage": "Um diesen Bericht anzuzeigen, bearbeiten Sie Ihre Einstellungen.",
+    "incompleteNotice": "Die Berichtskonfiguration ist unvollständig",
+    "setupNotice": "Konfigurieren Sie Ihren Bericht",
+    "totalCount": {
+      "instance": "Gesamtanzahl der Instanzen: <b>{count}</b>",
+      "evaluation": "Gesamtanzahl</br> Evaluierungen: <b>{count}</b>"
+    },
+    "definition": {
+      "process": "Prozessdefinition",
+      "decision": "Entscheidungsdefinition"
+    },
+    "noDefinitionMessage": {
+      "process": "Wählen Sie eine <b>Prozessdefinition</b> aus.",
+      "decision": "Wählen Sie eine <b>Entscheidungsdefinition</b> aus."
+    },
+    "saveConflict": {
+      "header": "Inkompatible Änderungen",
+      "combined_report": {
+        "header": "Diese Änderungen sind nicht kompatibel mit diesen kombinierten Berichten:",
+        "message": "Warnung: Beim Speichern wird dieser Bericht aus den kombinierten Berichten entfernt."
+      },
+      "alert": {
+        "header": "Diese Änderungen sind nicht kompatibel mit diesen Alarmen:",
+        "message": "Warnung: Beim Speichern werden diese Alarme gelöscht."
+      }
+    },
+    "combinedEmptyMessage": "Um einen Bericht anzuzeigen, wählen Sie bitte einen oder mehrere Berichte aus der Liste aus.",
+    "noViewMessage": "Wählen Sie eine Option für <b>Ansicht</b> aus.",
+    "noGroupByMessage": "Wählen Sie eine Option für <b>Gruppieren nach</b> aus.",
+    "noVisualizationMessage": "Wählen Sie eine Option für <b>Visualisierung</b> aus.",
+    "variables": {
+      "default": "Variablen",
+      "input": "Eingabevariablen",
+      "output": "Ausgabevariablen"
+    },
+    "table": {
+      "noData": "Sie müssen mindestens eine Tabellenspalte aktivieren",
+      "info": "Zeigt <b>{firstRowIndex}</b> bis <b>{lastRowIndex}</b> von <b>{totalRows}</b>",
+      "page": "Seite",
+      "of": "von",
+      "rows": "Zeilen pro Seite",
+      "relativeFrequency": "Relative Frequenz",
+      "rawData": {
+        "processDefinitionKey": "Prozess Definitions Schlüssel",
+        "processDefinitionId": "Prozess Definitions Id",
+        "processInstanceId": "Prozess Instanz Id",
+        "decisionDefinitionKey": "Entscheidungs Definitions Schlüssel",
+        "decisionDefinitionId": "Entscheidungs Definitions Id",
+        "decisionInstanceId": "Entscheidungs Instanz Id",
+        "evaluationDateTime": "Auswertungszeitpunkt",
+        "businessKey": "Fachlicher Schlüssel",
+        "startDate": "Startdatum",
+        "endDate": "Enddatum",
+        "duration": "Dauer",
+        "engineName": "Engine Name",
+        "tenantId": "Mandanten Id",
+        "variable": "Var",
+        "inputVariable": "EingabeVar",
+        "outputVariable": "AusgabeVar"
+      }
+    },
+    "progressBar": {
+      "invalid": "Ungültige Konfiguration",
+      "goal": "Ziel"
+    },
+    "combined": {
+      "multiSelect": {
+        "available": "Verfügbare Berichte:",
+        "selected": "Ausgewählte Berichte:",
+        "search": "Suche nach Berichten",
+        "empty": "Keine Berichte gefunden"
+      }
+    },
+    "config": {
+      "buttonTooltip": "Konfigurationsoptionen",
+      "reset": "Zurücksetzen auf Standardwerte",
+      "showCount": {
+        "instance": "Instanzanzahl anzeigen",
+        "evaluation": "Zeige Evaluierungsanzahl"
+      },
+      "aggregation": {
+        "userTaskLegend": "Benutzeraufgabendauer",
+        "durationLegend": "Daueraggregationen",
+        "variableLegend": "Variablenaggregationen",
+        "sum": "Summe",
+        "min": "Minimum",
+        "avg": "Durchschnitt",
+        "median": "Median",
+        "max": "Maximum"
+      },
+      "aggregationShort": {
+        "sum": "Se",
+        "min": "Min",
+        "avg": "Durchschn",
+        "median": "Med",
+        "max": "Max"
+      },
+      "userTaskDuration": {
+        "idle": "Wartezeit",
+        "work": "Arbeitszeit",
+        "total": "Summe"
+      },
+      "userTaskDistributedBy": "Aufgeteilt nach",
+      "visibleNodes": {
+        "legend": "Anzuzeigende Prozessknoten anpassen",
+        "btn": "Prozessknoten auswählen....",
+        "modal": {
+          "title": "Prozessknoten auswählen",
+          "description": "Ausgewählte Knoten erscheinen in der Visualisierung."
+        }
+      },
+      "colorPicker": {
+        "legend": "Farbe"
+      },
+      "tooltips": {
+        "legend": "Tooltips",
+        "showRelative": {
+          "process": "Relativen Wert basierend auf der Anzahl der Prozessinstanzen anzeigen",
+          "decision": "Relativen Wert basierend auf der Anzahl der Entscheidungsevaluierungen anzeigen"
+        },
+        "showAbsolute": "Absolutwert anzeigen"
+      },
+      "axisLabels": {
+        "legend": "Achsen-Beschriftungen",
+        "xAxis": "X-Achse Beschriftung",
+        "yAxis": "Y-Achse Beschriftung"
+      },
+      "goal": {
+        "legend": "Ziel",
+        "goalValue": "Zielwert",
+        "baseline": "Grundlinie",
+        "target": "Ziel",
+        "invalidInput": "Muss eine nicht-negative Zahl sein",
+        "lessThanTargetError": "Ziel muss größer als die Grundlinie sein"
+      },
+      "pointMarkers": {
+        "legend": "Linienpunkte",
+        "enableMarkers": "Punktmarkierungen aktivieren"
+      },
+      "limitPrecision": {
+        "legend": "Genauigkeit begrenzen",
+        "numberOf": {
+          "digits": "Nachkommastellen",
+          "units": "Anzahl der Einheiten"
+        }
+      },
+      "includeTableColumn": "Zu berücksichtigende Tabellenspalten",
+      "includeNewVariables": "Daten von neuen Variablen anzeigen",
+      "showGradientBars": "Verlaufsbalken anzeigen",
+      "bucket": {
+        "buckets": "Buckets",
+        "bucketSize": "Bucket Größe",
+        "baseline": "Grundlinie",
+        "invalidNumber": "Muss eine gültige Zahl sein"
+      }
+    },
+    "viewByGroup": "{view} nach {group}",
+    "missingVariableValue": "nicht definiert",
+    "missingAssignee": "Nicht zugewiesen",
+    "runningEndedFlowNodeWarning": "Bei der Gruppierung nach Enddatum werden nur abgeschlossene Prozessknoten berücksichtigt. Daher zeigt das Setzen des Prozessknoten-Status Filters auf 'laufende Prozessknoten' keine Ergebnisse",
+    "missingVariable": "Fehlende Variable",
+    "nonExistingVariable": "Variable existiert nicht",
+    "nonExistingFlowNode": "Prozessknoten existiert nicht"
+  },
+  "dashboard": {
+    "label": "Dashboard",
+    "label-plural": "Dashboards",
+    "new": "Neues Dashboard",
+    "createNew": "Neues Dashboard Erstellen",
+    "addName": "Dashboard Name",
+    "create": "Dashboard Erstellen",
+    "cannotShare": "Teilen verboten. Fehlende Berechtigung für enthaltenen Report.",
+    "toggleTheme": "Design wechseln",
+    "enterFullscreen": "Vollbildmodus aktivieren",
+    "leaveFullscreen": "Vollbildmodus verlassen",
+    "autoRefresh": "Aktualisierunsrate",
+    "saveModal": {
+      "unsaved": "Ungespeichertes Dashboard",
+      "text": "Zum Fortfahren muss das Dashboard gespeichert werden.\nDabei werden auch alle Berichte gespeichert."
+    },
+    "templates": {
+      "blank": "Leeres Dashboard",
+      "processPerformance": "Prozessleistungsübersicht",
+      "processPerformance_subTitle": "Prozessentwicklungen und -Dauern",
+      "humanPerformance": "Benutzeraufgabenübersicht",
+      "humanPerformance_subTitle": "Benutzeraufgabenanzahlen und -Dauern",
+      "totalInstances": "Alle Instanzen",
+      "avgDuration": "Durchschnittliche Instanzdauer",
+      "instanceTrends": "Instanzentwicklungen",
+      "durationTrends": "Instanzdauerentwicklungen",
+      "flownodeFrequency": "Prozessknotenfrequenz",
+      "flownodeDuration": "Prozessknotendauer",
+      "idleTime": "Wartezeit",
+      "workTime": "Arbeitszeit",
+      "tasksStarted": "Gestartete Aufgaben pro Monat",
+      "tasksCompleted": "Abgeschlossene Aufgaben pro Monat"
+    },
+    "addButton": {
+      "addReport": "Einen Report hinzufügen",
+      "selectReport": "Report auswählen",
+      "addExternal": "Externe Quelle hinzufügen",
+      "addReportLabel": "Report hinzufügen",
+      "selectReportPlaceholder": "Einen Report auswählen",
+      "noReports": "Es wurden noch keine Berichte erstellt",
+      "externalUrl": "Externe URL"
+    },
+    "noAuthorization": "Fehlende Berechtigung",
+    "noReportAccess": "Kein Zugriff auf Report",
+    "filter": {
+      "viewButtonText": "Berichtsfilter",
+      "label": "Berichtsfilter hinzufügen",
+      "viewLabel": "Berichtsdaten filtern",
+      "disabledVariable": "Variablenfilter sind nur für Dashboards mit mindestens einem Bericht verfügbar.",
+      "disabledAssignee": "Bearbeiter- und Potenzielle Gruppen-Filter sind nur für Dashboards mit mindestens einem Bericht verfügbar.",
+      "resetAll": "Alle zurücksetzen",
+      "operatorLink": "Werte werden durch {operator} verknüpft",
+      "multiple": "mehrere",
+      "selectValue": "Variablenwert auswählen",
+      "modal": {
+        "pretext": {
+          "Date": "Datumsauswahl wird im resultierenden Filter verfügbar sein.",
+          "Boolean": "Wahr und Falsch Werte werden im resultierenden Filter verfügbar sein.",
+          "default": "Ausgewählte Optionen werden im resultierenden Filter verfügbar sein.",
+          "flowNodeData": "Der Filter berücksichtigt Prozessknoten Daten."
+        },
+        "allowCustomValues": "Betrachter können Filterwerte hinzufügen"
+      },
+      "types": {
+        "state": "Instanzstatus",
+        "startDate": "Startdatum",
+        "endDate": "Enddatum",
+        "variable": "Variable",
+        "runningInstancesOnly": "Laufend",
+        "completedInstancesOnly": "Abgeschlossen",
+        "canceledInstancesOnly": "Abgebrochen",
+        "nonCanceledInstancesOnly": "Nicht Abgebrochen",
+        "suspendedInstancesOnly": "Suspendiert",
+        "nonSuspendedInstancesOnly": "Nicht Suspendiert"
+      },
+      "date": {
+        "last": "Letzte(n/s)",
+        "this": "Diese(n/s)",
+        "units": {
+          "weeks": "Woche",
+          "months": "Monat",
+          "years": "Jahr",
+          "quarters": "Quartal"
+        }
+      }
+    }
+  },
+  "alert": {
+    "label": "Alarm",
+    "label-plural": "Alarme",
+    "createNew": "Neuen Alarm erstellen",
+    "newAlert": "Neuer Alarm",
+    "edit": "Alarm bearbeiten",
+    "recipient": "Empfänger",
+    "description": "\"{name}\" hat einen Wert {aboveOrBelow} {thresholdValue}",
+    "emailWarning": "Der E-Mail-Benachrichtigungsdienst ist nicht konfiguriert. Optimize kann Sie nicht über kritische Werte informieren. Lesen Sie in der <a href='{docsLink}'>Optimize Dokumentation</a> nach, wie Sie den Benachrichtigungsdienst aktivieren.",
+    "form": {
+      "name": "Alarm Name",
+      "report": "Wenn der Bericht",
+      "reportPlaceholder": "Bericht auswählen",
+      "noReports": "Es wurden keine kompatiblen Berichte erstellt",
+      "reportInfo": "Alarme sind nur für Berichte verfügbar, die eine einzelne Zahl darstellen",
+      "threshold": "Hat einen Wert",
+      "frequency": "Bericht prüfen, jede",
+      "email": "Schicke eine E-Mail an",
+      "webhook": "An externes System senden",
+      "emailPlaceholder": "Trennen Sie E-Mail-Adressen durch Eingabetaste oder Leertaste",
+      "webookPlaceholder": "Zielsystem",
+      "sendNotification": "Benachrichtigung senden, wenn gelöst",
+      "reminder": "Erinnerung senden",
+      "reminderFrequency": "jede",
+      "emailThreshold": "Bis zu 20 Empfänger können hinzugefügt werden",
+      "invalidEmail": "Ungültige E-Mail hinzugefügt",
+      "value": "Berichtswert: {value}"
+    },
+    "apply": "Änderungen übernehmen",
+    "create": "Alarm erstellen",
+    "notCreated": "Es wurden noch keine Alarme erstellt",
+    "inactiveStatus": "Alarm inaktiv",
+    "activateInfo": "Zum Aktivieren fügen Sie eine E-Mail oder ein Zielsystem hinzu"
+  },
+  "analysis": {
+    "branchAnalysis": "Verlaufsanalyse",
+    "outlier": {
+      "label": "Ausreißeranalyse",
+      "totalInstances": "Instanzen insgesamt",
+      "tooltip": {
+        "outlier": {
+          "label": "Ausreißer",
+          "label-plural": "Ausreißer"
+        },
+        "tookDuration": "Benötigte eine Dauer von"
+      },
+      "notFound": "Keine Ausreißer für den ausgewählten Prozess gefunden",
+      "onlyCompletedHint": "Hinweis: Die Ausreißeranalyse wird nur für abgeschlossene Knoten durchgeführt",
+      "info": "Die Heatmap zeigt die Häufigkeit nach oben abweichender Ausreißer basierend auf der Dauer an. Berechnet mit dem Z-Score.",
+      "tooltipText": {
+        "singular": "{count} Instanz hat {percentage}% länger gedauert als der Durchschnitt.",
+        "plural": "{count} Instanzen haben {percentage}% länger gedauert als der Durchschnitt."
+      },
+      "detailsModal": {
+        "title": "Ausreißer von {name} Prozessknoten",
+        "durationChart": "Laufzeitverteilungsdiagramm",
+        "variablesTable": "Tabelle der signifikanten Variablenwerte",
+        "axisLabels": {
+          "duration": "Dauer",
+          "instanceCount": "Instanzanzahl"
+        },
+        "table": {
+          "emptyTableMessage": "Es wurden keine signifikanten Variablenwerte unter den Ausreißerinstanzen gefunden",
+          "outliersNumber": "Anzahl der Ausreißerinstanzen",
+          "ofTotalPercentage": "% aller Instanzen",
+          "ofOutliersPercentage": "% der Ausreißerinstanzen"
+        }
+      }
+    },
+    "selectLabel": "Für",
+    "gatewayLabel": "analysieren, wie der Verlauf von",
+    "endEventLabel": "die Wahrscheinlichkeit beeinflusst, dass dieses Endereignis erreicht wird:",
+    "emptySelectionLabel": {
+      "gateway": "Gateway auswählen",
+      "endEvent": "Endereignis auswählen"
+    },
+    "instructionMessage": "Bitte wählen Sie eine Prozessdefinition, ein Gateway und ein Endereignis aus, um die Analyse durchzuführen.",
+    "noInstances": "Keine Instanzen im aktuellen Filter haben das ausgewählte Gateway passiert.",
+    "gatewayInstances": "Von allen <b>{totalGateway} Instanzen</b>, die das Gateway <i>{gatewayName}</i> passiert haben",
+    "branchDistribution": "<b>{count}</b> nahmen ({branchPercentage}%) den <i>{key}</i> Verlauf, <b>{reached}</b> ({reachedEndPercentage}%) von denen erreichten dann das Endereignis <i>{endEventName}</i>",
+    "gatewayDistribution": "Verteilung von Instanzen am Gateway <i>{gatewayName}</i>:",
+    "endEventProbability": "Wahrscheinlichkeit, das Endereignis <i>{endEventName}</i> zu erreichen bei diesem Verlauf:",
+    "tooltip": {
+      "totalInstances": "Prozessinstanzen insgesamt",
+      "reachedEnd": "Prozessinstanzen, die diesen Stand erreicht haben",
+      "reachedEndPercentage": "von Prozessinstanzen, die diesen Status erreicht haben"
+    }
+  },
+  "common": {
+    "name": "Name",
+    "edit": "Bearbeiten",
+    "editName": "{name} bearbeiten",
+    "delete": "Löschen",
+    "deleteEntity": "{entity} Löschen",
+    "remove": "Entfernen",
+    "removeEntity": "{entity} entfernen",
+    "save": "Speichern",
+    "saveContinue": "Speichern und Fortfahren",
+    "update": "Aktualisieren",
+    "apply": "Anwenden",
+    "cancel": "Abbrechen",
+    "reset": "Zurücksetzen",
+    "close": "Schließen",
+    "add": "Hinzufügen",
+    "copy": "Kopieren",
+    "change": "Ändern",
+    "export": "Exportieren",
+    "importJSON": "JSON Importieren",
+    "copyName": "{name} kopieren",
+    "copyLabel": "Kopie",
+    "condition": "Bedingung",
+    "saving": "Speichern ... ",
+    "creating": "Erstellen ...",
+    "select": "Auswählen ...",
+    "enableAll": "Alle aktivieren",
+    "disableAll": "Alle deaktivieren",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Alle abwählen",
+    "enabled": "aktiviert",
+    "disabled": "deaktiviert",
+    "and": "und",
+    "off": "Aus",
+    "none": "Keiner",
+    "nothing": "Nichts",
+    "all": "Alle",
+    "above": "über",
+    "below": "unter",
+    "viewDetails": "Details anzeigen",
+    "notFound": "keine Ergebnisse gefunden",
+    "searchForMore": "Es werden nur {count} Einträge angezeigt. Suche verfeinern.",
+    "goToHome": "zur Homepage",
+    "editAccess": "Zugriff bearbeiten",
+    "id": "ID",
+    "instanceIds": "Instanz IDs",
+    "seeDocs": "Siehe Dokumentation",
+    "undefined": "nicht definiert",
+    "null": "null",
+    "nullOrUndefined": "Null oder nicht definiert",
+    "timeAt": "um",
+    "value": "Wert",
+    "dataSource": "Datenquelle",
+    "selected": "Ausgewählt",
+    "documentation": "Dokumentation",
+    "errors": {
+      "inValidLink": "Dieser Link ist nicht gültig",
+      "postiveNum": "Bitte einen positiven Zahlenwert eingeben"
+    },
+    "instance": {
+      "label": "Instanz",
+      "label-plural": "Instanzen"
+    },
+    "tenant": {
+      "label": "Mandant",
+      "label-plural": "Mandanten"
+    },
+    "processInstance": {
+      "label": "Prozessinstanz",
+      "label-plural": "Prozessinstanzen"
+    },
+    "incident": {
+      "label": "Zwischenfall",
+      "label-plural": "Zwischenfälle",
+      "byFlowNode": "Zwischenfälle nach Prozessknoten"
+    },
+    "flowNode": {
+      "label": "Prozessknoten",
+      "label-plural": "Prozessknoten"
+    },
+    "userTask": {
+      "label": "Benutzeraufgabe",
+      "label-plural": "Benutzeraufgaben"
+    },
+    "multiSelect": {
+      "selectAll": "Alles in Ansicht auswählen",
+      "available": "Verfügbare Elemente",
+      "selected": "Ausgewählte Elemente",
+      "search": "Nach Elementen suchen",
+      "empty": "Keine Elemente gefunden"
+    },
+    "entity": {
+      "type": "Art",
+      "modified": "Zuletzt bearbeitet",
+      "modifiedBy": "Bearbeitet von",
+      "modifiedTitle": "Bearbeitet",
+      "byModifier": "durch {modifier}",
+      "createdBy": "Erstellt von",
+      "viewRawData": "Rohdaten",
+      "viewModel": {
+        "decision": "Entscheidungstabelle",
+        "process": "Prozessmodell"
+      },
+      "namePlaceholder": {
+        "Report": "Berichtsname",
+        "Dashboard": "Dashboard-Name",
+        "Process": "Prozessname"
+      }
+    },
+    "user": {
+      "label": "Benutzer",
+      "label-plural": "Benutzer",
+      "id": "Benutzer ID"
+    },
+    "user-group": {
+      "label": "Nutzergruppe",
+      "label-plural": "Nutzergruppen",
+      "id": "Nutzergruppen ID"
+    },
+    "collection": {
+      "label": "Sammlung",
+      "label-plural": "Sammlungen",
+      "created": "\"{name}\" erstellt",
+      "modal": {
+        "title": {
+          "new": "Neue Sammlung erstellen",
+          "edit": "Sammlungs-Name bearbeiten"
+        },
+        "createBtn": "Sammlung erstellen",
+        "editBtn": "Sammlung bearbeiten",
+        "inputLabel": "Name der Sammlung",
+        "defaultName": "Neue Sammlung"
+      },
+      "addUserModal": {
+        "searchPlaceholder": "Suche nach Name, E-Mail oder ID ..."
+      }
+    },
+    "sharing": {
+      "buttonTitle": "Teilen",
+      "disabled": "Teilen ist per Konfiguration deaktiviert",
+      "popoverTitle": "Teilen aktivieren",
+      "notification": "Link in die Zwischenablage kopiert",
+      "inputPlaceholder": "Aktivieren Sie Teilen, um den Link zu erzeugen",
+      "filtersLabel": "Mit aktuellen Filtern teilen",
+      "copyLabel": "Link kopieren",
+      "embedLabel": "Link einbetten",
+      "openInOptimize": "In Optimize Öffnen"
+    },
+    "filter": {
+      "label": "Filter",
+      "tooltip": {
+        "instance": "Prozessinstanzfilter geben Daten von Prozessinstanzen zurück, die der Filteranforderung entsprechen. Wenn der Filter auf einem Prozessknoten basiert, zeigen die zurückgegebenen Daten alle Fälle an, in denen dieser Prozessknoten ausgelöst wurde.",
+        "view": "Prozessknoten-Filter geben nur Daten von Prozessknoten zurück, bei denen der Prozessknoten oder seine Eigenschaft den Filteranforderungen entsprechen. Am nützlichsten in Prozessknoten- und Benutzeraufgaben-Ansichten."
+      },
+      "types": {
+        "instanceState": "Instanzstatus",
+        "runningInstancesOnly": "Nur laufende Instanzen",
+        "completedInstancesOnly": "Nur abgeschlossene Instanzen",
+        "canceledInstancesOnly": "Nur abgebrochene Instanzen",
+        "nonCanceledInstancesOnly": "Nur nicht abgebrochene Instanzen",
+        "suspendedInstancesOnly": "Nur suspendierte Instanzen",
+        "nonSuspendedInstancesOnly": "Nur nicht suspendierte Instanzen",
+        "date": "Datum",
+        "assignee": "Bearbeiter",
+        "candidateGroup": "Potenzielle Gruppe",
+        "startDate": "Startdatum",
+        "endDate": "Enddatum",
+        "duration": "Dauer",
+        "instance": "Prozessinstanz",
+        "instanceDuration": "Dauer der Prozessinstanz",
+        "flowNodeDuration": "Prozessknoten Dauer",
+        "variable": "Variable",
+        "flowNode": "Prozessknoten",
+        "evaluationDateTime": "Evaluierungszeitpunkt",
+        "inputVariable": "Eingangsvariable",
+        "outputVariable": "Ausgabevariable",
+        "incident": "Zwischenfälle",
+        "includesOpenIncident": "mit offenen Zwischenfällen",
+        "includesResolvedIncident": "mit gelösten Zwischenfällen",
+        "openIncident": "Offene Zwischenfälle",
+        "resolvedIncident": "Gelöste Zwischenfälle",
+        "doesNotIncludeIncident": "ohne Zwischenfälle",
+        "flowNodeStatus": "Prozessknoten-Status",
+        "runningFlowNodesOnly": "Nur laufende Prozessknoten",
+        "completedFlowNodesOnly": "Nur abgeschlossene Prozessknoten",
+        "canceledFlowNodesOnly": "Nur abgebrochene Prozessknoten",
+        "completedOrCanceledFlowNodesOnly": "Nur abgeschlossene oder abgebrochene Prozessknoten"
+      },
+      "list": {
+        "operators": {
+          "isBetween": "liegt zwischen",
+          "between": "zwischen",
+          "more": "ist mehr als",
+          "less": "ist weniger als",
+          "greater": "ist größer als",
+          "is": "ist",
+          "was": "wurde",
+          "were": "wurden",
+          "not": "ist nicht",
+          "neither": "ist weder",
+          "nor": "noch",
+          "or": "oder",
+          "and": "und",
+          "occurs": "ist",
+          "contains": "enthält",
+          "notContains": "enthält nicht"
+        }
+      },
+      "modalHeader": "{type} Filter",
+      "addFilter": "Filter hinzufügen",
+      "updateFilter": "Filter ändern",
+      "dateModal": {
+        "endDateWarning": "Berichte mit einem aktiven Enddatumsfilter zeigen nur abgeschlossene Instanzen an.",
+        "info": {
+          "startDate": "Prozessinstanzen <b>gestartet</b>",
+          "endDate": "Prozessinstanzen <b>beendet</b>",
+          "evaluationDateTime": "Entscheidungsinstanzen <b>evaluierte</b>"
+        },
+        "invalidInput": "Bitte geben Sie einen positiven ganzzahligen Wert ein",
+        "to": "bis",
+        "invalidDate": "Bitte gültiges Datum eingeben",
+        "preview": {
+          "this": {
+            "week": "In der aktuellen",
+            "all": "In dem aktuellen"
+          },
+          "last": {
+            "week": "In der letzten",
+            "plural": "In den letzten",
+            "all": "In dem letzten"
+          },
+          "completed": {
+            "week": "abgeschlossenen",
+            "all": "abgeschlossenen"
+          }
+        },
+        "unit": {
+          "today": "Heute",
+          "yesterday": "Gestern",
+          "fixed": "Festes Datum",
+          "this": "Diese(n/s)...",
+          "last": "Letzte(n/s)...",
+          "custom": "Gleitend"
+        },
+        "rollingInfo": "Hinweis: Der gleitende Zeitraum wird bis zum aktuellen Zeitpunkt berechnet",
+        "last": "Letzten"
+      },
+      "variableModal": {
+        "inputLabel": "Variablenname",
+        "inputPlaceholder": "Variable auswählen oder suchen",
+        "noVariables": "Keine Variablen gefunden",
+        "loadMore": "Mehr anzeigen",
+        "bool": {
+          "true": "ist wahr",
+          "false": "ist falsch",
+          "isNullOrUndefined": "ist null oder nicht definiert"
+        },
+        "enterValue": "Einen einzigen Wert eingeben",
+        "enterMultipleValues": "Mehrere Werte durch Trennen mit einem Tabulator eingeben",
+        "addValue": "Wert hinzufügen",
+        "invalidInput": "Eingabe muss eine Zahl sein",
+        "multiSelect": {
+          "header": "Variable Werte",
+          "search": "Suche nach Werten",
+          "empty": "Keine Werte gefunden"
+        },
+        "includeUndefined": "Schließen Sie Instanzen ein, in denen die ausgewählte Variable entweder <b>null</b> oder <b>nicht definiert</b> ist",
+        "excludeUndefined": "Schließen Sie Instanzen aus, in denen die ausgewählte Variable entweder <b>null</b> oder <b>nicht definiert</b> ist.",
+        "customValue": "Benutzerdefinierten Wert hinzufügen",
+        "addToList": "Zur Liste hinzufügen",
+        "addedToList": "Wert der Liste hinzugefügt"
+      },
+      "durationModal": {
+        "includeInstance": "Berücksichtigen Sie nur Prozessinstanzen, die gelaufen sind für ...",
+        "moreThan": "mehr als",
+        "lessThan": "weniger als"
+      },
+      "nodeModal": {
+        "executedFlowNodes": "Laufend, Abgebrochen oder Beendet",
+        "notExecutedFlowNodes": "Nicht ausgeführt",
+        "canceledFlowNodes": "Abgebrochen",
+        "executingFlowNodes": "Laufend",
+        "preview": {
+          "executedFlowNodes": "Laufende, Abgebrochene oder Beendete Prozessknoten",
+          "notExecutedFlowNodes": "Nicht ausgeführte Prozessknoten",
+          "canceledFlowNodes": "Abgebrochene Prozessknoten",
+          "executingFlowNodes": "Laufende Prozessknoten"
+        }
+      },
+      "assigneeModal": {
+        "includeOnly": "Nur einschließen",
+        "excludeOnly": "Nur ausschließen",
+        "type": {
+          "assignee": "Bearbeiter",
+          "candidateGroup": "Potenzielle Gruppe"
+        },
+        "unassigned": "Nicht zugewiesen",
+        "selectValue": "Filter für ID"
+      },
+      "dropdownLabel": {
+        "instance": "Prozessinstanzen filtern",
+        "view": "Prozessknoten-Daten filtern",
+        "decision": "Entscheidungsevaluierungen filtern"
+      },
+      "allVisible": {
+        "instance": "Alle Instanzen sichtbar",
+        "view": "Alle Prozessknoten-Daten sichtbar",
+        "decision": "Alle Evaluierungen sichtbar"
+      },
+      "linkingTip": "Filter sind durch 'und' Logik verbunden",
+      "incompatibleFilters": "Es werden keine Daten angezeigt, da diese Filter nicht miteinander kombinierbar sind.",
+      "instanceFilter": "Prozessinstanzen Filter",
+      "decisionFilter": "Entscheidungsevaluierungen Filter",
+      "flowNodeFilter": "Prozessknoten-Daten Filter"
+    },
+    "definitionSelection": {
+      "latest": "Neueste",
+      "multiple": "Mehrere",
+      "noDefinition": "Keine Definitionen gefunden",
+      "select": {
+        "process": "Prozess auswählen",
+        "decision": "Entscheidung auswählen"
+      },
+      "version": {
+        "label": "Version",
+        "alwaysLatest": "Immer Neueste anzeigen",
+        "specific": {
+          "label": "Spezifische Version",
+          "label-plural": "Spezifische Versionen"
+        }
+      },
+      "tenant": {
+        "includeData": "Daten einschließen von",
+        "notDefined": "Nicht definiert"
+      },
+      "versionWarning": "Hinweis: Daten aus älteren Versionen können abweichen, daher können die Berichtsdaten inkonsistent sein.",
+      "noSourcesWarning": "Um die Auswahl zu aktivieren, müssen der Sammlung Datenquellen hinzugefügt werden."
+    },
+    "deleter": {
+      "types": {
+        "report": "Bericht",
+        "combined_report": "Bericht",
+        "dashboard": "Dashboard",
+        "alert": "Alarm",
+        "user": "Benutzer",
+        "group": "Gruppe",
+        "source": "Datenquelle",
+        "collection": "Sammlung",
+        "process": "Prozess",
+        "processEvents": "Prozessevents",
+        "ingestedEvents": "Events"
+      },
+      "permanent": "'{name}' {type} wird entgültig gelöscht.",
+      "noUndo": "Warnung: Diese Aktion kann nicht rückgängig gemacht werden.",
+      "affectedMessage": {
+        "process": {
+          "alert": "Diese Alarme werden gelöscht:",
+          "combined_report": "Die gelöschten Berichte werden aus diesen kombinierten Berichten entfernt:",
+          "dashboard": "Die gelöschten Berichte werden aus diesen Dashboards entfernt:",
+          "report": "Diese Berichte werden gelöscht:"
+        },
+        "source": {
+          "alert": "Diese Alarme werden gelöscht:",
+          "combined_report": "Die gelöschten Berichte werden aus diesen kombinierten Berichten entfernt:",
+          "dashboard": "Die gelöschten Berichte werden aus diesen Dashboards entfernt:",
+          "report": "Diese Berichte werden aus der Sammlung gelöscht:"
+        },
+        "report": {
+          "combined_report": "Der Bericht wird aus diesen kombinierten Berichten entfernt:",
+          "dashboard": "Der Bericht wird aus diesen Dashboards entfernt:",
+          "alert": "Diese Alarme werden gelöscht:"
+        }
+      },
+      "areYouSure": "Sind Sie sicher, dass Sie fortfahren möchten?"
+    },
+    "unit": {
+      "automatic": "Automatisch",
+      "milli": {
+        "label": "Millisekunde",
+        "label-plural": "Millisekunden "
+      },
+      "second": {
+        "label": "Sekunde",
+        "label-plural": "Sekunden"
+      },
+      "minute": {
+        "label": "Minute",
+        "label-plural": "Minuten"
+      },
+      "hour": {
+        "label": "Stunde",
+        "label-plural": "Stunden"
+      },
+      "day": {
+        "label": "Tag",
+        "label-plural": "Tage"
+      },
+      "week": {
+        "label": "Woche",
+        "label-plural": "Wochen"
+      },
+      "month": {
+        "label": "Monat",
+        "label-plural": "Monate"
+      },
+      "quarter": {
+        "label": "Quartal",
+        "label-plural": "Quartale"
+      },
+      "year": {
+        "label": "Jahr",
+        "label-plural": "Jahre"
+      },
+      "thousand": {
+        "label": "Tausend",
+        "label-plural": "Tausend"
+      },
+      "million": {
+        "label": "Million",
+        "label-plural": "Millionen"
+      },
+      "billion": {
+        "label": "Milliarde",
+        "label-plural": "Milliarden"
+      },
+      "trillion": {
+        "label": "Billion",
+        "label-plural": "Billionen"
+      },
+      "quadrillion": {
+        "label": "Billiarde",
+        "label-plural": "Billiarden"
+      },
+      "quintillion": {
+        "label": "Trillion",
+        "label-plural": "Trillionen"
+      }
+    }
+  },
+  "apiErrors": {
+    "serverError": "Es ist ein interner Server Fehler aufgetreten.",
+    "conflict": "Die Änderung konnten aufgrund von Konflikten nicht ausgeführt werden.",
+    "reportConflict": "Die Änderung am Bericht konnte aufgrund von Konflikten nicht ausgeführt werden.",
+    "collectionConflict": "Die Änderung an der Sammlung konnte aufgrund von Konflikten nicht ausgeführt werden.",
+    "invalidDashboardVariableFilter": "Dashboard konnte nicht gespeichert werden, da ein oder mehrere Variablenfilter nicht mehr gültig sind. Berichte könnten geändert worden sein seitdem der Variablenfilter hinzugefügt wurde.",
+    "sharingNotAllowed": "Teilen nicht möglich, da diese Funktion momentan gesperrt ist.",
+    "reportEvaluationError": "Der Bericht konnte nicht evaluiert werden.",
+    "reportsNotCombinable": "Die ausgewählten Berichte sind nicht miteinander kombinierbar.",
+    "forbiddenError": "Ihnen fehlt die Befugnis, diese Aktion auszuführen.",
+    "notAuthorizedError": "Sie konnten nicht authentifiziert werden, bitte überprüfen Sie Ihren Benutzernamen und Passwort.",
+    "notFoundError": "Der Server konnte die angeforderte Seite oder Datei nicht finden.",
+    "badRequestError": "Der Server konnte Ihre Anfrage nicht verarbeiten.",
+    "nonTenantScopeCompliantConflict": "Die Aktion konnte auf Grund von Konflikten mit der Datenquelle der zugehörigen Sammlung nicht durchgeführt werden. Die Definition des Berichts ist in der Datenquelle definiert, jedoch ist mindestens ein Mandant des Berichts nicht in der Datenquelle vorhanden.",
+    "nonDefinitionScopeCompliantConflict": "Die Aktion konnte auf Grund von Konflikten mit der Datenquelle der zugehörigen Sammlung nicht durchgeführt werden. Die Definition des Berichts ist nicht in der Datenquelle der Sammlung vorhanden.",
+    "invalidLicenseError": "Die gegebene Lizenz ist ungültig.",
+    "noLicenseStoredError": "Derzeit ist keine Lizenz in Optimize vorhanden. Bitte fügen Sie eine gültige Lizenz hinzu.",
+    "invalidEventProcessState": "Diese Aktion kann im aktuellen Zustand des Eventbasierten Prozesses nicht ausgeführt werden.",
+    "userOrGroupIdNotFound": "Die gegebene Benutzer- oder Gruppen-ID konnte nicht in Optimize gefunden werden.",
+    "tooManyBuckets": "Der Bericht konnte nicht evaluiert werden, da das Ergebnis mehr als 10.000 Datenpunkte enthält. Bitte nutzen Sie Filter oder änderen Sie die konfigurierte Bucket Größe, um die Anzahl der Datenpunkte des Ergebnisses zu verringern.",
+    "elasticsearchError": "Es ist ein Fehler in Elasticsearch aufgetreten. Bitte kontaktieren Sie einen Administrator falls dieses Problem längerfristig besteht.",
+    "importDefinitionDoesNotExist": "Import fehlgeschlagen, weil die zu importierende Entität auf Definitionen basiert, die nicht existieren.",
+    "importIndexVersionMismatch": "Import fehlgeschlagen, weil die Datenstruktur der zu importierenden Entität nicht mit der aktuellen Datenstruktur übereinstimmt. Bitte migrieren Sie die Daten vor dem Export, um sicher zu stellen, dass die Optimize Version übereinstimmt.",
+    "importDefinitionForbidden": "Import fehlgeschlagen, weil Ihnen die Befugnis für eine oder mehrere Definitionen, auf denen die zu importierende Entität basiert, fehlt.",
+    "importFileInvalid": "Import fehlgeschlagen, weil die ausgewählte Datei ungültig ist. Es können nur von Optimize exportierte JSON-Dateien importiert werden."
+  }
+}
