@@ -1,7 +1,7 @@
 var express = require('express');
 const axios = require('axios');
 var router = express.Router();
-const { Controller, Executor } = require('../../src/index')
+const { Controller, Executor } = require('../../index')
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
