@@ -2,6 +2,7 @@ var axios = require("axios").default;
 var moment = require('moment');
 const { Event } = require('./event')
 const { Common } = require('./common')
+const { v4: uuidv4 } = require('uuid');
 
 const Worker = {
   /**
@@ -111,6 +112,7 @@ const Worker = {
       "type": "String"
     }
 
+    //event.data.caseInstanceId = uuidv4()
 
     const basePath = process.env.PROCESS_ENGINE
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
@@ -123,27 +125,25 @@ const Worker = {
     })
   },
 
-  startTask: async ({ task, controller, messages }) => {
+  startTask: async ({ task, controller }) => {
     let workerId = Worker.getAttribute({ task, ...controller, key: "RESOURCE" })
     let completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
 
-    const start = async (workerId) => {
-      console.log(" -- start task")
-      messages.push(" -- start task")
+    const start = async (workerId) => {       
       try {
 
         const obj = {
           "modifications": {
           }
         }
-    
+
         obj.modifications[`${task.id}_startTime`] = {
           "value": new Date(parseInt(controller.clock)).toISOString(),
           "type": "String"
         }
 
         let response = await axios.post(`http://localhost:8080/engine-rest/process-instance/${task.processInstanceId}/variables`,
-           obj)
+          obj)
         if (response.status !== 204) throw new Error("could not update variables on process while starting task")
 
 
@@ -182,7 +182,6 @@ const Worker = {
       const timestamp = moment.unix(completionTime);
       const m = ` -- start task: Worker unavailable -> Reschedule to ${timestamp.format("HH:mm:ss")}`
       console.log(m)
-      messages.push(m)
       return { task, startTime: completionTime, type: "start task" }
     }
 

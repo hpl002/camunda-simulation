@@ -1,32 +1,35 @@
 var moment = require('moment');
 const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('../src/helpers/index.js')
+const { Mongo } = require("./mongo/index.js")
+const { v4: uuidv4 } = require('uuid');
 const Executor = {
   execute: async (controller) => {
-    const messages = []
-
+    const runIdentifier = uuidv4()
+    const mongo = new Mongo({ collection: runIdentifier })
     while (controller.getPendingEventsLength() !== 0) {
       let { time, arr } = controller.popNextPendingEvent()
-      const timestamp = moment.unix(time);
-      messages.push("Executing event at time", timestamp.format("HH:mm:ss"))
-      console.info("Executing event at time", timestamp.format("HH:mm:ss"))
+      let timestamp = moment.unix(time);
+      timestamp = timestamp.format("HH:mm:ss")       
       controller.setSimulationTime(time)
       while (arr.length !== 0) {
         const event = arr.pop()
         if (event.type === "start process") {
           const { data } = await Worker.startProcess({ event, controller })
           await Worker.fetchAndAppendNewTasks({ processInstanceId: data.id, controller })
-          messages.push(" -- start process")
-          console.log(" -- start process")
+          await mongo.add({ case_id: data.id, activity_id: "start", activity_start: timestamp, activity_end: timestamp, activity_type: "start" })
         }
         else if (event.type === "start task") {
-          const { startTime, task, type } = await Worker.startTask({ task: event.task, controller, messages })           
-          controller.addEvent({ startTime, event: new Event({ task, type }) })           
+          const data = await Worker.startTask({ task: event.task, controller})
+          const { startTime, task, type } = data
+          await mongo.add({ case_id: task.processInstanceId, activity_id: task.activityId, activity_start: timestamp, resource_id: task.workerId })
+          controller.addEvent({ startTime, event: new Event({ task, type }) })
         }
         else if (event.type === "complete task") {
           await Worker.completeTask({ ...event, controller })
+          const { task } = event
+
+          await mongo.add({ case_id: task.processInstanceId, activity_id: task.activityId, activity_end: timestamp, resource_id: task.workerId })           
           await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
-          console.log(" -- complete task")
-          messages.push(" -- complete task")
         }
         else {
           throw new Error("could not read event type")
@@ -34,10 +37,8 @@ const Executor = {
 
       };
       controller.deleteEvent(time)
-    }
-    console.log(" -- simulation terminated")
-    messages.push(" -- simulation terminated")
-    return messages
+    }     
+    return {"collection_identifier":runIdentifier}
   }
 }
 
