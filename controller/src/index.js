@@ -8,8 +8,7 @@ const Executor = {
     const mongo = new Mongo({ collection: runIdentifier })
     while (controller.getPendingEventsLength() !== 0) {
       let { time, arr } = controller.popNextPendingEvent()
-      let timestamp = moment.unix(time);
-      timestamp = timestamp.format("HH:mm:ss")       
+      let timestamp = moment(parseInt(time)).format("YYYY-MM-DD HH:mm:ss")
       controller.setSimulationTime(time)
       while (arr.length !== 0) {
         const event = arr.pop()
@@ -19,7 +18,7 @@ const Executor = {
           await mongo.add({ case_id: data.id, activity_id: "start", activity_start: timestamp, activity_end: timestamp, activity_type: "start" })
         }
         else if (event.type === "start task") {
-          const data = await Worker.startTask({ task: event.task, controller})
+          const data = await Worker.startTask({ task: event.task, controller })
           const { startTime, task, type } = data
           await mongo.add({ case_id: task.processInstanceId, activity_id: task.activityId, activity_start: timestamp, resource_id: task.workerId })
           controller.addEvent({ startTime, event: new Event({ task, type }) })
@@ -28,7 +27,7 @@ const Executor = {
           await Worker.completeTask({ ...event, controller })
           const { task } = event
 
-          await mongo.add({ case_id: task.processInstanceId, activity_id: task.activityId, activity_end: timestamp, resource_id: task.workerId })           
+          await mongo.add({ case_id: task.processInstanceId, activity_id: task.activityId, activity_end: timestamp, resource_id: task.workerId })
           await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
         }
         else {
@@ -37,8 +36,8 @@ const Executor = {
 
       };
       controller.deleteEvent(time)
-    }     
-    return {"collection_identifier":runIdentifier}
+    }
+    return { "collection_identifier": runIdentifier }
   }
 }
 
@@ -49,7 +48,7 @@ class Contoller {
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID
-    this.resourceArr = [new Resource({ id: "walker" })]
+    this.resourceArr = [new Resource({ id: "walker" }), new Resource({ id: "walker" })]
     this.attributesMap = {}
   }
 
@@ -67,7 +66,12 @@ class Contoller {
         const frequencyAsSeconds = Common.isoToSeconds(frequency)
         for (let index = 0; index < amount; index++) {
           //First event in list always set at time zero (do not offset first event from clock init)
-          startTime = Object.keys(this.pendingEvents) === 0 ? this.clock : startTime + frequencyAsSeconds
+          if (Object.keys(this.pendingEvents.pendingEvents).length === 0) {
+            startTime = this.clock
+          }
+          else {
+            startTime = startTime + frequencyAsSeconds
+          }
           this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
         }
       }
@@ -110,6 +114,7 @@ class Contoller {
   }
 
   setSimulationTime(pTime) {
+    if(typeof pTime === "String") throw new Error("simulation time must be number")
     if (this.clock && pTime < this.clock) {
       throw new Error("simulation clock can only go forwards")
     } else {
