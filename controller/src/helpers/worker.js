@@ -56,7 +56,7 @@ const Worker = {
   },
   getDuration: ({ task, attributesMap }) => {
     let type = Common.getAttribute({ task, attributesMap, key: `DURATION_TYPE` })
-    if(!type) type = ""
+    if (!type) type = ""
     if (type.toUpperCase() === "NORMAL_DISTRIBUTION") {
       return MathHelper.normalDistribution({ task, attributesMap, type: "DURATION" })
     }
@@ -71,7 +71,7 @@ const Worker = {
 
   getWaiting: ({ task, attributesMap }) => {
     let type = Common.getAttribute({ task, attributesMap, key: `WAITING_TYPE` })
-    if(!type) type = ""
+    if (!type) type = ""
     if (type.toUpperCase() === "NORMAL_DISTRIBUTION") {
       return MathHelper.normalDistribution({ task, attributesMap, type: "WAITING" })
     }
@@ -110,18 +110,12 @@ const Worker = {
 
   startProcess: async ({ event, controller }) => {
     const { processID } = controller
-
-    event.data.variables.startTime = {
-      "value": new Date(parseInt(controller.clock)).toISOString(),
-      "type": "String"
-    }
-
     const variableKeys = Object.keys(event.data.variables)
     variableKeys.forEach(key => {
-      if(key.toUpperCase().includes("RANDOM")){
-        event.data.variables[key].type = "integer" 
-        event.data.variables[key].value = Math.round(Math.random()*100)
-      } 
+      if (key.toUpperCase().includes("RANDOM")) {
+        event.data.variables[key].type = "integer"
+        event.data.variables[key].value = Math.round(Math.random() * 100)
+      }
     });
 
     const basePath = process.env.PROCESS_ENGINE
@@ -141,22 +135,7 @@ const Worker = {
 
     const start = async (workerId) => {
       try {
-
-        const obj = {
-          "modifications": {
-          }
-        }
-
-        obj.modifications[`${task.id}_startTime`] = {
-          "value": new Date(parseInt(controller.clock)).toISOString(),
-          "type": "String"
-        }
-
-        let response = await axios.post(`http://localhost:8080/engine-rest/process-instance/${task.processInstanceId}/variables`,
-          obj)
-        if (response.status !== 204) throw new Error("could not update variables on process while starting task")
-
-
+        await Common.refreshRandomVariables({ task })
         task.workerId = workerId
         const body = {
           "workerId": workerId,
@@ -202,23 +181,7 @@ const Worker = {
     if (task.workerId && task.workerId !== "generic-worker") {
       Worker.freeResource({ task, controller })
     }
-
-    const obj = {
-      "modifications": {
-      }
-    }
-
-    obj.modifications[`${task.id}_completeTime`] = {
-      "value": new Date(parseInt(controller.clock)).toISOString(),
-      "type": "String"
-    }
-
     try {
-      let response = await axios.post(`http://localhost:8080/engine-rest/process-instance/${task.processInstanceId}/variables`,
-        obj)
-      if (response.status !== 204) throw new Error("could not update variables on process while starting task")
-
-
       const body = {
         "workerId": task.workerId,
         "variables": {}
