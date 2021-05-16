@@ -15,19 +15,20 @@ const Executor = {
         if (event.type === "start process") {
           const { data } = await Worker.startProcess({ event, controller })
           await Worker.fetchAndAppendNewTasks({ processInstanceId: data.id, controller })
-          await mongo.add({ case_id: data.id, activity_id: "start", activity_start: timestamp, activity_end: timestamp, activity_type: "start" })
+          await mongo.add({ case_id: data.id, activity_id: "start", activity_start: timestamp, activity_end: timestamp})
         }
         else if (event.type === "start task") {
           const data = await Worker.startTask({ task: event.task, controller })
           const { startTime, task, type } = data
-          await mongo.add({ case_id: task.processInstanceId, activity_id: task.activityId, activity_start: timestamp, resource_id: task.workerId })
+          const activity_id = controller.attributesMap[task.activityId].filter(e=>e.name==="DESCRIPTION")[0].value
+          await mongo.add({ case_id: task.processInstanceId, activity_id, activity_start: timestamp, resource_id: task.workerId })
           controller.addEvent({ startTime, event: new Event({ task, type }) })
         }
         else if (event.type === "complete task") {
           await Worker.completeTask({ ...event, controller })
           const { task } = event
-
-          await mongo.add({ case_id: task.processInstanceId, activity_id: task.activityId, activity_end: timestamp, resource_id: task.workerId })
+          const activity_id = controller.attributesMap[task.activityId].filter(e=>e.name==="DESCRIPTION")[0].value
+          await mongo.add({ case_id: task.processInstanceId, activity_id, activity_end: timestamp, resource_id: task.workerId })
           await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
         }
         else {
@@ -50,6 +51,7 @@ class Contoller {
     this.processID = processID
     this.resourceArr = [new Resource({ id: "walker" }), new Resource({ id: "walker" })]
     this.attributesMap = {}
+    this.descriptionsMap = {}
   }
 
   addEvent({ startTime, event }) {
@@ -88,15 +90,13 @@ class Contoller {
 
   async init({ tokens = [] }) {
     this.initPendingEvents({ tokens })
-    await this.initAttributesMap()
-
-  }
-
-
-  async initAttributesMap() {
     const modeler = new ModelReader({ key: this.processID })
-    this.attributesMap = await modeler.init()
+    await modeler.init()
+    this.attributesMap = await modeler.generateAttributesMap()     
   }
+
+
+   
 
 
   popNextPendingEvent() {
