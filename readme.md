@@ -1,4 +1,45 @@
 # deps
+
+# updating the history with simulation times
+ - need to update all realtime timepoints with simulation times in order make it work with camunda optimize
+ - this can hopefully be solved via some slightly clever triggers..
+## tables (all history tables)
+ - variables(created time)
+   - variables are used as a mechanism for pusing simulation relevant timestamps into the database
+   - these variables have no impact on actual routing in the process and should therfore be eliminated once their values have been extracted in the db
+ - process instance(sart, end, duration)
+ - ext task log(timestamp)
+ - detail(time)
+ - actInst(start time, end time, duration)
+
+
+## issues
+ - in what order are the history tables populated?
+ - using triggers migth make this a bit complicated as we have no idea if related data is availabel in other tables at the required point in time
+
+## solution
+ - create a script that manages this for us
+ - 
+
+
+fffffffff
+ - figuring out the relations is not that hard but writing triggers and db jobs in sql eats too much time
+ - this in turn means that the camunda optimze integration will have to wait for another time
+
+In the meantime we can create our own simplistic event log
+ - the event log requires
+ - activity id
+ - start time
+ - end time
+ - resource id
+
+optional
+ - resource description
+ - activity description
+ - cost
+ - blabla
+
+
 ## Camunda
 REST api - https://docs.camunda.org/manual/7.5/reference/rest/
 
