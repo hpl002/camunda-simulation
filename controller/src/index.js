@@ -63,7 +63,7 @@ class Contoller {
       // look at what type of distribution and add elements to list accordingly
       if (type.toUpperCase() === "CONSTANT") {
 
-        const frequencyAsSeconds = Common.isoToSeconds(frequency)
+        const frequencyAsSeconds = Common.isoToMilliseconds(frequency)
         for (let index = 0; index < amount; index++) {
           //First event in list always set at time zero (do not offset first event from clock init)
           if (Object.keys(this.pendingEvents.pendingEvents).length === 0) {

@@ -2,14 +2,14 @@ var moment = require('moment');
 var axios = require("axios").default;
 
 const Common = {
-  isoToSeconds: (pISO) => {
+  isoToMilliseconds: (pISO) => {
     try {
       const r = moment.duration(pISO, moment.ISO_8601).asSeconds()
       if (!Number.isInteger(r)) {
         throw new Error(`could not parse time input to seconds. Expected input in the ISO_8601 format. Received ${pISO}`)
       }
       else {
-        return r
+        return r*1000
       }
     } catch (error) {
       console.error(error)

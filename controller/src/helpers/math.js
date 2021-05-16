@@ -9,8 +9,8 @@ const MathHelper = {
         let sd = Common.getAttribute({ task, attributesMap, key: `${type}_STANDARDDEVIATION` })
 
         
-        mean = Common.isoToSeconds(mean)
-        sd = Common.isoToSeconds(sd)         
+        mean = Common.isoToMilliseconds(mean)
+        sd = Common.isoToMilliseconds(sd)         
         if(sd>mean){
             throw new Error("standard deviation cannot be greater than the mean. Check model", task)
         }  
@@ -31,8 +31,8 @@ const MathHelper = {
         let minDuration = Common.getAttribute({ task, attributesMap, key: `${type}_MINDURATION` })
         let maxDuration = Common.getAttribute({ task, attributesMap, key: `${type}_MAXDURATION` })
 
-        minDuration = Common.isoToSeconds(minDuration)
-        maxDuration = Common.isoToSeconds(maxDuration)
+        minDuration = Common.isoToMilliseconds(minDuration)
+        maxDuration = Common.isoToMilliseconds(maxDuration)
 
         return random.int(minDuration, maxDuration)
     },
@@ -41,7 +41,7 @@ const MathHelper = {
     constant({ task, attributesMap, type }) {
         type = type.toUpperCase()
         let duration = Common.getAttribute({ task, attributesMap, key: `${type}` })
-        return Common.isoToSeconds(duration)
+        return Common.isoToMilliseconds(duration)
     },
 }
 
