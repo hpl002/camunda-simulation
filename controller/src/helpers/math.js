@@ -7,12 +7,16 @@ const MathHelper = {
         type = type.toUpperCase()
         let mean = Common.getAttribute({ task, attributesMap, key: `${type}_MEAN` })
         let sd = Common.getAttribute({ task, attributesMap, key: `${type}_STANDARDDEVIATION` })
-
+        
         mean = Common.isoToSeconds(mean)
-        sd = Common.isoToSeconds(sd)
-
+        sd = Common.isoToSeconds(sd)         
+        if(sd>mean){
+            throw new Error("standard deviation cannot be greater than the mean. Check model", task)
+        }  
         const s = random.normal((mu = mean), (sigma = sd))
-        return Math.round(s())
+        const res = Math.round(s())
+        if(res<0) throw new Error(`normal distribution returned a negative number. Must always be positive, check configuration for task ${task.activityId}`)
+        return res
     },
 
     random({ task, attributesMap, type }) {
