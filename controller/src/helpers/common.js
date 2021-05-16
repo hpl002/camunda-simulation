@@ -14,7 +14,12 @@ const Common = {
         console.error(error)
         throw error
       }
-    }
+    },
+    getAttribute: ({ task, attributesMap, key }) => {
+      let value = attributesMap[task.activityId] || []
+      value = value.filter(e => e.name.toUpperCase() === key)
+      return value?.[0]?.value
+    },
   }
 
   exports.Common = Common;
