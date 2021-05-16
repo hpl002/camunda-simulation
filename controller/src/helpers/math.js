@@ -16,7 +16,7 @@ const MathHelper = {
         }  
          
         const s = random.normal((mu = mean), (sigma = sd))
-
+        //TODO: awaiting fix -> https://github.com/transitive-bullshit/random/issues/30
         let res = Math.round(s())
         while(res<0){
             res = Math.round(s())
