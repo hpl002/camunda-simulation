@@ -2,6 +2,7 @@ var axios = require("axios").default;
 var moment = require('moment');
 const { Event } = require('./event')
 const { Common } = require('./common')
+const { MathHelper } = require('./math')
 const { v4: uuidv4 } = require('uuid');
 
 const Worker = {
@@ -53,31 +54,34 @@ const Worker = {
     controller.resourceArr[index].available = true
     controller.resourceArr[index].lockedUntil = ""
   },
-
-  getAttribute: ({ task, attributesMap, key }) => {
-    let value = attributesMap[task.activityId] || []
-    value = value.filter(e => e.name.toUpperCase() === key)
-    return value?.[0]?.value
-  },
-
   getDuration: ({ task, attributesMap }) => {
-    const attr = Worker.getAttribute({ task, attributesMap, key: "DURATION" })
-    if (attr) {
-      return Common.isoToSeconds(attr)
+    let type = Common.getAttribute({ task, attributesMap, key: `DURATION_TYPE` })
+    if(!type) type = ""
+    if (type.toUpperCase() === "NORMAL_DISTRIBUTION") {
+      return MathHelper.normalDistribution({ task, attributesMap, type: "DURATION" })
     }
-    else {
-      return 0
+    else if (type.toUpperCase() === "RANDOM") {
+      return MathHelper.random({ task, attributesMap, type: "DURATION" })
     }
+    else if (type.toUpperCase() === "CONSTANT") {
+      return MathHelper.constant({ task, attributesMap, type: "DURATION" })
+    }
+    else { return 0 }
   },
 
   getWaiting: ({ task, attributesMap }) => {
-    const attr = Worker.getAttribute({ task, attributesMap, key: "WAITING" })
-    if (attr) {
-      return Common.isoToSeconds(attr)
+    let type = Common.getAttribute({ task, attributesMap, key: `WAITING_TYPE` })
+    if(!type) type = ""
+    if (type.toUpperCase() === "NORMAL_DISTRIBUTION") {
+      return MathHelper.normalDistribution({ task, attributesMap, type: "WAITING" })
     }
-    else {
-      return 0
+    else if (type.toUpperCase() === "RANDOM") {
+      return MathHelper.random({ task, attributesMap, type: "WAITING" })
     }
+    else if (type.toUpperCase() === "CONSTANT") {
+      return MathHelper.constant({ task, attributesMap, type: "WAITING" })
+    }
+    else { return 0 }
   },
 
   calculateInsertionTime: ({ task, attributesMap, clock, type }) => {
@@ -112,7 +116,13 @@ const Worker = {
       "type": "String"
     }
 
-    //event.data.caseInstanceId = uuidv4()
+    const variableKeys = Object.keys(event.data.variables)
+    variableKeys.forEach(key => {
+      if(key.toUpperCase().includes("RANDOM")){
+        event.data.variables[key].type = "integer" 
+        event.data.variables[key].value = Math.round(Math.random()*100)
+      } 
+    });
 
     const basePath = process.env.PROCESS_ENGINE
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
@@ -126,10 +136,10 @@ const Worker = {
   },
 
   startTask: async ({ task, controller }) => {
-    let workerId = Worker.getAttribute({ task, ...controller, key: "RESOURCE" })
+    let workerId = Common.getAttribute({ task, ...controller, key: "RESOURCE" })
     let completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
 
-    const start = async (workerId) => {       
+    const start = async (workerId) => {
       try {
 
         const obj = {
