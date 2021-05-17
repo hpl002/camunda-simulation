@@ -167,9 +167,9 @@ const Worker = {
     else if (!Worker.isResourceAvailable({ workerId, controller })) {
 
       // how long until resource is available again? 
-      completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })
-      const timestamp = moment.unix(completionTime);
-      const m = ` -- start task: Worker unavailable -> Reschedule to ${timestamp.format("HH:mm:ss")}`
+      completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })       
+      const m = ` -- start task: Worker unavailable -> Reschedule to ${moment(parseInt(completionTime)).format("YYYY-MM-DD HH:mm:ss")}`
+      
       logger.log("info", m)
       return { task, startTime: completionTime, type: "start task" }
     }
