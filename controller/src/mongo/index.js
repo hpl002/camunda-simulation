@@ -1,8 +1,6 @@
-// set fields as immutable
-
-
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+const { Logger } = require('../helpers/winston')
 
 class Mongo {
   constructor({ collection = "events" }) {
@@ -49,7 +47,7 @@ class Mongo {
     //Get the default connection
     var db = mongoose.connection;
     //Bind connection to error event (to get notification of connection errors)
-    db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+    db.on('error', Logger.log.bind(console, 'MongoDB connection error:'));
   }
   /**
    * @param  {} {case_id
@@ -74,9 +72,9 @@ class Mongo {
       // had to set this due to deprecation warning
       useFindAndModify: false
     };
-    console.log(update)
+    Logger.log(update)
     const res = await Model.findOneAndUpdate(filter, update, options)
-    console.log(res)
+    Logger.log(res)
   }
 }
 

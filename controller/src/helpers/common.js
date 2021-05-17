@@ -1,5 +1,6 @@
 var moment = require('moment');
 var axios = require("axios").default;
+const { Logger } = require('./winston')
 
 const Common = {
   isoToMilliseconds: (pISO) => {
@@ -12,7 +13,7 @@ const Common = {
         return r*1000
       }
     } catch (error) {
-      console.error(error)
+      Logger.log(error)
       throw error
     }
   },
@@ -44,7 +45,7 @@ const Common = {
         obj)
       if (response.status !== 204) throw new Error("could not update variables on process while starting task")    
     } catch (error) {
-      console.error("could not update random variables on process")
+      Logger.log("could not update random variables on process")
       throw error      
     }
 

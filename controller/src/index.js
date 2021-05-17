@@ -15,7 +15,7 @@ const Executor = {
         if (event.type === "start process") {
           const { data } = await Worker.startProcess({ event, controller })
           await Worker.fetchAndAppendNewTasks({ processInstanceId: data.id, controller })
-          await mongo.add({ case_id: data.id, activity_id: "start", activity_start: timestamp, activity_end: timestamp})
+          await mongo.add({ case_id: data.id, activity_id: "start", activity_start: timestamp, activity_end: timestamp, resource_id: "generic-worker"})
         }
         else if (event.type === "start task") {
           const data = await Worker.startTask({ task: event.task, controller })
@@ -49,7 +49,7 @@ class Contoller {
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID
-    this.resourceArr = [new Resource({ id: "walker" }), new Resource({ id: "walker" })]
+    this.resourceArr = [new Resource({ id: "front-desk" }), new Resource({ id: "back-desk" }), new Resource({ id: "cytology" }), new Resource({ id: "surgical" })]
     this.attributesMap = {}
     this.descriptionsMap = {}
   }

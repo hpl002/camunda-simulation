@@ -2,6 +2,7 @@ var express = require('express');
 const axios = require('axios');
 var router = express.Router();
 const { Controller, Executor } = require('../../index')
+const { Logger } = require('../../helpers/winston')
 /* GET home page. */
 router.get('/', function (req, res, nCext) {
   res.render('index', { title: 'Express' });
@@ -15,10 +16,10 @@ router.post('/start', async function (req, res, next) {
   controller.init({ ...body.input })
   try {
     const r = await Executor.execute(controller)
-    console.log(r)
+    Logger.log(r)
     res.send(r)
   } catch (error) {
-    console.error(error)
+    Logger.log(error)
     next(error)
   }
 });
@@ -33,7 +34,7 @@ router.post('/deploy', async function (req, res, next) {
 
     res.sendStatus(403)
   } catch (error) {
-    console.error(error)
+    Logger.log(error)
     next(error)
   }
 });
@@ -54,11 +55,11 @@ router.delete('/delete/deployments', async function (req, res, next) {
 
       res.sendStatus(200)
     } catch (error) {
-      console.error(error);
+      Logger.log(error);
       throw error
     }
   } catch (error) {
-    console.error(error)
+    Logger.log(error)
     next(error)
   }
 });
@@ -79,11 +80,11 @@ router.delete('/delete/process', async function (req, res, next) {
 
       res.sendStatus(200)
     } catch (error) {
-      console.error(error);
+      Logger.log(error);
       throw error
     }
   } catch (error) {
-    console.error(error)
+    Logger.log(error)
     next(error)
   }
 }); 
