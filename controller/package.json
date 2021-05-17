@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./src/api/bin/www",
+    "start": "nodemon --trace-warnings ./src/api/bin/www",
     "debug": "nodemon --inspect ./src/api/bin/www",
     "debug-brk": "nodemon --inspect-brk ./src/api/bin/www",
     "test": "mocha",
