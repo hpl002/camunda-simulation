@@ -1,5 +1,4 @@
 const { Common } = require('./common');
-const { Worker } = require('./worker');
 const random = require('random');
 
 const MathHelper = {
