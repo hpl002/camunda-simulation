@@ -2,7 +2,7 @@ var axios = require("axios").default;
 var moment = require('moment');
 const { Event } = require('./event')
 const { Common } = require('./common')
-const { Logger } = require('../helpers/winston')
+const { logger } = require('../helpers/winston')
 const { MathHelper } = require('./math') 
 
 const Worker = {
@@ -103,7 +103,7 @@ const Worker = {
       const { data } = await axios.get(`http://localhost:8080/engine-rest/external-task?processInstanceId=${processInstanceId}&active=true&priorityHigherThanOrEquals=0`)
       return data
     } catch (error) {
-      Logger.log(error);
+      logger.log("error", error)
       throw error
     }
   },
@@ -146,7 +146,7 @@ const Worker = {
 
         return { task, startTime: completionTime, type: "complete task" }
       } catch (error) {
-        Logger.log(error);
+        logger.log("error", error)
         throw error
       }
     }
@@ -170,7 +170,7 @@ const Worker = {
       completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })
       const timestamp = moment.unix(completionTime);
       const m = ` -- start task: Worker unavailable -> Reschedule to ${timestamp.format("HH:mm:ss")}`
-      Logger.log(m)
+      logger.log("info", m)
       return { task, startTime: completionTime, type: "start task" }
     }
 
@@ -189,7 +189,7 @@ const Worker = {
       response = await axios.post(`http://localhost:8080/engine-rest/external-task/${task.id}/complete`, body)
       if (response.status !== 204) throw new Error("could not complete task")
     } catch (error) {
-      Logger.log(error);
+      logger.log("error", error)
       throw error
     }
   },
@@ -221,7 +221,7 @@ const Worker = {
       })
       if (response.status !== 204) throw new Error("could not update status on task")
     } catch (error) {
-      Logger.log(error);
+      logger.log("error", error)
       throw error
     }
 

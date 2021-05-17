@@ -1,13 +1,15 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-const { Logger } = require('../helpers/winston')
+var { logger } = require('../helpers/winston');
+
+
 
 class Mongo {
   constructor({ collection = "events" }) {
     this.collection = collection;
-    this.connectionString = process.env.MONGO     
+    this.connectionString = process.env.MONGO
 
-    var EventLogSchema = new Schema({       
+    var EventLogSchema = new Schema({
       case_id: {
         type: String,
         required: true,
@@ -47,7 +49,6 @@ class Mongo {
     //Get the default connection
     var db = mongoose.connection;
     //Bind connection to error event (to get notification of connection errors)
-    db.on('error', Logger.log.bind(console, 'MongoDB connection error:'));
   }
   /**
    * @param  {} {case_id
@@ -59,7 +60,7 @@ class Mongo {
   async add(args) {
     const { case_id, activity_id, activity_start, activity_end, resource_id } = args
     const Model = mongoose.model(this.collection, this.schema);
-    const filter = { "case_id": case_id, "activity_id":activity_id };
+    const filter = { "case_id": case_id, "activity_id": activity_id };
     const update = { ...args };
     const options = {
       // Return the document after updates are applied
@@ -72,9 +73,9 @@ class Mongo {
       // had to set this due to deprecation warning
       useFindAndModify: false
     };
-    Logger.log(update)
+    logger.log("info", update)
     const res = await Model.findOneAndUpdate(filter, update, options)
-    Logger.log(res)
+    logger.log("info", res)
   }
 }
 

@@ -2,7 +2,7 @@ var express = require('express');
 const axios = require('axios');
 var router = express.Router();
 const { Controller, Executor } = require('../../index')
-const { Logger } = require('../../helpers/winston')
+const { logger } = require('../../helpers/winston')
 /* GET home page. */
 router.get('/', function (req, res, nCext) {
   res.render('index', { title: 'Express' });
@@ -16,10 +16,10 @@ router.post('/start', async function (req, res, next) {
   controller.init({ ...body.input })
   try {
     const r = await Executor.execute(controller)
-    Logger.log(r)
+    logger.log("info", r)
     res.send(r)
   } catch (error) {
-    Logger.log(error)
+    logger.log("error", error)
     next(error)
   }
 });
@@ -34,7 +34,7 @@ router.post('/deploy', async function (req, res, next) {
 
     res.sendStatus(403)
   } catch (error) {
-    Logger.log(error)
+    logger.log("error", error)
     next(error)
   }
 });
@@ -55,11 +55,11 @@ router.delete('/delete/deployments', async function (req, res, next) {
 
       res.sendStatus(200)
     } catch (error) {
-      Logger.log(error);
+      logger.log("error", error)
       throw error
     }
   } catch (error) {
-    Logger.log(error)
+    logger.log("error", error)
     next(error)
   }
 });
@@ -80,11 +80,11 @@ router.delete('/delete/process', async function (req, res, next) {
 
       res.sendStatus(200)
     } catch (error) {
-      Logger.log(error);
+      logger.log("error", error);
       throw error
     }
   } catch (error) {
-    Logger.log(error)
+    logger.log("error", error)
     next(error)
   }
 }); 

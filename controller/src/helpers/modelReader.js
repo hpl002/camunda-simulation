@@ -2,7 +2,7 @@ var axios = require("axios").default;
 var xml2js = require('xml2js');
 var _ = require('lodash');
 var parser = new xml2js.Parser();
-const { Logger } = require('./winston')
+const { logger } = require('./winston')
 
 class ModelReader {
   constructor({ key }) {
@@ -24,7 +24,7 @@ class ModelReader {
         throw new Error("could not get xml model from process engine")
       }
     } catch (error) {
-      Logger.log(error)
+      logger.log("error", error)
       throw error
     }
   }
@@ -33,8 +33,8 @@ class ModelReader {
   async parseModel() {
     return parser.parseStringPromise(this.xml).then(function (result) {
       return result;
-    }).catch((e) => {
-      Logger.log(e)
+    }).catch((error) => {
+      logger.log("error", error)
       throw new Error("Failed while parsing xml string to js")
     })
   }
@@ -74,7 +74,7 @@ class ModelReader {
       });
       return attributesMap
     } catch (error) {
-      Logger.log(error)
+      logger.log("error", error)
       throw error
     }
   }
