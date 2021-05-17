@@ -4,3 +4,5 @@ camunda/camunda-h2-default/process-engine.mv.db
 camunda-h2-default/process-engine.mv.db
 camunda-optimize-3.4.0-demo/elasticsearch/elasticsearch-7.10.0/logs/*
 camunda-optimize-3.4.0-demo/log/*
+combined.log
+error.log
