@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var { logger } = require('../helpers/winston');
+const sleep = require('util').promisify(setTimeout)
 
 
 
@@ -57,38 +58,71 @@ class Mongo {
    * @param  {} activity_end=""
    * @param  {} resource_id=""}
    */
-  async add(args) {
-    /* 
-    tries to find a preexisting document which is just missing the end date, if so then it adds to this doc. 
-    if not exists then add a new one instead
-    */
 
 
-    const { case_id, activity_id, activity_start, activity_end, resource_id } = args
+  async startEvent({ case_id, activity_id, activity_start, activity_end, resource_id }) {
+    const Model = mongoose.model(this.collection, this.schema);
+    await Model.create({ case_id, activity_id, activity_start, activity_end, resource_id }, function (err, small) {
+      if (err) throw err
+    });
+  }
+
+  async startTask({ case_id, activity_id, activity_start, resource_id }) {
+    if (!activity_start) throw new Error("cannot start task with no end time")
+    const Model = mongoose.model(this.collection, this.schema);
+    await Model.create({ case_id, activity_id, activity_start, resource_id }, function (err, small) {
+      if (err) throw err
+    });
+  }
+
+  async completeTask({ case_id, activity_id, activity_end }) {
+    if (!activity_end) throw new Error("cannot complete task with no end time")
     let filter = { "case_id": case_id, "activity_id": activity_id };
     const Model = mongoose.model(this.collection, this.schema);
-    const update = { ...args };
-
-    let foundDocument = await Model.find({
-      ...filter,
-      'activity_end': {
-        '$exists': false
+    let foundDocument = ""
+    let counter = 0
+    const getDocument = async () => {
+      const temp = await Model.find({
+        ...filter,
+        'activity_end': {
+          '$exists': false
+        }
+      }).sort({ "created_at": "-1" }).limit(1).lean()
+      counter = counter + 1
+      if (temp.length !== 1) {         
+          await sleep(500)
+          await getDocument()
       }
-    }).sort({ "created_at": "-1" }).limit(1).lean()
-
-    if (foundDocument.length) {
-      foundDocument = foundDocument[0]
-      foundDocument.name = 'foo';
-      /* update by use of document id */
+      else {
+        counter = 0
+        foundDocument = temp[0]
+      }
+    }
+    let v = 0;
+    const updateModel = async () => {
+      if(v){
+        console.log("trying to update nr", v)
+      }
+      else{
+        console.log("trying to update")
+      }
       const res = await Model.updateOne({
-        _id:foundDocument._id
+        _id: foundDocument._id
       }, { activity_end })
+      if (!!res.n!==true) {
+        console.log("res.n not true")
+        v = v+1
+        await sleep(500)
+        console.log("trying to update again")
+        await updateModel()         
+      }
+    }
+    if (counter <= 3) {
+      await getDocument()
+      await updateModel()
     }
     else {
-      await Model.create(update, function (err, small) {
-        if (err) throw err
-      });
-
+      throw new Error("could not complete document in mongo")
     }
   }
 }
