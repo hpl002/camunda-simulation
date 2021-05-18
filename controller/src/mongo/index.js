@@ -99,21 +99,15 @@ class Mongo {
       }
     }
     let v = 0;
-    const updateModel = async () => {
-      if(v){
-        console.log("trying to update nr", v)
-      }
-      else{
-        console.log("trying to update")
-      }
+    const updateModel = async () => {       
+      logger.log("info", "trying to update document in mongo")
       const res = await Model.updateOne({
         _id: foundDocument._id
       }, { activity_end })
       if (!!res.n!==true) {
-        console.log("res.n not true")
         v = v+1
-        await sleep(500)
-        console.log("trying to update again")
+        await sleep(500)         
+        logger.log("info", "trying to update document in mongo AGAIN")
         await updateModel()         
       }
     }
