@@ -32,7 +32,7 @@ class Mongo {
       activity_type: {
         type: String,
       },
-    })
+    }, { timestamps: { createdAt: 'created_at' }, })
 
     this.schema = EventLogSchema
     this.init()
@@ -58,34 +58,43 @@ class Mongo {
    * @param  {} resource_id=""}
    */
   async add(args) {
-    const { case_id, activity_id, activity_start, activity_end, resource_id } = args
-    const Model = mongoose.model(this.collection, this.schema);
-    const filter = { "case_id": case_id, "activity_id": activity_id };
-    const update = { ...args };
-    const options = {
-      // Return the document after updates are applied
-      new: true,
-      // Create a document if one isn't found. Required
-      // for `setDefaultsOnInsert`
-      upsert: true,
-      setDefaultsOnInsert: true,
+    /* 
+    tries to find a preexisting document which is just missing the end date, if so then it adds to this doc. 
+    if not exists then add a new one instead
+    */
 
-      // had to set this due to deprecation warning
-      useFindAndModify: false
-    };
-    logger.log("info", update)
-    const res = await Model.findOneAndUpdate(filter, update, options)
-    logger.log("info", res)
+
+    const { case_id, activity_id, activity_start, activity_end, resource_id } = args
+    let filter = { "case_id": case_id, "activity_id": activity_id };
+    const Model = mongoose.model(this.collection, this.schema);
+    const update = { ...args };
+
+    let foundDocument = await Model.find({
+      ...filter,
+      'activity_end': {
+        '$exists': false
+      }
+    }).sort({ "created_at": "-1" }).limit(1).lean()
+
+    if (foundDocument.length) {
+      foundDocument = foundDocument[0]
+      foundDocument.name = 'foo';
+      /* update by use of document id */
+      const res = await Model.updateOne({
+        _id:foundDocument._id
+      }, { activity_end })
+    }
+    else {
+      await Model.create(update, function (err, small) {
+        if (err) throw err
+      });
+
+    }
   }
 }
 
 
-/* (async () => {
 
-  const t = new Mongo({ collection: this.collection })
-  await t.add({ case_id: "test4", activity_id:"6552121212118" })
-})()
- */
 
 
 
