@@ -14,7 +14,7 @@ const Worker = {
   isResourceAvailable: ({ workerId, controller }) => {
     Worker.resourceExists({ workerId, controller })
     const arr = controller.resourceArr.filter(e => e.id === workerId && e.available === true)
-    return arr.length > 0
+    return !!arr.length > 0
   },
   /**
    * @param  {} {workerId
@@ -157,20 +157,17 @@ const Worker = {
       const s = await start(workerId)
       return s
     }
-    else if (Worker.isResourceAvailable({ workerId, controller })) {
 
+    else if (Worker.isResourceAvailable({ workerId, controller })) {
       //TODO: get workerid by querying db
       Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
       const s = await start(workerId)
       return s
     }
     else if (!Worker.isResourceAvailable({ workerId, controller })) {
-
       // how long until resource is available again? 
-      completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })       
-      const m = ` -- start task: Worker unavailable -> Reschedule to ${moment(parseInt(completionTime)).format("YYYY-MM-DD HH:mm:ss")}`
-      
-      logger.log("info", m)
+      completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })              
+      logger.log("info", `Trying to start taks (${task.activityId}) but resource (${workerId}) is unavailable. Rescheduling to ${moment(parseInt(completionTime)).format("YYYY-MM-DD HH:mm:ss")}`)
       return { task, startTime: completionTime, type: "start task" }
     }
 
