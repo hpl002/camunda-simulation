@@ -1,9 +1,8 @@
 var axios = require("axios").default;
-var moment = require('moment');
 const { Event } = require('./event')
 const { Common } = require('./common')
-const { logger } = require('../helpers/winston')
-const { MathHelper } = require('./math') 
+const { logger } = require('../helpers/winston') 
+const { MathHelper } = require('./math')
 
 const Worker = {
   /**
@@ -44,6 +43,7 @@ const Worker = {
     controller.resourceArr[index].task = task
     controller.resourceArr[index].available = false
     controller.resourceArr[index].lockedUntil = lockedUntil
+    logger.log("info", `locking resource ${controller.resourceArr[index].id} util ${Common.formatClock(lockedUntil)}`)
   },
 
   freeResource: ({ task, controller }) => {
@@ -108,7 +108,7 @@ const Worker = {
     }
   },
 
-  startProcess: async ({ event, controller }) => {
+  startProcess: async ({ event, controller, mongo }) => {     
     const { processID } = controller
     const variableKeys = Object.keys(event.data.variables)
     variableKeys.forEach(key => {
@@ -120,20 +120,24 @@ const Worker = {
 
     const basePath = process.env.PROCESS_ENGINE
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
-    return axios.post(reqUrl, {
+    const {data} = await  axios.post(reqUrl, {
       ...event.data
     }, {
       headers: {
         'Content-Type': 'application/json'
       }
     })
+    await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock), activity_end: Common.formatClock(controller.clock), resource_id: "generic-worker"})
+    return data
   },
 
-  startTask: async ({ task, controller }) => {
+  startTask: async ({ task, controller, mongo }) => {
     let workerId = Common.getAttribute({ task, ...controller, key: "RESOURCE" })
     let completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
+    const activity_id = controller.attributesMap[task.activityId].filter(e=>e.name==="DESCRIPTION")[0].value
 
-    const start = async (workerId) => {
+
+    const start = async (workerId,) => {
       try {
         await Common.refreshRandomVariables({ task })
         task.workerId = workerId
@@ -143,7 +147,7 @@ const Worker = {
         }
         response = await axios.post(`http://localhost:8080/engine-rest/external-task/${task.id}/lock`, body)
         if (response.status !== 204) throw new Error("could not lock task")
-
+        await mongo.startTask({ case_id: task.processInstanceId, activity_id, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
         return { task, startTime: completionTime, type: "complete task" }
       } catch (error) {
         logger.log("error", error)
@@ -152,29 +156,30 @@ const Worker = {
     }
 
 
-    if (!workerId) {
+    if (!workerId) {       
       workerId = "generic-worker"
       const s = await start(workerId)
       return s
     }
 
-    else if (Worker.isResourceAvailable({ workerId, controller })) {
+    else if (Worker.isResourceAvailable({ workerId, controller })) {       
       //TODO: get workerid by querying db
       Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
       const s = await start(workerId)
       return s
     }
     else if (!Worker.isResourceAvailable({ workerId, controller })) {
-      // how long until resource is available again? 
-      completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })              
-      logger.log("info", `Trying to start taks (${task.activityId}) but resource (${workerId}) is unavailable. Rescheduling to ${moment(parseInt(completionTime)).format("YYYY-MM-DD HH:mm:ss")}`)
+      completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })
+      logger.log("info", `Found resoruce on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
       return { task, startTime: completionTime, type: "start task" }
     }
 
 
   },
 
-  completeTask: async ({ task, controller }) => {
+  completeTask: async ({ task, controller, mongo }) => {
+    const activity_id = controller.attributesMap[task.activityId].filter(e=>e.name==="DESCRIPTION")[0].value
+    
     if (task.workerId && task.workerId !== "generic-worker") {
       Worker.freeResource({ task, controller })
     }
@@ -185,6 +190,7 @@ const Worker = {
       }
       response = await axios.post(`http://localhost:8080/engine-rest/external-task/${task.id}/complete`, body)
       if (response.status !== 204) throw new Error("could not complete task")
+      await mongo.completeTask({ case_id: task.processInstanceId, activity_id, activity_end: Common.formatClock(controller.clock) })
     } catch (error) {
       logger.log("error", error)
       throw error
@@ -194,6 +200,7 @@ const Worker = {
   fetchAndAppendNewTasks: async ({ processInstanceId, controller }) => {
     //get tasks list from process engine. Filtered on the current process
     const tasks = await Worker.getTasks({ processInstanceId })
+    if(tasks.length !== 0) logger.log("info", `fetching new tasks from Camunda. Found a total of ${tasks.length} new tasks`)
     while (tasks.length !== 0) {
       const currTask = tasks.pop()
       const timeStamp = Worker.calculateInsertionTime({ task: currTask, ...controller, type: "start" })

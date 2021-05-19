@@ -22,7 +22,6 @@ const Common = {
     value = value.filter(e => e.name.toUpperCase() === key)
     return value?.[0]?.value
   },
-
   refreshRandomVariables: async ({ task }) => {
     try {
       let variables = await axios.get(`http://localhost:8080/engine-rest/variable-instance?processInstanceIdIn=${task.processInstanceId}`)
@@ -50,6 +49,9 @@ const Common = {
     }
 
   },
+  formatClock: (time)=>{
+    return moment(parseInt(time)).format("YYYY-MM-DD HH:mm:ss")
+  }
 }
 
 exports.Common = Common;
