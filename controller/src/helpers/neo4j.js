@@ -5,30 +5,27 @@ var session = driver.session();
 
 
 
-const executeQuery = (query) => {
+const executeQuery = ({query}) => {
+    if(!query){
+        loggeer.log("error", "Expected a query but got nothing")
+        throw new Error("Expected a query but got nothing")
+    }  
     return session.run(query).then(function (result) {
         logger.log("info", "pulling records from neo4j")
         let records = result.records.map(e => e.get("r"))
+        if(records.length===0) throw new Error("neo4j query did not return any records. Should always return at least one. Query:", query)
         return records
     }).catch((err) => {
-        logger.log("error", "eror while pulling records from neo4j")
+        logger.log("error", "eror while pulling records from neo4j. Check log")
         console.error(err)
         throw err
-    }).finally(() => {
-        session.close();
-        driver.close();
     })
 }
 
-
-/*  
-const pQuery = "MATCH (t:Task {category: 'front-desk'})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r"
-const s = executeQuery2(pQuery).then((r) => {
-    console.log(r)
-})
- */
-
-
+const close = () => {
+    session.close();
+    driver.close();
+}
 
 
 /* (async () => {
@@ -37,6 +34,7 @@ const s = executeQuery2(pQuery).then((r) => {
 })() */
 
 exports.executeQuery = executeQuery;
+exports.close = close;
 
 
 

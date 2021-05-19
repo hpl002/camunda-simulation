@@ -20,7 +20,8 @@ const Common = {
   getAttribute: ({ task, attributesMap, key }) => {
     let value = attributesMap[task.activityId] || []
     value = value.filter(e => e.name.toUpperCase() === key)
-    return value?.[0]?.value
+    value = value?.[0]?.value     
+    return value
   },
   refreshRandomVariables: async ({ task }) => {
     try {

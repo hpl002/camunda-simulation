@@ -1,7 +1,9 @@
 var axios = require("axios").default;
 const { Event } = require('./event')
+const { Resource } = require('./resource')
 const { Common } = require('./common')
-const { logger } = require('../helpers/winston') 
+const { logger } = require('../helpers/winston')
+const { executeQuery } = require('../helpers/neo4j')
 const { MathHelper } = require('./math')
 
 const Worker = {
@@ -10,34 +12,60 @@ const Worker = {
    * @param  {} task}
    * check if there is an available resource with the provided identifier
    */
-  isResourceAvailable: ({ workerId, controller }) => {
-    Worker.resourceExists({ workerId, controller })
-    const arr = controller.resourceArr.filter(e => e.id === workerId && e.available === true)
-    return !!arr.length > 0
+  getFirstAvailableResource: async ({ query, controller }) => {
+    let resources = await executeQuery({query})
+    resources = resources.map(e => e.properties.name)     
+    resources.forEach(resource => {
+      const r = controller.resourceArr.filter(e=>e.id===resource)
+      if (r.length===0) {
+        logger.log("info", `could not find resource in controller. Adding new resource with id ${resource}`)
+        controller.resourceArr.push(new Resource({ id: resource }))
+      }
+      else{
+        logger.log("info", `Not adding resource. Already exists resource with id: ${resource}`)
+      }
+    });
+
+    let available = []
+
+    resources.forEach(resource => {
+      const arr = controller.resourceArr.filter(e => e.id === resource && e.available === true)
+      if(!!arr.length > 0) available.push(arr[0])
+    });
+    
+    
+    return available
   },
   /**
    * @param  {} {workerId
    * @param  {} controller}
    * calculates the earliest at which the specified resource is available
    */
-  howLongUntilResourceAvailable: ({ workerId, controller }) => {
+  howLongUntilResourceAvailable: async ({ query, controller }) => {
     // get earliest time at which a resource of specified id is available
-    Worker.resourceExists({ workerId, controller })
-    let arr = controller.resourceArr.filter(e => e.id === workerId)
+
+    let resources = await executeQuery({query})
+    resources = resources.map(e => e.properties.name)
+
+    let earliestTime = 99999999999999999999;
+
+    resources.forEach(resource => {
+      //find earliest time at which resource is available
+      const test = controller.resourceArr.filter(e => e.id === resource)
+      if (test.length > 0) {
+        if (earliestTime > test[0].lockedUntil) earliestTime = test[0].lockedUntil
+      }
+    });
+
+
+    /* let arr = controller.resourceArr.filter(e => e.id === workerId)
     arr = arr.map(e => e.lockedUntil)
-    arr.sort((a, b) => b - a);
-    return arr[0]
+    arr.sort((a, b) => b - a); */
+    return earliestTime
   },
-
-  resourceExists: ({ workerId, controller }) => {
-    const type = controller.resourceArr.filter(e => e.id === workerId)
-    if (type.length < 1) throw new Error(`could not find any resource with the provided workerId: ${workerId}. \n Possible workerIds: ${controller.resourceArr.map(e => e.id)}`)
-  },
-
 
   lockResource: ({ workerId, task, controller, lockedUntil }) => {
     /* find index of first resource that matches id and update this */
-    Worker.resourceExists({ workerId, controller })
     const index = controller.resourceArr.findIndex(e => e.id === workerId && e.available === true)
     if (index === -1) throw new Error("could not find any resource with the provided workerId")
     controller.resourceArr[index].task = task
@@ -108,7 +136,7 @@ const Worker = {
     }
   },
 
-  startProcess: async ({ event, controller, mongo }) => {     
+  startProcess: async ({ event, controller, mongo }) => {
     const { processID } = controller
     const variableKeys = Object.keys(event.data.variables)
     variableKeys.forEach(key => {
@@ -120,21 +148,21 @@ const Worker = {
 
     const basePath = process.env.PROCESS_ENGINE
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
-    const {data} = await  axios.post(reqUrl, {
+    const { data } = await axios.post(reqUrl, {
       ...event.data
     }, {
       headers: {
         'Content-Type': 'application/json'
       }
     })
-    await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock), activity_end: Common.formatClock(controller.clock), resource_id: "generic-worker"})
+    await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock), activity_end: Common.formatClock(controller.clock), resource_id: "generic-worker" })
     return data
   },
 
   startTask: async ({ task, controller, mongo }) => {
     let workerId = Common.getAttribute({ task, ...controller, key: "RESOURCE" })
     let completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
-    const activity_id = controller.attributesMap[task.activityId].filter(e=>e.name==="DESCRIPTION")[0].value
+    const activity_id = controller.attributesMap[task.activityId].filter(e => e.name === "DESCRIPTION")[0].value
 
 
     const start = async (workerId,) => {
@@ -156,30 +184,30 @@ const Worker = {
     }
 
 
-    if (!workerId) {       
+    if (!workerId) {
       workerId = "generic-worker"
       const s = await start(workerId)
       return s
     }
-
-    else if (Worker.isResourceAvailable({ workerId, controller })) {       
-      //TODO: get workerid by querying db
-      Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
-      const s = await start(workerId)
-      return s
+    else {
+      const available = await Worker.getFirstAvailableResource({ query: workerId, controller })
+      if (available.length>0) {
+        workerId = available[0].id
+        Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
+        const s = await start(workerId)
+        return s
+      }
+      else if (available.length<=0) {
+        completionTime = await Worker.howLongUntilResourceAvailable({ query:workerId, controller })
+        logger.log("info", `Found resoruce on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
+        return { task, startTime: completionTime, type: "start task" }
+      }
     }
-    else if (!Worker.isResourceAvailable({ workerId, controller })) {
-      completionTime = Worker.howLongUntilResourceAvailable({ workerId, controller })
-      logger.log("info", `Found resoruce on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
-      return { task, startTime: completionTime, type: "start task" }
-    }
-
-
   },
 
   completeTask: async ({ task, controller, mongo }) => {
-    const activity_id = controller.attributesMap[task.activityId].filter(e=>e.name==="DESCRIPTION")[0].value
-    
+    const activity_id = controller.attributesMap[task.activityId].filter(e => e.name === "DESCRIPTION")[0].value
+
     if (task.workerId && task.workerId !== "generic-worker") {
       Worker.freeResource({ task, controller })
     }
@@ -200,7 +228,7 @@ const Worker = {
   fetchAndAppendNewTasks: async ({ processInstanceId, controller }) => {
     //get tasks list from process engine. Filtered on the current process
     const tasks = await Worker.getTasks({ processInstanceId })
-    if(tasks.length !== 0) logger.log("info", `fetching new tasks from Camunda. Found a total of ${tasks.length} new tasks`)
+    if (tasks.length !== 0) logger.log("info", `fetching new tasks from Camunda. Found a total of ${tasks.length} new tasks`)
     while (tasks.length !== 0) {
       const currTask = tasks.pop()
       const timeStamp = Worker.calculateInsertionTime({ task: currTask, ...controller, type: "start" })

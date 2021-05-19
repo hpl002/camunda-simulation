@@ -43,7 +43,7 @@ class Contoller {
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID
-    this.resourceArr = [new Resource({ id: "FRONT_DESK" })]
+    this.resourceArr = []
     this.attributesMap = {}
     this.descriptionsMap = {}
   }
