@@ -23,6 +23,7 @@
     "mongodb": "^3.6.6",
     "mongoose": "^5.12.7",
     "morgan": "~1.9.1",
+    "neo4j-driver": "^4.2.3",
     "random": "^3.0.6",
     "uuid": "^8.3.2",
     "winston": "^3.3.3",
