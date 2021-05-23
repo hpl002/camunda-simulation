@@ -5,8 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 const { logger } = require('./helpers/winston')
 class Contoller {
   constructor({ processID, input }) {
-    this.clock = Date.parse(input.startTime);
-    this.readableTime = this.setReadableTime(this.clock)
+    this.clock = Date.parse(input.startTime)
+    this.readableTime = this.convertToReadableTime(Date.parse(input.startTime))
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID
@@ -67,7 +67,7 @@ class Contoller {
     const nextEventKey = keys.pop()
     const event = p[nextEventKey]
     //    this.pendingEvents.delete(nextEventKey)
-    return { time: nextEventKey, arr: event }
+    return { time: parseInt(nextEventKey), arr: event }
   }
 
   deleteEvent(key) {
@@ -75,23 +75,23 @@ class Contoller {
   }
 
   setSimulationTime(pTime) {
-    if (typeof pTime === "String") throw new Error("simulation time must be number")
-    if (this.clock && pTime < this.clock) {
+    if (typeof pTime === "string") throw new Error("simulation time must be number")
+    if (pTime < this.clock) {
       throw new Error("simulation clock can only go forwards")
-    } else {
-      this.setReadableTime(pTime)
-      logger.log("info", `Updating simulation clock from ${this.readableTime} to  ${Common.formatClock(pTime)}`)
+    } else if (pTime > this.clock) {
+      logger.log("info", `Updating simulation clock from ${this.readableTime.full} to  ${Common.formatClock(pTime)}`)
+      this.readableTime = this.convertToReadableTime(pTime)
       this.clock = pTime
     }
   };
 
-  setReadableTime(pTime) {
+  convertToReadableTime(pTime) {
     const temp = {}
     temp.full = Common.formatClock(pTime)
     temp.week = Common.formatWeek(pTime)
     temp.day = Common.formatDay(pTime)
     temp.hour = Common.formatHour(pTime)
-    this.readableTime = temp
+    return temp
   }
 
   getPendingEvents(copy = false) {
