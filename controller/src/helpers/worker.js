@@ -13,15 +13,15 @@ const Worker = {
    * check if there is an available resource with the provided identifier
    */
   getFirstAvailableResource: async ({ query, controller }) => {
-    let resources = await executeQuery({query})
-    resources = resources.map(e => e.properties.name)     
+    let resources = await executeQuery({ query })
+    resources = resources.map(e => e.properties.name)
     resources.forEach(resource => {
-      const r = controller.resourceArr.filter(e=>e.id===resource)
-      if (r.length===0) {
+      const r = controller.resourceArr.filter(e => e.id === resource)
+      if (r.length === 0) {
         logger.log("info", `could not find resource in controller. Adding new resource with id ${resource}`)
         controller.resourceArr.push(new Resource({ id: resource }))
       }
-      else{
+      else {
         logger.log("info", `Not adding resource. Already exists resource with id: ${resource}`)
       }
     });
@@ -30,10 +30,10 @@ const Worker = {
 
     resources.forEach(resource => {
       const arr = controller.resourceArr.filter(e => e.id === resource && e.available === true)
-      if(!!arr.length > 0) available.push(arr[0])
+      if (!!arr.length > 0) available.push(arr[0])
     });
-    
-    
+
+
     return available
   },
   /**
@@ -44,7 +44,7 @@ const Worker = {
   howLongUntilResourceAvailable: async ({ query, controller }) => {
     // get earliest time at which a resource of specified id is available
 
-    let resources = await executeQuery({query})
+    let resources = await executeQuery({ query })
     resources = resources.map(e => e.properties.name)
 
     let earliestTime = 99999999999999999999;
@@ -82,48 +82,57 @@ const Worker = {
     controller.resourceArr[index].available = true
     controller.resourceArr[index].lockedUntil = ""
   },
-  getDuration: ({ task, attributesMap }) => {
-    let type = Common.getAttribute({ task, attributesMap, key: `DURATION_TYPE` })
-    if (!type) type = ""
-    if (type.toUpperCase() === "NORMAL_DISTRIBUTION") {
-      return MathHelper.normalDistribution({ task, attributesMap, type: "DURATION" })
-    }
-    else if (type.toUpperCase() === "RANDOM") {
-      return MathHelper.random({ task, attributesMap, type: "DURATION" })
-    }
-    else if (type.toUpperCase() === "CONSTANT") {
-      return MathHelper.constant({ task, attributesMap, type: "DURATION" })
-    }
-    else { return 0 }
-  },
+   
+  /**
+   * @param  {} {task
+   * @param  {} timeSlotType}
+   * Calcualte a duration for the before, during, after timeslot
+   */
+  getTiming: async ({ task, timeSlotType }) => {
+    let query = `MATCH (a:Activity)-[]-(t:Timing)-[]-(d)-[]-(n:Distribution) WHERE a.id="${task.activityId}" AND "${timeSlotType}" IN labels(d) return n`
+    let record = await executeQuery({ query })
+    if (record.length > 0) {
+      record = record.map(e => e.get("n"))[0]
 
-  getWaiting: ({ task, attributesMap }) => {
-    let type = Common.getAttribute({ task, attributesMap, key: `WAITING_TYPE` })
-    if (!type) type = ""
-    if (type.toUpperCase() === "NORMAL_DISTRIBUTION") {
-      return MathHelper.normalDistribution({ task, attributesMap, type: "WAITING" })
+      if (!record.properties.type) {
+        logger.log("error", "distribution is configured incorrectly. Could not find type")
+        throw new Error("distribution is configured incorrectly. Could not find type")
+      }
+      if (record.properties.type.toUpperCase() === "NORMALDISTRIBUTION") {
+        const { m, sd } = record.properties
+        return MathHelper.normalDistribution({ mean: m, sd })
+      }
+      else if (record.properties.type.toUpperCase() === "RANDOM") {
+        const { min, max } = record.properties
+        return MathHelper.random({ min, max })
+      }
+      else if (record.properties.type.toUpperCase() === "POISSON") {
+        const { value } = record.properties
+        return MathHelper.poisson({ value })
+      }
+      else if (record.properties.type.toUpperCase() === "BERNOULLI") {
+        const { value } = record.properties
+        return MathHelper.bernoulli({ value })
+      }
+      else if (record.properties.type.toUpperCase() === "CONSTANT") {
+        const { value } = record.properties
+        return MathHelper.constant({ value })
+      }
     }
-    else if (type.toUpperCase() === "RANDOM") {
-      return MathHelper.random({ task, attributesMap, type: "WAITING" })
-    }
-    else if (type.toUpperCase() === "CONSTANT") {
-      return MathHelper.constant({ task, attributesMap, type: "WAITING" })
-    }
-    else { return 0 }
+    else return 0
   },
-
-  calculateInsertionTime: ({ task, attributesMap, clock, type }) => {
+  calculateInsertionTime: async ({ task, controller, type }) => {
     let time;
     if (type === "start") {
-      time = Worker.getWaiting({ task, attributesMap })
+      time = await Worker.getTiming({task, timeSlotType:"Before"})
     }
     else if (type === "completion") {
-      time = Worker.getDuration({ task, attributesMap })
+      time = await Worker.getTiming({task, timeSlotType:"During"})
     }
     else {
       throw new Error("could not calcualte insertion type for this unknown type", type)
     }
-    return parseInt(clock) + time
+    return parseInt(controller.clock) + time
   },
 
   getTasks: async ({ processInstanceId }) => {
@@ -161,7 +170,7 @@ const Worker = {
 
   startTask: async ({ task, controller, mongo }) => {
     let workerId = Common.getAttribute({ task, ...controller, key: "RESOURCE" })
-    let completionTime = Worker.calculateInsertionTime({ task, ...controller, type: "completion" })
+    let completionTime = await Worker.calculateInsertionTime({ task, controller, type: "completion" })
     const activity_id = controller.attributesMap[task.activityId].filter(e => e.name === "DESCRIPTION")[0].value
 
 
@@ -191,14 +200,14 @@ const Worker = {
     }
     else {
       const available = await Worker.getFirstAvailableResource({ query: workerId, controller })
-      if (available.length>0) {
+      if (available.length > 0) {
         workerId = available[0].id
         Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
         const s = await start(workerId)
         return s
       }
-      else if (available.length<=0) {
-        completionTime = await Worker.howLongUntilResourceAvailable({ query:workerId, controller })
+      else if (available.length <= 0) {
+        completionTime = await Worker.howLongUntilResourceAvailable({ query: workerId, controller })
         logger.log("info", `Found resoruce on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
         return { task, startTime: completionTime, type: "start task" }
       }
@@ -231,7 +240,8 @@ const Worker = {
     if (tasks.length !== 0) logger.log("info", `fetching new tasks from Camunda. Found a total of ${tasks.length} new tasks`)
     while (tasks.length !== 0) {
       const currTask = tasks.pop()
-      const timeStamp = Worker.calculateInsertionTime({ task: currTask, ...controller, type: "start" })
+      const timeStamp = await Worker.calculateInsertionTime({task:currTask, controller, type:"start"})
+      //TODO: How should tasks be prioritized? Should new fetched evens be configured to run as soon as possible       
       controller.addEvent({ startTime: timeStamp, event: new Event({ task: { ...currTask }, type: "start task" }) })
       await Worker.setPriority({ processInstanceId: currTask.id })
     }
