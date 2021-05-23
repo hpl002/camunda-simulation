@@ -7,16 +7,16 @@ var session = driver.session();
 
 const executeQuery = ({query}) => {
     if(!query){
-        loggeer.log("error", "Expected a query but got nothing")
+        logger.log("error", "Expected a query but got nothing")
         throw new Error("Expected a query but got nothing")
-    }  
+    } 
+    logger.log("info", `running query against neo4j: ${query}`) 
     return session.run(query).then(function (result) {
         logger.log("info", "pulling records from neo4j")
-        let records = result.records.map(e => e.get("r"))
-        if(records.length===0) throw new Error("neo4j query did not return any records. Should always return at least one. Query:", query)
-        return records
+        //let records = result.records.map(e => e.get("r"))         
+        return result.records
     }).catch((err) => {
-        logger.log("error", "eror while pulling records from neo4j. Check log")
+        logger.log("error", `error on query: ${query}`)
         console.error(err)
         throw err
     })
