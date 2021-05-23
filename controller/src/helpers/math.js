@@ -37,10 +37,8 @@ const MathHelper = {
     },
 
 
-    constant({ task, attributesMap, type }) {
-        type = type.toUpperCase()
-        let duration = Common.getAttribute({ task, attributesMap, key: `${type}` })
-        return Common.isoToMilliseconds(duration)
+    constant({ value }) {
+        return Common.isoToMilliseconds(value)
     },
 }
 
