@@ -61,11 +61,11 @@ class Mongo {
 
 
   async startEvent({ case_id, activity_id, activity_start, activity_end, resource_id }) {          
-    logger.log("info", `Mongo Logging:Starting process case_id:${case_id}`)
-    logger.log("info", `Mongo Logging:Starting process activity_id:${activity_id}`)
-    logger.log("info", `Mongo Logging:Starting process activity_start:${activity_start}`)
-    logger.log("info", `Mongo Logging:Starting process activity_end:${activity_end}`)
-    logger.log("info", `Mongo Logging:Starting process resource_id:${resource_id}`)     
+    logger.log("mongo", `Mongo Logging:Starting process case_id:${case_id}`)
+    logger.log("mongo", `Mongo Logging:Starting process activity_id:${activity_id}`)
+    logger.log("mongo", `Mongo Logging:Starting process activity_start:${activity_start}`)
+    logger.log("mongo", `Mongo Logging:Starting process activity_end:${activity_end}`)
+    logger.log("mongo", `Mongo Logging:Starting process resource_id:${resource_id}`)     
     const Model = mongoose.model(this.collection, this.schema);
     await Model.create({ case_id, activity_id, activity_start, activity_end, resource_id }, function (err, small) {
       if (err) throw err
@@ -73,10 +73,10 @@ class Mongo {
   }
 
   async startTask({ case_id, activity_id, activity_start, resource_id }) {
-    logger.log("info", `Mongo Logging:Starting task case_id:${case_id}`)
-    logger.log("info", `Mongo Logging:Starting task activity_id:${activity_id}`)
-    logger.log("info", `Mongo Logging:Starting task activity_start:${activity_start}`)
-    logger.log("info", `Mongo Logging:Starting task resource_id:${resource_id}`)     
+    logger.log("mongo", `Mongo Logging:Starting task case_id:${case_id}`)
+    logger.log("mongo", `Mongo Logging:Starting task activity_id:${activity_id}`)
+    logger.log("mongo", `Mongo Logging:Starting task activity_start:${activity_start}`)
+    logger.log("mongo", `Mongo Logging:Starting task resource_id:${resource_id}`)     
     if (!(case_id && activity_id &&activity_start && resource_id)) throw new Error("failed while trying to start task due to invalid params")
     const Model = mongoose.model(this.collection, this.schema);
     await Model.create({ case_id, activity_id, activity_start, resource_id }, function (err, small) {
@@ -85,9 +85,9 @@ class Mongo {
   }
 
   async completeTask({ case_id, activity_id, activity_end }) {
-    logger.log("info", `Mongo Logging:Completing task case_id:${case_id}`)
-    logger.log("info", `Mongo Logging:Completing task activity_id:${activity_id}`)
-    logger.log("info", `Mongo Logging:Completing task activity_end:${activity_end}`)
+    logger.log("mongo", `Mongo Logging:Completing task case_id:${case_id}`)
+    logger.log("mongo", `Mongo Logging:Completing task activity_id:${activity_id}`)
+    logger.log("mongo", `Mongo Logging:Completing task activity_end:${activity_end}`)
     if (!activity_end) throw new Error("cannot complete task with no end time")
 
     let filter = { "case_id": case_id, "activity_id": activity_id };
@@ -113,14 +113,14 @@ class Mongo {
     }
     let v = 0;
     const updateModel = async () => {       
-      logger.log("info", "trying to update document in mongo")
+      logger.log("mongo", "trying to update document in mongo")
       const res = await Model.updateOne({
         _id: foundDocument._id
       }, { activity_end })
       if (!!res.n!==true) {
         v = v+1
         await sleep(500)         
-        logger.log("info", "trying to update document in mongo AGAIN")
+        logger.log("mongo", "trying to update document in mongo AGAIN")
         await updateModel()         
       }
     }

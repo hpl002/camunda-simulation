@@ -10,10 +10,9 @@ const executeQuery = ({query}) => {
         logger.log("error", "Expected a query but got nothing")
         throw new Error("Expected a query but got nothing")
     } 
-    logger.log("info", `running query against neo4j: ${query}`) 
+    logger.log("neo4j", `running query against neo4j: ${query}`) 
     return session.run(query).then(function (result) {
-        logger.log("info", "pulling records from neo4j")
-        //let records = result.records.map(e => e.get("r"))         
+        logger.log("neo4j", `num records returned:${result.records.length}`)
         return result.records
     }).catch((err) => {
         logger.log("error", `error on query: ${query}`)
