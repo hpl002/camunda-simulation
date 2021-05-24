@@ -20,7 +20,7 @@ const Executor = {
         }
         else if (event.type === "start task") {
           const data = await Worker.startTask({ task: event.task, controller, mongo })
-          const { startTime, task, type } = data
+          const { startTime, task, type, reason } = data
           controller.addEvent({ startTime, event: new Event({ task, type }) })
         }
         else if (event.type === "complete task") {
@@ -30,10 +30,10 @@ const Executor = {
         else {
           throw new Error("could not read event type")
         }
-
       };
-      controller.deleteEvent(time)
+      controller.deleteEvent(time.toString())
     }
+    console.log("terminated")
     return { "collection_identifier": runIdentifier }
   }
 }

@@ -29,7 +29,7 @@ class Contoller {
         const frequencyAsSeconds = Common.isoToMilliseconds(frequency)
         for (let index = 0; index < amount; index++) {
           //First event in list always set at time zero (do not offset first event from clock init)
-          if (Object.keys(this.pendingEvents.pendingEvents).length === 0) {
+          if (Object.keys(this.pendingEvents.events).length === 0) {
             startTime = this.clock
           }
           else {
@@ -79,7 +79,7 @@ class Contoller {
     if (pTime < this.clock) {
       throw new Error("simulation clock can only go forwards")
     } else if (pTime > this.clock) {
-      logger.log("info", `Updating simulation clock from ${this.readableTime.full} to  ${Common.formatClock(pTime)}`)
+      logger.log("process", `Updating simulation clock from ${this.readableTime.full} to  ${Common.formatClock(pTime)}`)
       this.readableTime = this.convertToReadableTime(pTime)
       this.clock = pTime
     }

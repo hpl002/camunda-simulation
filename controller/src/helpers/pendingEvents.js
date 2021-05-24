@@ -7,17 +7,28 @@ var moment = require('moment');
 
 class PendingEvents {
     constructor() {
-      this.pendingEvents = {};
+      this.events = {};
     }
   
+    /**
+     * @param  {} {timestamp
+     * @param  {} event}
+     * add event at given timestamp
+     * if there are any pre-existing events at the given timestamp then we add it to the array of events to happen at the given timestamp
+     * events added to list with pre-existing events are effectively placed at bottom of list. 
+     */
     addEvent({ timestamp, event }) {
-      if (!this.pendingEvents[timestamp]) {
-        event.order = 0;
-        this.pendingEvents[timestamp] = [event]
+      let order = 0
+      if (!this.events[timestamp]) {
+        event.order = order
+        this.events[timestamp] = [event]
       }
       else {
-        const events = this.pendingEvents[timestamp]
-        event.order = events.length
+        const events = this.events[timestamp]
+        // get order of last event and set order of new event accordingly
+        if(events.length>0) order = parseInt(events[events.length-1].order)+1 
+        event.order = order
+
         events.push(event)
         // element with lowest order gets removed first
         events.sort((a, b) => { return b.order - a.order })
@@ -27,15 +38,15 @@ class PendingEvents {
     }
   
     getList() {
-      return this.pendingEvents
+      return this.events
     }
   
     getEventsAt(timestamp) {
-      return this.pendingEvents[timestamp].events
+      return this.events[timestamp].events
     }
   
     delete(p) {
-      delete this.pendingEvents[p]
+      delete this.events[p]
     }
   }
   
