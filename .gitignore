@@ -6,3 +6,7 @@ camunda-optimize-3.4.0-demo/elasticsearch/elasticsearch-7.10.0/logs/*
 camunda-optimize-3.4.0-demo/log/*
 combined.log
 error.log
+controller/mongo.log
+controller/neo4j.log
+controller/process.log
+camunda/camunda-h2-default/process-engine.trace.db
