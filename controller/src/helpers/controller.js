@@ -1,9 +1,9 @@
 var moment = require('moment');
-const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('../src/helpers/index.js')
-const { executeQuery } = require("../src/helpers/neo4j")
-const { Mongo } = require("./mongo/index.js")
+const { Event, PendingEvents, Worker, Common, Resource } = require('./index.js')
+const { executeQuery } = require("./neo4j")
+const { Mongo } = require("../classes/mongo.js")
 const { v4: uuidv4 } = require('uuid');
-const { logger } = require('./helpers/winston')
+const { logger } = require('./winston')
 class Contoller {
   constructor({ processID, input }) {
     this.clock = Date.parse(input.startTime)
@@ -13,6 +13,7 @@ class Contoller {
     this.processID = processID
     this.resourceArr = []
     this.descriptionsMap = {}
+    this.taskMap = {}
   }
 
   addEvent({ startTime, event }) {
@@ -47,9 +48,7 @@ class Contoller {
   }
 
   async init({ tokens = [] }) {
-    this.initPendingEvents({ tokens })
-    const modeler = new ModelReader({ key: this.processID })
-    await modeler.init()
+    this.initPendingEvents({ tokens })     
     //this.attributesMap = await modeler.generateAttributesMap()
     await this.initResourceArr()
     console.log("asd")
