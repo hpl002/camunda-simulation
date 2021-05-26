@@ -1,9 +1,7 @@
-var moment = require('moment');
-const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('../src/helpers/index.js')
-const { Mongo } = require("./mongo/index.js")
+const { Event, Worker } = require('../src/helpers/index.js')
+const { Mongo } = require("./classes/mongo.js")
 const { v4: uuidv4 } = require('uuid');
-const { logger } = require('./helpers/winston')
-const { Controller } = require('./controller')
+const { Controller } = require('./helpers/controller')
 
 const Executor = {
   execute: async (controller) => {
