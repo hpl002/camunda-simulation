@@ -1,8 +1,5 @@
-var moment = require('moment');
-const { Event, PendingEvents, Worker, Common, Resource } = require('./index.js')
+const { Event, PendingEvents, Common, Resource } = require('./index.js')
 const { executeQuery } = require("./neo4j")
-const { Mongo } = require("../classes/mongo.js")
-const { v4: uuidv4 } = require('uuid');
 const { logger } = require('./winston')
 class Contoller {
   constructor({ processID, input }) {
