@@ -1,9 +1,9 @@
 const { executeQuery } = require('../helpers/neo4j')
 const { MathHelper } = require('../helpers/math')
 
-class Task {
-    constructor({ id }) {
-        this.id = id
+class Activity {
+    constructor({ activityId }) {
+        this.activityId = activityId
         this.timing = {}
         // all resources which an complete the task
         this.resourceCandidates = []
@@ -18,7 +18,7 @@ class Task {
     }
 
     async getTiming({ type }) {
-        const query = `MATCH (a:Activity)-[]-(t:Timing)-[]-(ty)-[]-(d:Distribution) WHERE a.id="${this.id}" and "${type}" in labels(ty) return d`
+        const query = `MATCH (a:Activity)-[]-(t:Timing)-[]-(ty)-[]-(d:Distribution) WHERE a.id="${this.activityId}" and "${type}" in labels(ty) return d`
         let record = await executeQuery({ query })
         record = record.map(e => e.get("d"))
         return record && record[0]
@@ -70,7 +70,7 @@ class Task {
     }
 
     async getResources() {
-        const query = `MATCH (a:Activity)-[]-(l:Limitations)-[]-(s:Specialization)-[]-(r:Resource) WHERE a.id="${this.id}" return r`
+        const query = `MATCH (a:Activity)-[]-(l:Limitations)-[]-(s:Specialization)-[]-(r:Resource) WHERE a.id="${this.activityId}" return r`
         let record = await executeQuery({ query })
         if (record.length > 0) {
             record = record.map(e => e.get("r"))
@@ -80,4 +80,4 @@ class Task {
     }
 }
 
-exports.Task = Task;
+exports.Activity = Activity;
