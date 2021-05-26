@@ -1,5 +1,6 @@
 var moment = require('moment');
 const { Event, PendingEvents, Worker, Common, ModelReader, Resource } = require('../src/helpers/index.js')
+const { executeQuery } = require("../src/helpers/neo4j")
 const { Mongo } = require("./mongo/index.js")
 const { v4: uuidv4 } = require('uuid');
 const { logger } = require('./helpers/winston')
@@ -11,7 +12,6 @@ class Contoller {
     this.pendingEventsCopy = {}
     this.processID = processID
     this.resourceArr = []
-    this.attributesMap = {}
     this.descriptionsMap = {}
   }
 
@@ -46,19 +46,31 @@ class Contoller {
     this.pendingEventsCopy = { ...events }
   }
 
-
-
-
   async init({ tokens = [] }) {
     this.initPendingEvents({ tokens })
     const modeler = new ModelReader({ key: this.processID })
     await modeler.init()
-    this.attributesMap = await modeler.generateAttributesMap()
+    //this.attributesMap = await modeler.generateAttributesMap()
+    await this.initResourceArr()
+    console.log("asd")
   }
 
+  async initResourceArr() {     
+    // make request to check if neo instance is even configured
+    const query = "MATCH (r:Resource) return r"
+    let resources = await executeQuery({ query })
+    resources = resources.map(e=>e.get("r"))
+    resources = resources.map(e=>e.properties.id)
+
+for (const resource of resources) {
+  const newResource = new Resource({id:resource})
+  await newResource.init()
+  this.resourceArr.push(newResource)
+}
 
 
 
+  }
 
   popNextPendingEvent() {
     const p = this.getPendingEvents()
@@ -88,7 +100,7 @@ class Contoller {
   convertToReadableTime(pTime) {
     const temp = {}
     temp.full = Common.formatClock(pTime)
-    temp.week = Common.formatWeek(pTime)
+    temp.week = parseInt(Common.formatWeek(pTime))
     temp.day = Common.formatDay(pTime)
     temp.hour = Common.formatHour(pTime)
     return temp
