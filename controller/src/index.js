@@ -18,7 +18,7 @@ const Executor = {
         }
         else if (event.type === "start task") {
           const data = await Worker.startTask({ task: event.task, controller, mongo })
-          const { startTime, task, type, reason } = data
+          const { startTime, task, type } = data
           controller.addEvent({ startTime, event: new Event({ task, type }) })
         }
         else if (event.type === "complete task") {
