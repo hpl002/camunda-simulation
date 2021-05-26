@@ -42,7 +42,7 @@ router.post('/deploy', async function (req, res, next) {
 router.delete('/delete/deployments', async function (req, res, next) {
   try {
     try {
-      const { data } = await axios.get(`http://localhost:8080/engine-rest/deployment`)
+      const { data } = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/deployment`)
       const id = []
       data.forEach(d => {
         id.push(d.id)
@@ -50,7 +50,7 @@ router.delete('/delete/deployments', async function (req, res, next) {
 
       while (id.length > 0) {
         const c = id.pop()
-        await axios.delete(`http://localhost:8080/engine-rest/deployment/${c}?cascade=true`)
+        await axios.delete(`${process.env.PROCESS_ENGINE}/engine-rest/deployment/${c}?cascade=true`)
       }
 
       res.sendStatus(200)
@@ -67,7 +67,7 @@ router.delete('/delete/deployments', async function (req, res, next) {
 router.delete('/delete/process', async function (req, res, next) {
   try {
     try {
-      const { data } = await axios.get(`http://localhost:8080/engine-rest/history/process-instance`)
+      const { data } = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/history/process-instance`)
       const id = []
       data.forEach(d => {
         id.push(d.id)
@@ -75,7 +75,7 @@ router.delete('/delete/process', async function (req, res, next) {
 
       while (id.length > 0) {
         const c = id.pop()
-        await axios.delete(`http://localhost:8080/engine-rest/process-instance/${c}`)
+        await axios.delete(`${process.env.PROCESS_ENGINE}/engine-rest/process-instance/${c}`)
       }
 
       res.sendStatus(200)

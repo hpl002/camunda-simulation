@@ -14,7 +14,7 @@ class ModelReader {
 
   async getModel() {
     try {
-      const response = await axios.get(`http://localhost:8080/engine-rest/process-definition/key/${this.key}/xml`)
+      const response = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/process-definition/key/${this.key}/xml`)
       const { data, status } = response
       const { bpmn20Xml } = data
       if (status === 200) {

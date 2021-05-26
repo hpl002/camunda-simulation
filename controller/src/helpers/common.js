@@ -25,7 +25,7 @@ const Common = {
   },
   refreshRandomVariables: async ({ task }) => {
     try {
-      let variables = await axios.get(`http://localhost:8080/engine-rest/variable-instance?processInstanceIdIn=${task.processInstanceId}`)
+      let variables = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/variable-instance?processInstanceIdIn=${task.processInstanceId}`)
 
       variables = variables.data.filter(e => e.name.toUpperCase().includes("RANDOM"))
 
@@ -41,7 +41,7 @@ const Common = {
         }
       });
 
-      let response = await axios.post(`http://localhost:8080/engine-rest/process-instance/${task.processInstanceId}/variables`,
+      let response = await axios.post(`${process.env.PROCESS_ENGINE}/engine-rest/process-instance/${task.processInstanceId}/variables`,
         obj)
       if (response.status !== 204) throw new Error("could not update variables on process while starting task")
     } catch (error) {
