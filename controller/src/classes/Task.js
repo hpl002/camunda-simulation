@@ -5,11 +5,16 @@ class Task {
     constructor({ id }) {
         this.id = id
         this.timing = {}
+        // all resources which an complete the task
+        this.resourceCandidates = []
+        this.hasResourceCandidates = false
     }
 
     async init() {
         this.timing.duration = await this.generateFunc({ timingType: "During" })
         this.timing.before = await this.generateFunc({ timingType: "Before" })
+        this.resourceCandidates = await this.getResources()
+        this.hasResourceCandidates = !!this.resourceCandidates.length > 0
     }
 
     async getTiming({ type }) {
@@ -18,7 +23,6 @@ class Task {
         record = record.map(e => e.get("d"))
         return record && record[0]
     }
-
 
     async generateFunc({ timingType }) {
         const timing = await this.getTiming({ type: timingType })
@@ -65,7 +69,15 @@ class Task {
         }
     }
 
-
+    async getResources() {
+        const query = `MATCH (a:Activity)-[]-(l:Limitations)-[]-(s:Specialization)-[]-(r:Resource) WHERE a.id="${this.id}" return r`
+        let record = await executeQuery({ query })
+        if (record.length > 0) {
+            record = record.map(e => e.get("r"))
+            record = record.map(e => e.properties.id)
+        }
+        return record ? record : []
+    }
 }
 
 exports.Task = Task;
