@@ -1,0 +1,71 @@
+const { executeQuery } = require('../helpers/neo4j')
+const { MathHelper } = require('../helpers/math')
+
+class Task {
+    constructor({ id }) {
+        this.id = id
+        this.timing = {}
+    }
+
+    async init() {
+        this.timing.duration = await this.generateFunc({ timingType: "During" })
+        this.timing.before = await this.generateFunc({ timingType: "Before" })
+    }
+
+    async getTiming({ type }) {
+        const query = `MATCH (a:Activity)-[]-(t:Timing)-[]-(ty)-[]-(d:Distribution) WHERE a.id="${this.id}" and "${type}" in labels(ty) return d`
+        let record = await executeQuery({ query })
+        record = record.map(e => e.get("d"))
+        return record && record[0]
+    }
+
+
+    async generateFunc({ timingType }) {
+        const timing = await this.getTiming({ type: timingType })
+        if (!timing) {
+            return () => {
+                return () => { return 0 }
+            }
+        }
+        const { type, value, m, sd, min, max } = timing.properties
+        if (!type) {
+            logger.log("error", "distribution is configured incorrectly. Could not find type")
+            throw new Error("distribution is configured incorrectly. Could not find type")
+        }
+        if (type.toUpperCase() === "NORMALDISTRIBUTION") {
+            if (!(m && sd)) throw new Error("misconfigured NORMALDISTRIBUTION")
+            return () => {
+                return MathHelper.normalDistribution({ mean: m, sd })
+            }
+        }
+        else if (type.toUpperCase() === "RANDOM") {
+            if (!(min && max)) throw new Error("misconfigured RANDOM")
+            return () => {
+                return MathHelper.random({ min, max })
+            }
+        }
+        else if (type.toUpperCase() === "POISSON") {
+            if (!(value)) throw new Error("misconfigured POISSON")
+            return () => {
+                return MathHelper.poisson({ value })
+            }
+        }
+        else if (type.toUpperCase() === "BERNOULLI") {
+            if (!(value)) throw new Error("misconfigured BERNOULLI")
+            return () => {
+                return MathHelper.bernoulli({ value })
+            }
+        }
+        else if (type.toUpperCase() === "CONSTANT") {
+            if (!(value)) throw new Error("misconfigured CONSTANT")
+            return () => {
+                return MathHelper.constant({ value })
+            }
+
+        }
+    }
+
+
+}
+
+exports.Task = Task;
