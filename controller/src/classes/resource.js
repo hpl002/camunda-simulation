@@ -14,7 +14,6 @@ class Resource {
     this.lockedUntil = lockedUntil
     this.task = task
     this.schedule = {}
-    this.hasSchedule = false
   }
 
   async hasSchedule() {
