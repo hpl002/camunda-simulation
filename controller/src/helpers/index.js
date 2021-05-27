@@ -1,7 +1,7 @@
-const { Event } = require('../classes/event')
+const { Event } = require('../classes/Event')
 const { Common } = require('./common')
-const { PendingEvents } = require('../classes/pendingEvents')
-const { Resource } = require('../classes/resource')
+const { PendingEvents } = require('../classes/PendingEvents')
+const { Resource } = require('../classes/Resource')
 const { Worker } = require('./worker')
 
 
