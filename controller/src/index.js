@@ -1,5 +1,5 @@
 const { Event, Worker } = require('../src/helpers/index.js')
-const { Mongo } = require("./classes/mongo.js")
+const { Mongo } = require("./classes/Mongo.js")
 const { v4: uuidv4 } = require('uuid');
 const { Controller } = require('./helpers/controller')
 
