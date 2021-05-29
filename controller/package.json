@@ -6,8 +6,8 @@
     "start": "nodemon --trace-warnings ./src/api/bin/www",
     "debug": "nodemon --inspect ./src/api/bin/www",
     "debug-brk": "nodemon --inspect-brk ./src/api/bin/www",
-    "test": "mocha",
-    "debug-test": "mocha --reporter spec --inspect-brk"
+    "test": "mocha",     
+    "debug-test": "mocha --reporter spec --inspect"
   },
   "dependencies": {
     "axios": "^0.21.1",
