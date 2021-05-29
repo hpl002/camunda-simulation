@@ -4,7 +4,7 @@ const { logger } = require('./winston')
 class Contoller {
   constructor({ processID, input }) {
     this.clock = Date.parse(input.startTime)
-    this.readableTime = this.convertToReadableTime(Date.parse(input.startTime))
+    this.readableTime = Common.convertToReadableTime(Date.parse(input.startTime))
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID
@@ -45,27 +45,24 @@ class Contoller {
   }
 
   async init({ tokens = [] }) {
-    this.initPendingEvents({ tokens })     
+    this.initPendingEvents({ tokens })
     //this.attributesMap = await modeler.generateAttributesMap()
     await this.initResourceArr()
-    console.log("asd")
   }
 
-  async initResourceArr() {     
+  async initResourceArr() {
     // make request to check if neo instance is even configured
     const query = "MATCH (r:Resource) return r"
     let resources = await executeQuery({ query })
-    resources = resources.map(e=>e.get("r"))
-    resources = resources.map(e=>e.properties.id)
-
-for (const resource of resources) {
-  const newResource = new Resource({id:resource})
-  await newResource.init()
-  this.resourceArr.push(newResource)
-}
+    resources = resources.map(e => e.get("r"))
+    resources = resources.map(e => e.properties.id)
 
 
-
+    for (const resource of resources) {
+      const newResource = new Resource({ id: resource })
+      await newResource.init()
+      this.resourceArr.push(newResource)
+    }
   }
 
   popNextPendingEvent() {
@@ -88,19 +85,10 @@ for (const resource of resources) {
       throw new Error("simulation clock can only go forwards")
     } else if (pTime > this.clock) {
       logger.log("process", `Updating simulation clock from ${this.readableTime.full} to  ${Common.formatClock(pTime)}`)
-      this.readableTime = this.convertToReadableTime(pTime)
+      this.readableTime = Common.convertToReadableTime(pTime)
       this.clock = pTime
     }
   };
-
-  convertToReadableTime(pTime) {
-    const temp = {}
-    temp.full = Common.formatClock(pTime)
-    temp.week = parseInt(Common.formatWeek(pTime))
-    temp.day = Common.formatDay(pTime)
-    temp.hour = Common.formatHour(pTime)
-    return temp
-  }
 
   getPendingEvents(copy = false) {
     if (copy) return this.pendingEventsCopy
