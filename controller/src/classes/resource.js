@@ -118,7 +118,7 @@ class Resource {
         }
       }
       dayAsNumber = 0
-      if (Object.keys(result).length>0) {
+      if (Object.keys(result).length > 0) {
         break
       }
     }
@@ -149,55 +149,30 @@ class Resource {
       }
     }
 
-    while(duration>0){
-      const { start, end } = this.findNextShift({week, day})
+    let { start, end } = this.findNextShift({ week, day })
+    let next = {}
+    while (duration > 0) {
       // there are no future shifts
-      if(!start && !end) return undefined
+      if (!start && !end) return undefined
 
-      const shiftDuration = end.epoch-start.epoch
-      if(shiftDuration>duration){
-        return soonestShift.start.epoc + duration
-      }
-      else{
-        duration = duration - shiftDuration
-        tally = tally+shiftDuration
-        tally = tally+timeFromEndOfCurrentToStartOfNext({week, day})
-      }
-      ({ start, end } = findNextShift({ week, day: "Sunday" }))
-    }
-   
-
-    //if no time left today
-    // loop
-    // getSoonestAvailableShift() -> if today then return today
-    // how much time is left of shift getRemainingTimeInShift() -> if today then return remaining time of today
-    // if duration is less than remaining time then add duration to current clock and terminate
-    // else add remaining time of shift to tally 
-    // subtract remaining time from duration
-    // get time from current shift to next shift and add this to tally
-    //--iterate
-
-
-
-    if (!!this.schedule?.[week]?.[day]) {
-      const remainingTimeShift = this.remainingTimeOfShift({ clock, week, day })
-      //if remaining time in shift is less than the total duration of task then it can be completed before next shift
-      if (remainingTimeShift >= duration) {
-        result = clock + duration
+      const shiftDuration = end.epoch - start.epoch
+      if (shiftDuration > duration) {
+        return start.epoch + duration
       }
       else {
-        let remainingDuration = duration - remainingTimeShift
-        let accumulatedTime = remainingTimeShift
-        while (remainingDuration > 0) {
-          //get time from end of current shift to start of next
+        duration = duration - shiftDuration
+        tally = tally + shiftDuration
+        tally = tally + this.timeFromEndOfCurrentToStartOfNext({ week, day })
+      }
 
-        }
-
-
+      ({ start, end } = this.findNextShift({ week, day }))
+      if (start && end) {
+        ({ week, day } = Common.convertToReadableTime(start.epoch))
       }
     }
 
-    return result
+
+
   }
 
   async init() {

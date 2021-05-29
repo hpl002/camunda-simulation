@@ -3,6 +3,7 @@ var _ = require('lodash');
 var chai = require('chai');
 var assert = chai.assert;
 const hourasseconds = 3600000
+const { Common } = require('../src/helpers/common')
 
 
 
@@ -27,7 +28,7 @@ const setDefault = ({ type }) => {
 
 describe('Find duration between end of current shift and start of next', () => {
     it('Should find the duration from end of current shift to start of next shift the following day', async () => {
-        setDefault({type:"schedule"})
+        setDefault({ type: "schedule" })
         const week = 21
         const day = "Monday"
         const currentEnd = 1621861200000
@@ -38,11 +39,11 @@ describe('Find duration between end of current shift and start of next', () => {
     })
 
     it('Should find the duration from end of current shift to start of next shift the following week', async () => {
-        setDefault({type:"schedule-gaps"})
+        setDefault({ type: "schedule-gaps" })
         const week = 21
         const day = "Saturday"
         const currentEnd = lisa.schedule["21"]["Saturday"].end.epoch
-        const nextStart = lisa.schedule["22"]["Thursday"].start.epoch         
+        const nextStart = lisa.schedule["22"]["Thursday"].start.epoch
         const time = lisa.timeFromEndOfCurrentToStartOfNext({ week, day })
         assert.equal(time, nextStart - currentEnd);
     })
@@ -50,9 +51,9 @@ describe('Find duration between end of current shift and start of next', () => {
 
 
 
-describe('Find next scheduled shift', () => {     
+describe('Find next scheduled shift', () => {
     it('Should find the scheduled shift, the following day', async () => {
-        setDefault({type:"schedule"})
+        setDefault({ type: "schedule" })
         const week = 21
         const day = "Monday"
         const next = _.get(lisa.schedule, `21.Tuesday`)
@@ -62,7 +63,7 @@ describe('Find next scheduled shift', () => {
     })
 
     it('Should find the scheduled shift but using a different starting point, the following day', async () => {
-        setDefault({type:"schedule"})
+        setDefault({ type: "schedule" })
         const week = 21
         const day = "Thursday"
         const next = _.get(lisa.schedule, `21.Friday`)
@@ -72,7 +73,7 @@ describe('Find next scheduled shift', () => {
     })
 
     it('Should find the scheduled shift but now uses a schedule with gaps', async () => {
-        setDefault({type:"schedule-gaps"})
+        setDefault({ type: "schedule-gaps" })
         const week = 21
         const day = "Tuesday"
         const next = _.get(lisa.schedule, `21.Friday`)
@@ -82,7 +83,7 @@ describe('Find next scheduled shift', () => {
     })
 
     it('Should find the scheduled shift but now uses a schedule with gaps and multiple weeks', async () => {
-        setDefault({type:"schedule-gaps"})
+        setDefault({ type: "schedule-gaps" })
         const week = 21
         const day = "Saturday"
         const next = _.get(lisa.schedule, `22.Thursday`)
@@ -92,7 +93,7 @@ describe('Find next scheduled shift', () => {
     })
 
     it('Should return the following shift by specifying todays shift', async () => {
-        setDefault({type:"schedule"})
+        setDefault({ type: "schedule" })
         const week = 21
         let { start, end } = lisa.findNextShift({ week, day: "Monday" })
         let next = _.get(lisa.schedule, `21.Tuesday`)
@@ -133,74 +134,111 @@ describe('Find next scheduled shift', () => {
 
 
 
-if (1 == 2) {
 
 
-    describe('Calcualte insertion time for completion event while accounting fro schedule and task duration', () => {
-        lisa.hasSchedule = true
-        lisa.schedule = schedule
-        lisa.available = true
-
-
-        it('Add duration directly onto clock', async () => {
-            //Monday at 07000
-            const clock = 1621832400000 + (hourasseconds * 2)
-            const duration = hourasseconds / 2
-            const newTime = lisa.addSchedulingTime({ clock, duration })
-            assert.equal(newTime, clock + duration);
-        })
-
-        it('Add duration and also account for dead-time in schedule', async () => {
-            /* should account for the off time between the days */
-            /*
-    
-            8 hours on monday
-            all of the dead time between end of monday and start of tuesday
-            2 hours of tuesday
-    
-    
-            monday start 1621832400000
-            monday end 1621861200000
-             = 8 hours = 28800000
-    
-            duration during night = (tueday start - monday end) = 57600000
-    
-            tuesday start 1621918800000
-             - 3600000
-             - 3600000
-            tuesday end 1621947600000
-            */
-
-            const clock = 1621832400000
-            const duration = hourasseconds * 10
-            const newTime = lisa.addSchedulingTime({ clock, duration })
-            assert.equal(newTime, 1621926000000);
-        })
-
-        /* it('Should find nearest available shift', async () => {
-            //Monday at 05000
-            const clock = 1621832400000-(hourasseconds*2)
-            const duration = hourasseconds/2
-            const newTime = lisa.addSchedulingTime({clock, duration})
-            assert.equal(newTime, 1621832400000 + duration);
-        }) */
-
-        /*  
-        
-          very long durations that span multiple days
-    
-          duration that exceeds the scheduling
-    
-          spotty availability
-            availble here and there
-        
-        clock is just before first shift of person
-    
-        clock is just after shift (during the night)
-    
-        clock and duration clearly exceed the scheduling for the given day
-    
-        */
-
+describe('Calcualte insertion time for completion event while accounting fro schedule and task duration', () => {
+/*     it('Short duration, to be executed same day', async () => {
+        setDefault({ type: "schedule" })
+        //Monday at 07000
+        const clock = 1621832400000
+        const duration = hourasseconds / 2 //30 min
+        const newTime = lisa.addSchedulingTime({ clock, duration })
+        assert.equal(newTime, clock + duration);
     })
-}
+
+
+    it('Little longer duration, to be executed same day', async () => {
+        setDefault({ type: "schedule" })
+        //Monday at 07000
+        const clock = 1621832400000
+        const duration = hourasseconds *6 //6 hours
+        const newTime = lisa.addSchedulingTime({ clock, duration })
+        assert.equal(newTime, clock + duration);
+    })
+
+    it('Longer duration, to be executed next day', async () => {
+        setDefault({ type: "schedule" })
+        //Monday at 07000
+        const clock = 1621832400000
+
+        const deadTime = lisa.timeFromEndOfCurrentToStartOfNext({week:21, day:"Monday"})
+
+        const duration = hourasseconds *10 //6 hours
+        const newTime = lisa.addSchedulingTime({ clock, duration })
+        assert.equal(newTime, clock + duration + deadTime);
+    }) */
+
+    it('Very long duration, to be executed 3 days later', async () => {
+        setDefault({ type: "schedule" })
+        // 30 hours and 8 hours a day = 3.75 days
+        // All of monday 30-8 = 22
+        // All of tuesday 22-8 = 14
+        // All of wednesday 14-8 = 6
+        // 6 hours of thursday
+            // finish towards end of thursday
+
+        //Monday at 07000
+        const clock = 1621832400000
+        /*get deadtime from  Monday to Tuesday*/
+        const deadTime = lisa.timeFromEndOfCurrentToStartOfNext({week:21, day:"Monday"})
+        /*get deadtime from  Tuesday to Wednesday*/
+        const deadTime1 = lisa.timeFromEndOfCurrentToStartOfNext({week:21, day:"Tuesday"})
+        /*get deadtime from  Wednesday to Thursday*/
+        const deadTime2 = lisa.timeFromEndOfCurrentToStartOfNext({week:21, day:"Wednesday"})
+        const duration = hourasseconds *30 //30 hours
+
+        const sum = clock + duration + deadTime + deadTime1 + deadTime2
+
+        const newTime = lisa.addSchedulingTime({ clock, duration })
+        console.log("sum as calculated", Common.convertToReadableTime(sum))
+        console.log("newTime as calculated", Common.convertToReadableTime(newTime))
+
+        assert.equal(newTime, sum);
+    })
+
+    it('Long duration but spotty schedule, to be executed following week', async () => {
+        setDefault({ type: "schedule-gaps" })
+        // 20 hours and 8 hours a day = 2.5 days
+        // All of saturday 20-8 = 12
+        // All of thursday 12-8 = 4
+        // 4 hours of of sunday 
+         
+
+        //Saturday at 07000 Week 21
+        const clock = 1622264400000
+        /*get deadtime from  Saturday(21) to Thursday(22)*/
+        const deadTime = lisa.timeFromEndOfCurrentToStartOfNext({week:21, day:"Saturday"})
+        /*get deadtime from  Thursday(22) to sunday(22)*/
+        const deadTime1 = lisa.timeFromEndOfCurrentToStartOfNext({week:22, day:"Thursday"})
+        
+        
+        const duration = hourasseconds *20 //30 hours
+
+        const sum = clock + duration + deadTime + deadTime1
+
+        const newTime = lisa.addSchedulingTime({ clock, duration })
+        console.log("sum as calculated", Common.convertToReadableTime(sum))
+        console.log("newTime as calculated", Common.convertToReadableTime(newTime))
+
+        assert.equal(newTime, sum);
+    })
+
+    /*  
+    
+      very long durations that span multiple days
+ 
+      duration that exceeds the scheduling
+ 
+      spotty availability
+        availble here and there
+    
+    clock is just before first shift of person
+ 
+    clock is just after shift (during the night)
+ 
+    clock and duration clearly exceed the scheduling for the given day
+ 
+    */
+
+})
+
