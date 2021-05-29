@@ -1,98 +1,206 @@
-const { Event, PendingEvents, Worker, ModelReader } = require('../src/helper')
+const { Resource } = require('../src/classes/resource')
+var _ = require('lodash');
 var chai = require('chai');
 var assert = chai.assert;
-
-const data = {
-    "pendingEvents": {
-        "1618427730000": [
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 9
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 8
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 7
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 6
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 5
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 4
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 3
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 2
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 1
-            },
-            {
-                "priority": -1,
-                "description": "description yo",
-                "order": 0
-            }
-        ]
-    }
-}
-const xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:camunda=\"http://camunda.org/schema/1.0/bpmn\" xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" id=\"Definitions_1viqdmm\" targetNamespace=\"http://bpmn.io/schema/bpmn\" exporter=\"Camunda Modeler\" exporterVersion=\"4.4.0\">\n  <bpmn:process id=\"goToStore2\" name=\"goToStore2\" isExecutable=\"true\">\n    <bpmn:startEvent id=\"StartEvent_1\">\n      <bpmn:outgoing>Flow_0x6li82</bpmn:outgoing>\n    </bpmn:startEvent>\n    <bpmn:sequenceFlow id=\"Flow_0x6li82\" sourceRef=\"StartEvent_1\" targetRef=\"Activity_0p89r7b\" />\n    <bpmn:sequenceFlow id=\"Flow_0rabjuc\" sourceRef=\"Activity_0p89r7b\" targetRef=\"Activity_05y6lof\" />\n    <bpmn:endEvent id=\"Event_02gruhk\">\n      <bpmn:incoming>Flow_1dkl4t1</bpmn:incoming>\n    </bpmn:endEvent>\n    <bpmn:sequenceFlow id=\"Flow_1dkl4t1\" sourceRef=\"Activity_05y6lof\" targetRef=\"Event_02gruhk\" />\n    <bpmn:serviceTask id=\"Activity_0p89r7b\" name=\"Go to store\" camunda:type=\"external\" camunda:topic=\"simulation\">\n      <bpmn:extensionElements>\n        <camunda:inputOutput>\n          <camunda:inputParameter name=\"Input_3to2nl3\" />\n        </camunda:inputOutput>\n        <camunda:properties>\n          <camunda:property name=\"duration\" value=\"10 seconds\" />\n          <camunda:property name=\"waiting \" value=\"321 seconds\" />\n          <camunda:property name=\"warmup \" value=\"10 seconds\" />\n          <camunda:property name=\"cooldown\" value=\"100s\" />\n        </camunda:properties>\n      </bpmn:extensionElements>\n      <bpmn:incoming>Flow_0x6li82</bpmn:incoming>\n      <bpmn:outgoing>Flow_0rabjuc</bpmn:outgoing>\n    </bpmn:serviceTask>\n    <bpmn:serviceTask id=\"Activity_05y6lof\" name=\"Buy milk\" camunda:type=\"external\" camunda:topic=\"simulation\">\n      <bpmn:incoming>Flow_0rabjuc</bpmn:incoming>\n      <bpmn:outgoing>Flow_1dkl4t1</bpmn:outgoing>\n    </bpmn:serviceTask>\n  </bpmn:process>\n  <bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">\n    <bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"goToStore2\">\n      <bpmndi:BPMNEdge id=\"Flow_0x6li82_di\" bpmnElement=\"Flow_0x6li82\">\n        <di:waypoint x=\"215\" y=\"117\" />\n        <di:waypoint x=\"320\" y=\"117\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_0rabjuc_di\" bpmnElement=\"Flow_0rabjuc\">\n        <di:waypoint x=\"420\" y=\"117\" />\n        <di:waypoint x=\"530\" y=\"117\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_1dkl4t1_di\" bpmnElement=\"Flow_1dkl4t1\">\n        <di:waypoint x=\"630\" y=\"117\" />\n        <di:waypoint x=\"742\" y=\"117\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNShape id=\"_BPMNShape_StartEvent_2\" bpmnElement=\"StartEvent_1\">\n        <dc:Bounds x=\"179\" y=\"99\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"Event_02gruhk_di\" bpmnElement=\"Event_02gruhk\">\n        <dc:Bounds x=\"742\" y=\"99\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"Activity_1p2f2o9_di\" bpmnElement=\"Activity_0p89r7b\">\n        <dc:Bounds x=\"320\" y=\"77\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"Activity_0ec1lgv_di\" bpmnElement=\"Activity_05y6lof\">\n        <dc:Bounds x=\"530\" y=\"77\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n    </bpmndi:BPMNPlane>\n  </bpmndi:BPMNDiagram>\n</bpmn:definitions>\n"
-
-//TODO: generate list and pop each element (check that corrrect element is popped )
-
-//TODO: check that list is sorted correctly (account for priority and order)
-
-//TODO: check that list is sorted correctly (account for priority and order)
-
-//TODO: get all elements at timepoint
-
-//TODO: pop all element at timepoint
+const hourasseconds = 3600000
 
 
 
-describe('Unit - Helpers', function () {
-    describe('Worker', function () {
-        it('should parse xml string to js', ()=>{
-            const reader = new ModelReader("some key")
-            reader.xml = xml;             
-            return reader.parseModel().then(result => {
-                assert.isEmpty(result, "xml should have been parsed")
-              })
-        });
+
+const lisa = new Resource({ id: "Lisa" })
+const john = new Resource({ id: "John" })
+const resources = [lisa, john]
+
+const setDefault = ({ type }) => {
+    //schedule or schedule-gaps
+    resources.forEach(resource => {
+        resource.hasSchedule = true
+        var { schedule } = require(`./data/${type}`);
+        resource.schedule = schedule
+        resource.available = true
     });
-});
+}
 
 
-async function getFoo() {
-    return 'foo'
-  }
-  
-  describe('#getFoo', () => {
-    it('resolves with foo', () => {
-      return getFoo().then(result => {
-        assert.equal(result, 'foo')
-      })
+
+
+
+describe('Find duration between end of current shift and start of next', () => {
+    it('Should find the duration from end of current shift to start of next shift the following day', async () => {
+        setDefault({type:"schedule"})
+        const week = 21
+        const day = "Monday"
+        const currentEnd = 1621861200000
+        const next = _.get(lisa.schedule, `21.Tuesday`)
+        const nextStart = 1621918800000
+        const time = lisa.timeFromEndOfCurrentToStartOfNext({ week, day })
+        assert.equal(time, nextStart - currentEnd);
     })
-  })
+
+    it('Should find the duration from end of current shift to start of next shift the following week', async () => {
+        setDefault({type:"schedule-gaps"})
+        const week = 21
+        const day = "Saturday"
+        const currentEnd = lisa.schedule["21"]["Saturday"].end.epoch
+        const nextStart = lisa.schedule["22"]["Thursday"].start.epoch         
+        const time = lisa.timeFromEndOfCurrentToStartOfNext({ week, day })
+        assert.equal(time, nextStart - currentEnd);
+    })
+})
+
+
+
+describe('Find next scheduled shift', () => {     
+    it('Should find the scheduled shift, the following day', async () => {
+        setDefault({type:"schedule"})
+        const week = 21
+        const day = "Monday"
+        const next = _.get(lisa.schedule, `21.Tuesday`)
+        const { start, end } = lisa.findNextShift({ week, day })
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+    })
+
+    it('Should find the scheduled shift but using a different starting point, the following day', async () => {
+        setDefault({type:"schedule"})
+        const week = 21
+        const day = "Thursday"
+        const next = _.get(lisa.schedule, `21.Friday`)
+        const { start, end } = lisa.findNextShift({ week, day })
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+    })
+
+    it('Should find the scheduled shift but now uses a schedule with gaps', async () => {
+        setDefault({type:"schedule-gaps"})
+        const week = 21
+        const day = "Tuesday"
+        const next = _.get(lisa.schedule, `21.Friday`)
+        const { start, end } = lisa.findNextShift({ week, day })
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+    })
+
+    it('Should find the scheduled shift but now uses a schedule with gaps and multiple weeks', async () => {
+        setDefault({type:"schedule-gaps"})
+        const week = 21
+        const day = "Saturday"
+        const next = _.get(lisa.schedule, `22.Thursday`)
+        const { start, end } = lisa.findNextShift({ week, day })
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+    })
+
+    it('Should return the following shift by specifying todays shift', async () => {
+        setDefault({type:"schedule"})
+        const week = 21
+        let { start, end } = lisa.findNextShift({ week, day: "Monday" })
+        let next = _.get(lisa.schedule, `21.Tuesday`)
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+
+        ({ start, end } = lisa.findNextShift({ week, day: "Tuesday" }))
+        next = _.get(lisa.schedule, `21.Wednesday`)
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+
+        ({ start, end } = lisa.findNextShift({ week, day: "Wednesday" }))
+        next = _.get(lisa.schedule, `21.Thursday`)
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+
+        ({ start, end } = lisa.findNextShift({ week, day: "Thursday" }))
+        next = _.get(lisa.schedule, `21.Friday`)
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+
+        ({ start, end } = lisa.findNextShift({ week, day: "Friday" }))
+        next = _.get(lisa.schedule, `21.Saturday`)
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+
+        ({ start, end } = lisa.findNextShift({ week, day: "Saturday" }))
+        next = _.get(lisa.schedule, `21.Sunday`)
+        assert.equal(next.start, start);
+        assert.equal(next.end, end);
+
+        ({ start, end } = lisa.findNextShift({ week, day: "Sunday" }))
+        assert.equal(undefined, start);
+        assert.equal(undefined, end);
+
+    })
+})
+
+
+
+if (1 == 2) {
+
+
+    describe('Calcualte insertion time for completion event while accounting fro schedule and task duration', () => {
+        lisa.hasSchedule = true
+        lisa.schedule = schedule
+        lisa.available = true
+
+
+        it('Add duration directly onto clock', async () => {
+            //Monday at 07000
+            const clock = 1621832400000 + (hourasseconds * 2)
+            const duration = hourasseconds / 2
+            const newTime = lisa.addSchedulingTime({ clock, duration })
+            assert.equal(newTime, clock + duration);
+        })
+
+        it('Add duration and also account for dead-time in schedule', async () => {
+            /* should account for the off time between the days */
+            /*
+    
+            8 hours on monday
+            all of the dead time between end of monday and start of tuesday
+            2 hours of tuesday
+    
+    
+            monday start 1621832400000
+            monday end 1621861200000
+             = 8 hours = 28800000
+    
+            duration during night = (tueday start - monday end) = 57600000
+    
+            tuesday start 1621918800000
+             - 3600000
+             - 3600000
+            tuesday end 1621947600000
+            */
+
+            const clock = 1621832400000
+            const duration = hourasseconds * 10
+            const newTime = lisa.addSchedulingTime({ clock, duration })
+            assert.equal(newTime, 1621926000000);
+        })
+
+        /* it('Should find nearest available shift', async () => {
+            //Monday at 05000
+            const clock = 1621832400000-(hourasseconds*2)
+            const duration = hourasseconds/2
+            const newTime = lisa.addSchedulingTime({clock, duration})
+            assert.equal(newTime, 1621832400000 + duration);
+        }) */
+
+        /*  
+        
+          very long durations that span multiple days
+    
+          duration that exceeds the scheduling
+    
+          spotty availability
+            availble here and there
+        
+        clock is just before first shift of person
+    
+        clock is just after shift (during the night)
+    
+        clock and duration clearly exceed the scheduling for the given day
+    
+        */
+
+    })
+}
