@@ -13,7 +13,7 @@ router.post('/start', async function (req, res, next) {
   const { body } = req
   // initialize new pending events list
   const controller = new Controller({ ...body })
-  controller.init({ ...body.input })
+  await controller.init({ ...body.input })
   try {
     const r = await Executor.execute(controller)
     logger.log("info", r)
