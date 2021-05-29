@@ -61,6 +61,14 @@ const Common = {
   },
   formatHour: (time) => {
     return  moment(parseInt(time)).format('HH:mm');     
+  },
+  convertToReadableTime(pTime) {
+    const temp = {}
+    temp.full = Common.formatClock(pTime)
+    temp.week = parseInt(Common.formatWeek(pTime))
+    temp.day = Common.formatDay(pTime)
+    temp.hour = Common.formatHour(pTime)
+    return temp
   }
 }
 
