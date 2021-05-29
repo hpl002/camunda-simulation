@@ -11,7 +11,10 @@ class Activity {
     }
 
     async init() {
+        //the duration of the task
         this.timing.duration = await this.generateFunc({ timingType: "During" })
+        // the waiting period before a task
+        // this waiting period is independent of any resource
         this.timing.before = await this.generateFunc({ timingType: "Before" })
         this.resourceCandidates = await this.getResources()
         this.hasResourceCandidates = !!this.resourceCandidates.length > 0
@@ -28,7 +31,7 @@ class Activity {
         const timing = await this.getTiming({ type: timingType })
         if (!timing) {
             return () => {
-                return () => { return 0 }
+                return 0
             }
         }
         const { type, value, m, sd, min, max } = timing.properties
