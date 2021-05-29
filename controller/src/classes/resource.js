@@ -141,11 +141,17 @@ class Resource {
     let { week, day, full, hour } = Common.convertToReadableTime(clock)
     let tally = 0
 
-    if (!!this.schedule?.[week]?.[day]) {
-      //has scedule for today
-      const remainingTimeShift = this.remainingTimeOfShift({ clock, week, day })
-      if (remainingTimeShift >= duration) {
-        return clock + duration
+    if (!!this.schedule?.[week]?.[day]) {       
+      let start = this.schedule?.[week]?.[day].start.epoch
+      if(start>clock){
+        //duration from clock to start time
+        return (start-clock) + clock + duration 
+      }
+      else{
+        const remainingTimeShift = this.remainingTimeOfShift({ clock, week, day })
+        if (remainingTimeShift >= duration) {
+          return clock + duration
+        }
       }
     }
 
