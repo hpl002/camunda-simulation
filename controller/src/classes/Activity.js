@@ -1,5 +1,6 @@
 const { executeQuery } = require('../helpers/neo4j')
 const { MathHelper } = require('../helpers/math')
+const { set } = require('lodash')
 
 class Activity {
     constructor({ activityId }) {
@@ -19,6 +20,7 @@ class Activity {
         r = await this.getTiming({ type: "Before" })
         this.timing.before = await this.generateFunc({...r})
         this.resourceCandidates = await this.getResources()
+        this.specializationRequirement = await this.getSpecializationRequirement()
         this.hasResourceCandidates = !!this.resourceCandidates.length > 0
     }
     
@@ -82,6 +84,26 @@ class Activity {
         }
         return record ? record : []
     }
+    /**
+     * how many resources does task require of each specialization
+     */
+    async getSpecializationRequirement() {
+        const specializationQuery = `MATCH (a:Activity)-[]-(l:Limitations)-[rel]-(s:Specialization)-[]-(r:Resource) WHERE a.id="${this.activityId}" return s`
+        let final = []
+        let record = await executeQuery({ query:specializationQuery })
+        if (record.length > 0) {
+            record = record.map(e => e.get("s"))
+            const labels = record.map(e => e.properties.id)
+            const uniqueLabels = new set(labels)
+            for (const s of uniqueLabels) {
+                final[s] = labels.filter(e=>e===s).length
+            }
+        }
+        return final
+    }
+
+//MATCH (a:Activity)-[]-(l:Limitations)-[rel]-(s:Specialization)-[]-(r:Resource) WHERE a.id="GrossingSurgical" return COUNT(rel)
+
 }
 
 exports.Activity = Activity;
