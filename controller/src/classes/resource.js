@@ -129,15 +129,15 @@ class Resource {
   timeFromEndOfCurrentToStartOfNext({ week, day }) {
     const current = _.get(this.schedule, `${week}.${day}`)
     const next = this.findNextShift({ week, day })
-    return next.start.epoch - current.end.epoch
+    const res = next?.start?.epoch - current?.end?.epoch
+    return Number.isInteger(res)?res:undefined
   }
 
   /**
    * @param  {} {clock
    * @param  {} duration}    
    */
-  addSchedulingTime({ clock, duration }) {
-    let result = undefined
+  addSchedulingTime({ clock, duration }) {     
     let { week, day, full, hour } = Common.convertToReadableTime(clock)
     let tally = 0
 
@@ -168,6 +168,7 @@ class Resource {
       else {
         duration = duration - shiftDuration
         tally = tally + shiftDuration
+        if(!this.timeFromEndOfCurrentToStartOfNext({ week, day })) return undefined
         tally = tally + this.timeFromEndOfCurrentToStartOfNext({ week, day })
       }
 
