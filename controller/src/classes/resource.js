@@ -57,7 +57,6 @@ class Resource {
     }
   }
 
-
   soonestAvailability({ time }) {
     const { week, day, full, hour } = Common.convertToReadableTime(time)
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -196,68 +195,85 @@ class Resource {
     }
     let dragPercentage = 0 //no lag
     if (this.efficiencyDistribution) {
-      const r  = await this.generateFunc({ ...this.efficiencyDistribution, options })
+      const r = await this.generateFunc({ ...this.efficiencyDistribution, options })
       const v = await r()
-      dragPercentage =  Math.round((1 - v + Number.EPSILON) * 100) / 100
-      if(dragPercentage>=1) throw new Error(`resource efficiency cannot be reduced beyond 100 percent. Attempted to declare that resource was working at ${v} efficiency`)
+      dragPercentage = Math.round((1 - v + Number.EPSILON) * 100) / 100
+      if (dragPercentage >= 1) throw new Error(`resource efficiency cannot be reduced beyond 100 percent. Attempted to declare that resource was working at ${v} efficiency`)
       console.log("asd");
     }
     logger.log("process", "adding additional time to task duration to account for a reduced efficiency")
     return time + (time * dragPercentage)
   }
+  /**
+   * @param  {} {time}
+   * check if the input time is within the permitted schedule
+   * if the input time is outside the resource schedule then the schedule cannot complete it
+   */
+  permittedCompletionTime({ time }) {
+    if (!this.hasSchedule) return true
+    const { day, week, full, } = Common.convertToReadableTime(time)
+    const v = _.get(this.schedule, `${week}.${day}`)
+    if (v?.start && v?.end) {
+      //check if time falls within the given range        
+      return (v.start <= time && v.end >= time)
+    }
+    else {
+      return false
+    }
+  }
 
 
-async generateFunc({ properties, options }) {
+  async generateFunc({ properties, options }) {
 
-  if (!properties || Object.keys(properties).length <= 0) {
-    return () => {
-      return 0
+    if (!properties || Object.keys(properties).length <= 0) {
+      return () => {
+        return 0
+      }
     }
-  }
-  const { type, value, m, sd, min, max } = properties
-  if (!type) {
-    logger.log("error", "distribution is configured incorrectly. Could not find type")
-    throw new Error("distribution is configured incorrectly. Could not find type")
-  }
-  if (type.toUpperCase() === "NORMALDISTRIBUTION") {
-    if (!(m && sd)) throw new Error("misconfigured NORMALDISTRIBUTION")
-    return () => {
-      return MathHelper.normalDistribution({ mean: m, sd, ...options })
+    const { type, value, m, sd, min, max } = properties
+    if (!type) {
+      logger.log("error", "distribution is configured incorrectly. Could not find type")
+      throw new Error("distribution is configured incorrectly. Could not find type")
     }
-  }
-  else if (type.toUpperCase() === "RANDOM") {
-    if (!(min && max)) throw new Error("misconfigured RANDOM")
-    return () => {
-      return MathHelper.random({ min, max, ...options })
+    if (type.toUpperCase() === "NORMALDISTRIBUTION") {
+      if (!(m && sd)) throw new Error("misconfigured NORMALDISTRIBUTION")
+      return () => {
+        return MathHelper.normalDistribution({ mean: m, sd, ...options })
+      }
     }
-  }
-  else if (type.toUpperCase() === "POISSON") {
-    if (!(value)) throw new Error("misconfigured POISSON")
-    return () => {
-      return MathHelper.poisson({ value, ...options })
+    else if (type.toUpperCase() === "RANDOM") {
+      if (!(min && max)) throw new Error("misconfigured RANDOM")
+      return () => {
+        return MathHelper.random({ min, max, ...options })
+      }
     }
-  }
-  else if (type.toUpperCase() === "BERNOULLI") {
-    if (!(value)) throw new Error("misconfigured BERNOULLI")
-    return () => {
-      return MathHelper.bernoulli({ value, ...options })
+    else if (type.toUpperCase() === "POISSON") {
+      if (!(value)) throw new Error("misconfigured POISSON")
+      return () => {
+        return MathHelper.poisson({ value, ...options })
+      }
     }
-  }
-  else if (type.toUpperCase() === "CONSTANT") {
-    if (!(value)) throw new Error("misconfigured CONSTANT")
-    return () => {
-      return MathHelper.constant({ value, ...options })
+    else if (type.toUpperCase() === "BERNOULLI") {
+      if (!(value)) throw new Error("misconfigured BERNOULLI")
+      return () => {
+        return MathHelper.bernoulli({ value, ...options })
+      }
     }
+    else if (type.toUpperCase() === "CONSTANT") {
+      if (!(value)) throw new Error("misconfigured CONSTANT")
+      return () => {
+        return MathHelper.constant({ value, ...options })
+      }
 
+    }
   }
-}
 
-async init() {
-  await this.hasSchedule()
-  if (this.hasSchedule) {
-    await this.buildSchedule()
+  async init() {
+    await this.hasSchedule()
+    if (this.hasSchedule) {
+      await this.buildSchedule()
+    }
   }
-}
 }
 
 const Helper = {

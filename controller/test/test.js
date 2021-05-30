@@ -48,6 +48,23 @@ describe('Find duration between end of current shift and start of next', () => {
     })
 })
 
+describe('Check to see if suggested time is within the scope of resource schedule', () => {
+
+    it('Should return false because resource does not have schedule for week 22', async () => {
+        setDefault({ type: "schedule" })
+        const time = lisa.schedule["21"]["Sunday"].start.epoch + (hourasseconds * 48)
+        const canComplete = lisa.permittedCompletionTime({ time })
+        assert.equal(canComplete, false);
+    })
+
+    it('Should return true because resource does not have a schedule that permits this', async () => {
+        setDefault({ type: "schedule" })
+        const time = lisa.schedule["21"]["Monday"].start.epoch + (hourasseconds*2)
+        const canComplete = lisa.permittedCompletionTime({ time })
+        assert.equal(canComplete, false);
+    })
+})
+
 
 
 describe('Find next scheduled shift', () => {
@@ -284,59 +301,59 @@ describe('Calcualte insertion time for completion event while accounting fro sch
         assert.equal(newTime, undefined);
     })
 
-    describe('Account for resource efficiency by adding additional timing to task duration', () => {         
+    describe('Account for resource efficiency by adding additional timing to task duration', () => {
         it('add a constant 20 percent', async () => {
             setDefault({ type: "schedule" })
 
-            const properties = 
-                {
-                  identity: 31,
-                  labels: [
+            const properties =
+            {
+                identity: 31,
+                labels: [
                     "Distribution",
-                  ],
-                  properties: {
+                ],
+                properties: {
                     type: "CONSTANT",
                     value: 0.8,
-                  },
-                }
+                },
+            }
 
-              const week = 21
-              const day = "Monday"
-              const currentEnd = 1621861200000              
-              const nextStart = 1621918800000
-              let time = lisa.timeFromEndOfCurrentToStartOfNext({ week, day })               
-              lisa.efficiencyDistribution = properties
-              time = await lisa.efficiency({time, options:{iso:false}})
-              let res = nextStart - currentEnd
-              res = res + res*0.2
-              assert.equal(time, res);
+            const week = 21
+            const day = "Monday"
+            const currentEnd = 1621861200000
+            const nextStart = 1621918800000
+            let time = lisa.timeFromEndOfCurrentToStartOfNext({ week, day })
+            lisa.efficiencyDistribution = properties
+            time = await lisa.efficiency({ time, options: { iso: false } })
+            let res = nextStart - currentEnd
+            res = res + res * 0.2
+            assert.equal(time, res);
         })
 
         it('add a constant 40 percent', async () => {
             setDefault({ type: "schedule" })
 
-            const properties = 
-                {
-                  identity: 31,
-                  labels: [
+            const properties =
+            {
+                identity: 31,
+                labels: [
                     "Distribution",
-                  ],
-                  properties: {
+                ],
+                properties: {
                     type: "CONSTANT",
                     value: 0.6,
-                  },
-                }
+                },
+            }
 
-              const week = 21
-              const day = "Monday"
-              const currentEnd = 1621861200000              
-              const nextStart = 1621918800000
-              let time = lisa.timeFromEndOfCurrentToStartOfNext({ week, day })               
-              lisa.efficiencyDistribution = properties
-              time = await lisa.efficiency({time, options:{iso:false}})
-              let res = nextStart - currentEnd
-              res = res + res*0.4
-              assert.equal(time, res);
+            const week = 21
+            const day = "Monday"
+            const currentEnd = 1621861200000
+            const nextStart = 1621918800000
+            let time = lisa.timeFromEndOfCurrentToStartOfNext({ week, day })
+            lisa.efficiencyDistribution = properties
+            time = await lisa.efficiency({ time, options: { iso: false } })
+            let res = nextStart - currentEnd
+            res = res + res * 0.4
+            assert.equal(time, res);
         })
     })
 
