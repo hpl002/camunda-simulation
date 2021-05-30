@@ -1,4 +1,5 @@
 const { executeQuery } = require('../helpers/neo4j')
+const { MathHelper } = require('../helpers/math')
 
 class Activity {
     constructor({ activityId }) {
