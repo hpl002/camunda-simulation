@@ -94,7 +94,7 @@ const Worker = {
   },
 
   startTask: async ({ task, controller, mongo }) => {
-    const start = async ({workerId, completionTime}) => {
+    const start = async ({ workerId, completionTime }) => {
       try {
         await Common.refreshRandomVariables({ task })
         task.workerId = workerId
@@ -124,35 +124,40 @@ const Worker = {
       // no resource no schedule
       workerId = "no-resource"
       completionTime = controller.clock + task.timing.duration()
-      const s = await start({workerId, completionTime})
+      const s = await start({ workerId, completionTime })
       return s
     }
     else {
       if (available.length > 0) {
         const resourcesWithSchedules = available.filter(r => r.hasSchedule === true)
         const resourcesWithoutSchedules = available.filter(r => r.hasSchedule === false)
-        if (!!resourcesWithSchedules.length === !!resourcesWithoutSchedules.length) throw new Error("Task cannot have resources with and without schedules. These are mutually exclusive")         
-
+        if (!!resourcesWithSchedules.length === !!resourcesWithoutSchedules.length) throw new Error("Task cannot have resources with and without schedules. These are mutually exclusive")
+        //account for resource schedules
         if (!!resourcesWithSchedules.length) {
           /* pass in clock and duration an then get back a time at which the task will be finished that accounts for duration  */
-          available.map(r => r.earliestAvailable = r.addSchedulingTime({ clock: controller.clock, duration: task.timing.duration()}))
-          avalable = available.filter(e=>e.earliestAvailable!==undefined)
-          if(available.length===0) throw new Error("Task duration exceeds the scheduling of any potential resources. There are no resources which can complete this task with their given schedule")
+          available.map(r => {
+            //get the duration of task
+            let duration = task.timing.duration()
+            //add additional duration due to resource (in)efficiency
+            duration = r.efficiency({ time: duration, options: { iso: false } })
+            r.earliestAvailable = r.addSchedulingTime({ clock: controller.clock, duration: task.timing.duration() })
+          }
+          )
+          avalable = available.filter(e => e.earliestAvailable !== undefined)
+          if (available.length === 0) throw new Error("Task duration exceeds the scheduling of any potential resources. There are no resources which can complete this task with their given schedule")
           available.sort((a, b) => b.earliestAvailable - a.earliestAvailable)
-          console.log(`calculated insertion times for ${available.length} resources`)          
+          console.log(`calculated insertion times for ${available.length} resources`)
 
           completionTime = available[0].earliestAvailable
           workerId = available[0].id
         }
-        else{
+        else {
           completionTime = controller.clock + task.timing.duration()
           workerId = available[0].id
         }
 
-        //account for resource efficiency
-
         Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
-        const s = await start({workerId, completionTime})
+        const s = await start({ workerId, completionTime })
         return s
       }
       else {
