@@ -2,10 +2,13 @@ const { Common } = require('./common');
 const random = require('random');
 
 const MathHelper = {
-    normalDistribution({ mean, sd }) {
-        if (typeof mean !== "string" || typeof sd !== "string") throw new Error("input has to be formatted as iso8601 duration")
-        mean = Common.isoToMilliseconds(mean)
-        sd = Common.isoToMilliseconds(sd)
+    normalDistribution({ mean, sd, iso=true }) {
+        if(iso){
+            if (typeof mean !== "string" || typeof sd !== "string") throw new Error("input has to be formatted as iso8601 duration")
+            mean = Common.isoToMilliseconds(mean)
+            sd = Common.isoToMilliseconds(sd)
+        }
+
         if (sd > mean) {
             throw new Error("standard deviation cannot be greater than the mean. Check model", task)
         }
@@ -20,9 +23,11 @@ const MathHelper = {
         return res
     },
 
-    bernoulli({ value }) {
-        if (typeof mean !== "value") throw new Error("input has to be formatted as iso8601 duration")
-        value = Common.isoToMilliseconds(value)
+    bernoulli({ value, iso=true }) {
+        if(iso){
+            if (typeof mean !== "value") throw new Error("input has to be formatted as iso8601 duration")
+            value = Common.isoToMilliseconds(value)
+        }
 
         const s = random.bernoulli((p = value))
         let res = Math.round(s())
@@ -33,9 +38,11 @@ const MathHelper = {
         return res
     },
 
-    poisson({ value }) {
-        if (typeof mean !== "value") throw new Error("input has to be formatted as iso8601 duration")
-        value = Common.isoToMilliseconds(value)
+    poisson({ value, iso=true }) {
+        if(iso){
+            if (typeof mean !== "value") throw new Error("input has to be formatted as iso8601 duration")
+            value = Common.isoToMilliseconds(value)
+        }
 
         const s = random.poisson((lambda = value))
         let res = Math.round(s())
@@ -46,14 +53,19 @@ const MathHelper = {
         return res
     },
 
-    random({ min, max }) {
-        min = Common.isoToMilliseconds(min)
-        max = Common.isoToMilliseconds(max)
+    random({ min, max, iso=true }) {
+        if(iso){
+            min = Common.isoToMilliseconds(min)
+            max = Common.isoToMilliseconds(max)
+        }
         return random.int(min, max)
     },
 
-    constant({ value }) {
-        return Common.isoToMilliseconds(value)
+    constant({ value, iso=true }) {
+        if(iso){
+            return Common.isoToMilliseconds(value)
+        }
+        return value
     },
 }
 

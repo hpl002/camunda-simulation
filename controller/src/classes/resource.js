@@ -2,6 +2,8 @@ var moment = require('moment');
 var _ = require('lodash');
 const { executeQuery } = require('../helpers/neo4j')
 const { Common } = require('../helpers/common')
+const { MathHelper } = require('../helpers/math');
+const { logger } = require('../helpers/winston');
 
 
 class Resource {
@@ -55,10 +57,7 @@ class Resource {
     }
   }
 
-  /**
-   *  TODO: if soonest available is today then it should return this
-   * TODO: throw error if nothing is found
-   */
+
   soonestAvailability({ time }) {
     const { week, day, full, hour } = Common.convertToReadableTime(time)
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -130,24 +129,24 @@ class Resource {
     const current = _.get(this.schedule, `${week}.${day}`)
     const next = this.findNextShift({ week, day })
     const res = next?.start?.epoch - current?.end?.epoch
-    return Number.isInteger(res)?res:undefined
+    return Number.isInteger(res) ? res : undefined
   }
 
   /**
    * @param  {} {clock
    * @param  {} duration}    
    */
-  addSchedulingTime({ clock, duration }) {     
+  addSchedulingTime({ clock, duration }) {
     let { week, day, full, hour } = Common.convertToReadableTime(clock)
     let tally = 0
 
-    if (!!this.schedule?.[week]?.[day]) {       
+    if (!!this.schedule?.[week]?.[day]) {
       let start = this.schedule?.[week]?.[day].start.epoch
-      if(start>clock){
+      if (start > clock) {
         //duration from clock to start time
-        return (start-clock) + clock + duration 
+        return (start - clock) + clock + duration
       }
-      else{
+      else {
         const remainingTimeShift = this.remainingTimeOfShift({ clock, week, day })
         if (remainingTimeShift >= duration) {
           return clock + duration
@@ -168,7 +167,7 @@ class Resource {
       else {
         duration = duration - shiftDuration
         tally = tally + shiftDuration
-        if(!this.timeFromEndOfCurrentToStartOfNext({ week, day })) return undefined
+        if (!this.timeFromEndOfCurrentToStartOfNext({ week, day })) return undefined
         tally = tally + this.timeFromEndOfCurrentToStartOfNext({ week, day })
       }
 
@@ -182,12 +181,83 @@ class Resource {
 
   }
 
-  async init() {
-    await this.hasSchedule()
-    if (this.hasSchedule) {
-      await this.buildSchedule()
+  /**
+   * @param  {} {time
+   * @param  {} options}
+   * add additional time to clock to account for a reduced efficiency
+   */
+  async efficiency({ time, options }) {
+    if (this.efficiencyDistribution === false || Object.keys(this.efficiencyDistribution).length == 0) {
+      // query neo4j to get distribution connected to efficiency
+      const query = `MATCH (r:Resource)-[]-(e:Efficiency)-[]-(d:Distribution) WHERE r.id="${this.id}" return d`
+      let distribution = await executeQuery({ query })
+      distribution = distribution.map(e => e.get("d"))
+      this.efficiencyDistribution = distribution.length > 0 ? { ...distribution[0] } : false
+    }
+    let dragPercentage = 0 //no lag
+    if (this.efficiencyDistribution) {
+      const r  = await this.generateFunc({ ...this.efficiencyDistribution, options })
+      const v = await r()
+      dragPercentage =  Math.round((1 - v + Number.EPSILON) * 100) / 100
+      if(dragPercentage>=1) throw new Error(`resource efficiency cannot be reduced beyond 100 percent. Attempted to declare that resource was working at ${v} efficiency`)
+      console.log("asd");
+    }
+    logger.log("process", "adding additional time to task duration to account for a reduced efficiency")
+    return time + (time * dragPercentage)
+  }
+
+
+async generateFunc({ properties, options }) {
+
+  if (!properties || Object.keys(properties).length <= 0) {
+    return () => {
+      return 0
     }
   }
+  const { type, value, m, sd, min, max } = properties
+  if (!type) {
+    logger.log("error", "distribution is configured incorrectly. Could not find type")
+    throw new Error("distribution is configured incorrectly. Could not find type")
+  }
+  if (type.toUpperCase() === "NORMALDISTRIBUTION") {
+    if (!(m && sd)) throw new Error("misconfigured NORMALDISTRIBUTION")
+    return () => {
+      return MathHelper.normalDistribution({ mean: m, sd, ...options })
+    }
+  }
+  else if (type.toUpperCase() === "RANDOM") {
+    if (!(min && max)) throw new Error("misconfigured RANDOM")
+    return () => {
+      return MathHelper.random({ min, max, ...options })
+    }
+  }
+  else if (type.toUpperCase() === "POISSON") {
+    if (!(value)) throw new Error("misconfigured POISSON")
+    return () => {
+      return MathHelper.poisson({ value, ...options })
+    }
+  }
+  else if (type.toUpperCase() === "BERNOULLI") {
+    if (!(value)) throw new Error("misconfigured BERNOULLI")
+    return () => {
+      return MathHelper.bernoulli({ value, ...options })
+    }
+  }
+  else if (type.toUpperCase() === "CONSTANT") {
+    if (!(value)) throw new Error("misconfigured CONSTANT")
+    return () => {
+      return MathHelper.constant({ value, ...options })
+    }
+
+  }
+}
+
+async init() {
+  await this.hasSchedule()
+  if (this.hasSchedule) {
+    await this.buildSchedule()
+  }
+}
 }
 
 const Helper = {

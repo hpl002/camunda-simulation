@@ -148,12 +148,15 @@ const Worker = {
           completionTime = controller.clock + task.timing.duration()
           workerId = available[0].id
         }
+
+        //account for resource efficiency
+
         Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
         const s = await start({workerId, completionTime})
         return s
       }
       else {
-        // here we account for scenario where resource is bussy with other task         
+        // here we account for scenario where resource is bussy with other task
         const startTime = await Worker.howLongUntilResourceAvailable({ potential, controller })
         logger.log("process", `Found resource on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
         return { task, startTime, type: "start task", reason: "Reschedule: Could not find any available resource" }
