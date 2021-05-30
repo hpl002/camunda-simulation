@@ -123,7 +123,7 @@ const Worker = {
     if (!task.hasResourceCandidates) {
       // no resource no schedule
       workerId = "no-resource"
-      completionTime = clock+duration
+      completionTime = controller.clock + task.timing.duration()
       const s = await start({workerId, completionTime})
       return s
     }
@@ -139,12 +139,15 @@ const Worker = {
           avalable = available.filter(e=>e.earliestAvailable!==undefined)
           if(available.length===0) throw new Error("Task duration exceeds the scheduling of any potential resources. There are no resources which can complete this task with their given schedule")
           available.sort((a, b) => b.earliestAvailable - a.earliestAvailable)
-          console.log(`calculated insertion times for ${available.length} resources`)
-          
-          workerId = available[0].id
-          completionTime = available[0].earliestAvailable
-        }
+          console.log(`calculated insertion times for ${available.length} resources`)          
 
+          completionTime = available[0].earliestAvailable
+          workerId = available[0].id
+        }
+        else{
+          completionTime = controller.clock + task.timing.duration()
+          workerId = available[0].id
+        }
         Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
         const s = await start({workerId, completionTime})
         return s
