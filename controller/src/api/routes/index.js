@@ -5,9 +5,13 @@ const { Controller, Executor } = require('../../index')
 const { logger } = require('../../helpers/winston')
 const { v4: uuidv4 } = require('uuid');
 const { Mongo } = require("../../classes/Mongo")
-var { readFileSync } = require('fs')
+var { readFileSync, writeFileSync } = require('fs')
 const { executeQuery } = require('../../helpers/neo4j')
-
+var FormData = require('form-data');
+// import os module
+const os = require("os");
+const fs = require("fs");
+const tempDir = os.tmpdir()
 
 //upload config bundle
 router.post('/config', async function (req, res, next) {
@@ -63,6 +67,47 @@ router.get('/deployment', async function (req, res, next) {
   }
 });
 
+//upload new daployment to camunda
+router.post('/deployment', async function (req, res, next) {
+  //body to readstream
+  var data = new FormData()
+  try {
+    const { body } = req
+    if (typeof body !== "string") throw new Error("expected bpmn model as string")       
+            
+    const tempPath = `${tempDir}/temporary.bpmn`      
+    writeFileSync(tempPath, body);
+
+
+    data.append('deployment-name', 'aName', { contentType: 'text/plain' });
+    data.append('enable-duplicate-filtering', 'true');
+    data.append('deployment-source', 'simulation-controller');
+    data.append('data', fs.createReadStream(tempPath));
+
+    var config = {
+      method: 'post',
+      url: `${process.env.PROCESS_ENGINE}/engine-rest/deployment/create`,
+      headers: {
+        ...data.getHeaders()
+      },
+      data: data
+    };
+  } catch (error) {
+    next(error)
+  }
+
+  axios(config)
+    .then(function (response) {
+      return res.send("model uploaded");
+    })
+    .catch(function (error) {
+      console.log(error);
+      next(error)
+    });
+
+})
+
+
 //delete deployments in camunda
 router.delete('/deployment', async function (req, res, next) {
   try {
@@ -80,6 +125,9 @@ router.delete('/deployment', async function (req, res, next) {
   }
 });
 
+
+
+
 //delete graph
 router.delete('/neo4j', async function (req, res, next) {
   const query = "MATCH (n) DETACH DELETE n"
@@ -96,7 +144,7 @@ router.get('/neo4j', async function (req, res, next) {
   const query = "MATCH (n) Return n"
   try {
     let record = await executeQuery({ query })
-    if(record.length) res.send(record)
+    if (record.length) res.send(record)
     res.send(204)
   } catch (error) {
     res.send(500)
@@ -104,19 +152,33 @@ router.get('/neo4j', async function (req, res, next) {
 });
 
 //create greaph. req as plaintext body
-router.post('/neo4j', async function (req, res, next) {   
-  const { body } = req   
+router.post('/neo4j', async function (req, res, next) {
+  const { body } = req
   try {
-    await executeQuery({ query:body })
+    await executeQuery({ query: body })
     res.send(200)
   } catch (error) {
-    if(error && error.name === "Neo4jError") res.send(error.message)
+    if (error && error.name === "Neo4jError") res.send(error.message)
     res.send(500)
   }
 });
 
+ 
+/*
+take config identifier as input
+delete deployment
+delete graph
+load deployment
+load graph
 
-//start new simulation run
+start simulation
+
+return results
+
+
+*/
+
+
 router.post('/start', async function (req, res, next) {
   const { body } = req
   // initialize new pending events list

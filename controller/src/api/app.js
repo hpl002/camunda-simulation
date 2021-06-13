@@ -23,7 +23,7 @@ app.use(express.urlencoded({
 app.use(fileUpload({
   useTempFiles : true,
   tempFileDir : '/tmp/',
-  debug:true
+  debug:false
 }));
 
 app.use(express.json());
