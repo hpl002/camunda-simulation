@@ -30,10 +30,10 @@ class PendingEvents {
         event.order = order
 
         events.push(event)
-        // element with lowest order gets removed first
-        events.sort((a, b) => { return b.order - a.order })
-        // element with highest priority gets removed first
-        events.sort((a, b) => { return a.priority - b.priority })
+        // element with lowest order gets removed first         
+        events.sort((a, b) => a.order > b.order)
+        // element with highest priority gets removed first         
+        events.sort((a, b) => a.priority < b.priority)
       }
     }
   

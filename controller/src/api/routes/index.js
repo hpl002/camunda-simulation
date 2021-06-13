@@ -8,7 +8,6 @@ router.get('/', function (req, res, nCext) {
   res.render('index', { title: 'Express' });
 });
 
-
 router.post('/start', async function (req, res, next) {
   const { body } = req
   // initialize new pending events list
@@ -88,4 +87,5 @@ router.delete('/delete/process', async function (req, res, next) {
     next(error)
   }
 }); 
+
 module.exports = router;

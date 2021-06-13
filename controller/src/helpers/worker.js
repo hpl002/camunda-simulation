@@ -7,46 +7,6 @@ const { executeQuery } = require('../helpers/neo4j')
 const { MathHelper } = require('./math')
 
 const Worker = {
-  /**
-   * @param  {} {id
-   * @param  {} task}
-   * returns an object with two arrays, one of all qualified and potential resources and one of those available
-   */
-  getAvailableResources: async ({ task, controller }) => {
-    const response = {}
-    response.potential = task.resourceCandidates
-    let available = []
-
-
-    response.potential.forEach(resource => {
-      const arr = controller.resourceArr.filter(e => e.id === resource && e.available === true)
-      if (!!arr.length > 0) available.push(arr[0])
-    });
-    response.available = available
-    return response
-  },
-  /**
-   * @param  {} {workerId
-   * @param  {} controller}
-   * calculates the earliest at which the specified resource is available
-   */
-  howLongUntilResourceAvailable: async ({ potential, controller }) => {
-    let arr = controller.resourceArr.filter(e => potential.includes(e.id))
-    arr = arr.map(e => e.lockedUntil)
-    arr.sort((a, b) => b - a)
-    return arr.pop()
-  },
-
-  lockResource: ({ workerId, task, controller, lockedUntil }) => {
-    /* find index of first resource that matches id and update this */
-    const index = controller.resourceArr.findIndex(e => e.id === workerId && e.available === true)
-    if (index === -1) throw new Error("could not find any resource with the provided workerId")
-    controller.resourceArr[index].task = task
-    controller.resourceArr[index].available = false
-    controller.resourceArr[index].lockedUntil = lockedUntil
-    logger.log("process", `locking resource ${controller.resourceArr[index].id} util ${Common.formatClock(lockedUntil)} on task ${task.activityId}`)
-  },
-
   freeResource: ({ task, controller }) => {
     /* find index of first resource that matches id and update this */
     const index = controller.resourceArr.findIndex(e => e.task.id === task.id)
@@ -94,81 +54,226 @@ const Worker = {
   },
 
   startTask: async ({ task, controller, mongo }) => {
-    const start = async ({ workerId, completionTime }) => {
-      try {
-        await Common.refreshRandomVariables({ task })
-        task.workerId = workerId
-        const body = {
-          "workerId": workerId,
-          "lockDuration": 1800000
+
+    const Helper = {
+      taskDuration: task.timing.duration(),
+
+      start: async ({ resources, completionTime }) => {
+        try {
+          await Common.refreshRandomVariables({ task })
+          task.workerId = resources.join()
+          const body = {
+            "workerId": task.workerId,
+            "lockDuration": 1800000
+          }
+          response = await axios.post(`${process.env.PROCESS_ENGINE}/engine-rest/external-task/${task.id}/lock`, body)
+          if (response.status !== 204) throw new Error("could not lock task")
+          logger.log("process", `Starting task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
+          await mongo.startTask({ case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
+          return { task, startTime: completionTime, type: "complete task" }
+        } catch (error) {
+          logger.log("error", error)
+          throw error
         }
-        response = await axios.post(`${process.env.PROCESS_ENGINE}/engine-rest/external-task/${task.id}/lock`, body)
-        if (response.status !== 204) throw new Error("could not lock task")
-        logger.log("process", `Starting task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
-        await mongo.startTask({ case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
-        return { task, startTime: completionTime, type: "complete task" }
-      } catch (error) {
-        logger.log("error", error)
-        throw error
+      },
+
+      getResourcesWithSchedules: ({ specializationMap, hasSchedule }) => {
+        const res = []
+        Object.keys(specializationMap).forEach(element => {
+          let r = specializationMap[element].filter(e => e.hasSchedule === hasSchedule)
+          if (r.length > 0) res.push(r)
+        });
+        return res
+      },
+
+
+      /**
+       * @param  {} {specializationMap
+       * @param  {} hasSchedule}
+       * return array of resources that have or do not have schedules
+       */
+      applyEfficiency: async ({ specializationResourceArr }) => {
+        for (const key of Object.keys(specializationResourceArr)) {
+          for (const r of specializationResourceArr[key]) {
+            r.duration = r.duration + await r.efficiency({ time: Helper.taskDuration, options: { iso: false } })
+          }
+        }
+      },
+
+      applyScheduling: ({ specializationResourceArr }) => {
+        Object.keys(specializationResourceArr).forEach(key => {
+          specializationResourceArr[key].forEach(r => {
+            r.duration = r.duration + r.addSchedulingTime({ clock: controller.clock, duration: Helper.taskDuration })
+          });
+        });
+      },
+
+      filterDuration: ({ specializationResourceArr }) => {
+        Object.keys(specializationResourceArr).forEach(key => {
+          specializationResourceArr[key] = specializationResourceArr[key].filter(e => e.duration !== undefined)
+        });
+      },
+
+      sortDuration: ({ specializationResourceArr }) => {
+        Object.keys(specializationResourceArr).forEach(key => {
+          specializationResourceArr[key].sort((a, b) => a.duration > b.duration)
+        });
+      },
+
+      verifyScheduling: ({ specializationResourceArr, task }) => {
+        let elements = []
+        Object.keys(specializationResourceArr).forEach(key => {
+          if (task.specializationRequirement[key].requires > specializationResourceArr[key].length) elements.push(key)
+        });
+        if (elements.length > 0) throw new Error(`Applicable resources for task${task.activityId} ran of of scheduling. Missing resoruces in specialization(s):${elements.join()}`)
+      },
+
+      selectResources: ({ specializationResourceArr }) => {
+        Object.keys(task.specializationRequirement).forEach(key => {
+          //months.splice(months.length-2, months.length);
+          const requirement = task.specializationRequirement[key].requires
+          const length = specializationResourceArr[key].length
+          specializationResourceArr[key].splice(requirement, length);
+
+        });
+      },
+
+      allSpecializationsFilled: () => {
+        let f = false
+        Object.keys(task?.specializationRequirement).forEach(s => {
+          f = !!filled[s].length
+        });
+        return f
+      },
+
+      /**
+  * @param  {} {id
+  * @param  {} task}
+  * returns two objects, filled and not filled
+  * filled consting of all specialziations that could be filled by a resource
+  * notFilled consting of all specialziations that could not be filled by a resource
+  */
+      getAvailableResources: async ({ task, controller }) => {
+        const response = {}
+        response.potential = controller.resourceArr.filter(e => task.resourceCandidates.includes(e.id))
+        let available = []
+
+
+        task.resourceCandidates.forEach(resource => {
+          const arr = controller.resourceArr.filter(e => e.id === resource && e.available === true)
+          if (!!arr.length > 0) available.push(arr[0])
+        });
+        response.available = available
+
+        return Helper.mapResourcesToRequirement({ ...response, task })
+      },
+
+      /**
+     * @param  {} {available
+     * @param  {} potential
+     * @param  {} task}
+     * returns two objects
+     * one with all specializations that have been filled
+     * one with specializations that have not been filled
+     */
+      mapResourcesToRequirement: ({ available, potential, task }) => {
+        // map resources onto task requirement
+        // missing resources are resources can execute the task but are not available
+        const mappedResources = { ...task.specializationRequirement }
+        const response = { filled: [], notFilled: [] }
+        Object.keys(task.specializationRequirement).forEach(key => {
+          const spentResources = []
+          available.forEach(r => {
+            if (r.specialization.includes(key) && !spentResources.includes(r.id)) {
+              mappedResources[key].resources.push(r)
+              spentResources.push(r.id)
+              mappedResources[key].filled = mappedResources[key].requires === mappedResources[key].resources.length ? true : false
+            }
+          });
+          if (mappedResources[key].filled === true) {
+            response.filled[key] = [...mappedResources[key].resources]
+          }
+          else {
+            response.notFilled[key] = [...mappedResources[key].resources]
+          }
+        });
+        return response
+      },
+      /**
+ * @param  {} {workerId
+ * @param  {} controller}
+ * calculates the earliest at which the specified resource is available
+ */
+      howLongUntilResourceAvailable: async ({ potential, controller }) => {
+        let arr = controller.resourceArr.filter(e => potential.includes(e.id))
+        arr = arr.map(e => e.lockedUntil)
+        arr.sort((a, b) => b - a)
+        return arr.pop()
+      },
+
+      lockResource: ({ task, controller, specializationResourceArr }) => {
+        let completionTime = 0
+        let resources = []
+        Object.keys(specializationResourceArr).forEach(key => {
+          specializationResourceArr[key].forEach(r => {
+            /* find index of first resource that matches id and update this */
+            const index = controller.resourceArr.findIndex(e => e.id === r.id && e.available === true)
+            if (index === -1) throw new Error("could not find any resource with the provided workerId")
+            controller.resourceArr[index].task = task
+            controller.resourceArr[index].available = false
+            controller.resourceArr[index].lockedUntil = r.duration
+            completionTime = r.duration > completionTime ? r.duration  : completionTime
+            resources.push(r.id)
+            logger.log("process", `locking resource ${controller.resourceArr[index].id}(specialization:${key}) until ${Common.formatClock(r.duration)} on task ${task.activityId}`)
+          });
+        });
+        return {completionTime, resources}
       }
     }
 
-    let { potential, available } = await Worker.getAvailableResources({ task, controller })
-    // available here meaning that the resource is not tied to another task, it does not accout for scheduling
+    //TODO: get 
+    // filled being specializations which have been filled by a resource
+    // not filled being specializaton which has not been filled by a resource
+    let { filled, notFilled } = await Helper.getAvailableResources({ task, controller })
+
     let workerId = undefined
     let completionTime = 0
-
-
+    let resources = []
 
     if (!task.hasResourceCandidates) {
       // no resource no schedule
       workerId = "no-resource"
-      completionTime = controller.clock + task.timing.duration()
-      const s = await start({ workerId, completionTime })
-      return s
+      completionTime = controller.clock + taskDuration
+      return await start({ workerId, completionTime })
     }
     else {
-      if (available.length > 0) {
-        const resourcesWithSchedules = available.filter(r => r.hasSchedule === true)
-        const resourcesWithoutSchedules = available.filter(r => r.hasSchedule === false)
+      if (Helper.allSpecializationsFilled()) {
+        await Helper.applyEfficiency({ specializationResourceArr: filled })
+        const resourcesWithSchedules = Helper.getResourcesWithSchedules({ specializationMap: filled, hasSchedule: true })
+        const resourcesWithoutSchedules = Helper.getResourcesWithSchedules({ specializationMap: filled, hasSchedule: false })
         if (!!resourcesWithSchedules.length === !!resourcesWithoutSchedules.length) throw new Error("Task cannot have resources with and without schedules. These are mutually exclusive")
         //account for resource schedules
         if (!!resourcesWithSchedules.length) {
-          /* pass in clock and duration an then get back a time at which the task will be finished that accounts for duration  */
-          available.map(r => {
-            //get the duration of task
-            let duration = task.timing.duration()
-            //add additional duration due to resource (in)efficiency
-            duration = r.efficiency({ time: duration, options: { iso: false } })
-            r.earliestAvailable = r.addSchedulingTime({ clock: controller.clock, duration: task.timing.duration() })
-          }
-          )
-          avalable = available.filter(e => e.earliestAvailable !== undefined)
-          if (available.length === 0) throw new Error("Task duration exceeds the scheduling of any potential resources. There are no resources which can complete this task with their given schedule")
-          available.sort((a, b) => b.earliestAvailable - a.earliestAvailable)
-          console.log(`calculated insertion times for ${available.length} resources`)
-
-          completionTime = available[0].earliestAvailable
-          workerId = available[0].id
+          Helper.applyScheduling({ specializationResourceArr: filled })
+          Helper.filterDuration({ specializationResourceArr: filled })
+          Helper.verifyScheduling({ specializationResourceArr: filled, task })
         }
-        else {
-          completionTime = controller.clock + task.timing.duration()
-          workerId = available[0].id
-        }
+        Helper.sortDuration({ specializationResourceArr: filled, task })
+        Helper.selectResources({ specializationResourceArr: filled })
 
-        Worker.lockResource({ workerId, task, controller, lockedUntil: completionTime })
-        const s = await start({ workerId, completionTime })
-        return s
+        const r = Helper.lockResource({ task, controller, specializationResourceArr: filled })
+        return await Helper.start({ ...r })
       }
       else {
-        // here we account for scenario where resource is bussy with other task
-        const startTime = await Worker.howLongUntilResourceAvailable({ potential, controller })
+        // TODO: pass in array. Functions finds earliest time at which all resources are available
+        const startTime = await Helper.howLongUntilResourceAvailable({ potential, controller })
         logger.log("process", `Found resource on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
         return { task, startTime, type: "start task", reason: "Reschedule: Could not find any available resource" }
       }
     }
   },
   completeTask: async ({ task, controller, mongo }) => {
+    // check that resources are indeed available
     if (task.workerId && task.workerId !== "no-resource") {
       Worker.freeResource({ task, controller })
     }

@@ -89,14 +89,14 @@ class Activity {
      */
     async getSpecializationRequirement() {
         const specializationQuery = `MATCH (a:Activity)-[]-(l:Limitations)-[rel]-(s:Specialization)-[]-(r:Resource) WHERE a.id="${this.activityId}" return s`
-        let final = []
+        let final = {}
         let record = await executeQuery({ query:specializationQuery })
         if (record.length > 0) {
             record = record.map(e => e.get("s"))
             const labels = record.map(e => e.properties.id)
             const uniqueLabels = new set(labels)
-            for (const s of uniqueLabels) {
-                final[s] = labels.filter(e=>e===s).length
+            for (const s of uniqueLabels) {                 
+                final[s] = {requires:labels.filter(e=>e===s).length, resources:[], filled:false} 
             }
         }
         return final

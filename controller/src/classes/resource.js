@@ -13,6 +13,8 @@ class Resource {
     this.lockedUntil = lockedUntil
     this.task = task
     this.schedule = {}
+    this.duration = 0
+    this.efficiencyDistribution = {}
   }
 
   async hasSchedule() {
@@ -57,6 +59,13 @@ class Resource {
     }
   }
 
+  async getSpecializations() {
+    const query = `MATCH (r:Resource)-[]-(s:Specialization) WHERE r.id="${this.id}" return s.id`
+    let s = await executeQuery({ query })
+    s = s.map(e => e.get("s.id"))
+    this.specialization = s
+  }
+
   soonestAvailability({ time }) {
     const { week, day, full, hour } = Common.convertToReadableTime(time)
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -64,9 +73,7 @@ class Resource {
     let weeks = Object.keys(this.schedule)
     weeks = weeks.map(e => parseInt(e))
     weeks = weeks.filter(e => e >= week)
-    weeks.sort(function (a, b) {
-      return a - b;
-    });
+    weeks.sort((a, b) => a > b)     
     let numInWeek = days.findIndex(e => e === day)
     const { start, end } = _.get(this.schedule, `${week}.${day}`)
     if (time >= start.epoch && time <= end.epoch) {
@@ -195,8 +202,8 @@ class Resource {
     }
     let dragPercentage = 0 //no lag
     if (this.efficiencyDistribution) {
-      const r = await this.generateFunc({ ...this.efficiencyDistribution, options })
-      const v = await r()
+      const r = this.generateFunc({ ...this.efficiencyDistribution, options })
+      const v = r()
       dragPercentage = Math.round((1 - v + Number.EPSILON) * 100) / 100
       if (dragPercentage >= 1) throw new Error(`resource efficiency cannot be reduced beyond 100 percent. Attempted to declare that resource was working at ${v} efficiency`)
       console.log("asd");
@@ -223,7 +230,7 @@ class Resource {
   }
 
 
-  async generateFunc({ properties, options }) {
+  generateFunc({ properties, options }) {
 
     if (!properties || Object.keys(properties).length <= 0) {
       return () => {
@@ -269,6 +276,7 @@ class Resource {
   }
 
   async init() {
+    await this.getSpecializations()
     await this.hasSchedule()
     if (this.hasSchedule) {
       await this.buildSchedule()
