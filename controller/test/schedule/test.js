@@ -1,9 +1,9 @@
-const { Resource } = require('../src/classes/resource')
+const { Resource } = require('../../src/classes/resource')
 var _ = require('lodash');
 var chai = require('chai');
 var assert = chai.assert;
 const hourasseconds = 3600000
-const { Common } = require('../src/helpers/common')
+const { Common } = require('../../src/helpers/common')
 
 
 
