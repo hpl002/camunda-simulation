@@ -2,7 +2,6 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var { logger } = require('../helpers/winston');
 const sleep = require('util').promisify(setTimeout)
-var async = require("async");
 
 
 
