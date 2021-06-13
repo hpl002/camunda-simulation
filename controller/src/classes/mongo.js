@@ -6,42 +6,63 @@ const sleep = require('util').promisify(setTimeout)
 
 
 class Mongo {
-  constructor({ collection = "events" }) {
+  constructor({ collection = "events", db="simulation" }) {
     this.collection = collection;
-    this.connectionString = process.env.MONGO
-
-    var EventLogSchema = new Schema({
-      case_id: {
-        type: String,
-        required: true,
-        immutable: true
-      },
-      activity_id: {
-        type: String,
-        required: false,
-        immutable: false
-      },
-      activity_start: {
-        type: String,
-      },
-      activity_end: {
-        type: String,
-      },
-      resource_id: {
-        type: String,
-      },
-      activity_type: {
-        type: String,
-      },
-    }, { timestamps: { createdAt: 'created_at' }, })
-
-    this.schema = EventLogSchema
+    this.connectionString = `${process.env.MONGO}/${db}` 
+    
     this.init()
+    var schema = ""
+    if(db==="simulation"){
+      schema = new Schema({
+        case_id: {
+          type: String,
+          required: true,
+          immutable: true
+        },
+        activity_id: {
+          type: String,
+          required: false,
+          immutable: false
+        },
+        activity_start: {
+          type: String,
+        },
+        activity_end: {
+          type: String,
+        },
+        resource_id: {
+          type: String,
+        },
+        activity_type: {
+          type: String,
+        },
+      }, { timestamps: { createdAt: 'created_at' }, })
+    }
+    else{
+      schema = new Schema({         
+        id: {
+          type: String,
+          required: true,
+          immutable: true
+        },
+        camunda: {
+          type: String,
+          required: true,
+          immutable: true
+        },
+        neo4j: {
+          type: String,
+          required: false,
+          immutable: true
+        },         
+      }, { timestamps: { createdAt: 'created_at' }, })
+    }
+    this.schema = schema
   }
-
+  
 
   init() {
-    mongoose.connect(process.env.MONGO, {
+    mongoose.connect(this.connectionString, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useUnifiedTopology: true,
@@ -59,6 +80,14 @@ class Mongo {
    * @param  {} resource_id=""}
    */
 
+
+   async addConfig({id,camunda, neo4j}) {          
+    logger.log("mongo", `Uploading configs with id:${id}`)     
+    const Model = mongoose.model(this.collection, this.schema);
+    await Model.create({ id, camunda, neo4j}, function (err, small) {
+      if (err) throw err
+    });
+  }
 
   async startEvent({ case_id, activity_id, activity_start, activity_end, resource_id }) {          
     logger.log("mongo", `Mongo Logging:Starting process case_id:${case_id}`)

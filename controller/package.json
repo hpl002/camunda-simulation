@@ -6,7 +6,7 @@
     "start": "nodemon --trace-warnings ./src/api/bin/www",
     "debug": "nodemon --inspect ./src/api/bin/www",
     "debug-brk": "nodemon --inspect-brk ./src/api/bin/www",
-    "test": "mocha",     
+    "test": "mocha",
     "debug-test": "mocha --reporter spec --inspect"
   },
   "dependencies": {
@@ -14,6 +14,7 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "express-fileupload": "^1.2.1",
     "http-errors": "~1.6.3",
     "http-proxy-middleware": "^1.1.1",
     "jade": "~1.11.0",

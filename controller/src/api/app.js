@@ -1,6 +1,7 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
+var fileUpload = require('express-fileupload');
 var cookieParser = require('cookie-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
@@ -15,6 +16,12 @@ app.set('view engine', 'jade');
 app.use(express.json());
 app.use(express.urlencoded({
   extended: true
+}));
+
+app.use(fileUpload({
+  useTempFiles : true,
+  tempFileDir : '/tmp/',
+  debug:true
 }));
 
 app.use(express.json());
