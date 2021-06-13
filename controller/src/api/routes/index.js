@@ -12,11 +12,12 @@ var FormData = require('form-data');
 const os = require("os");
 const fs = require("fs");
 const tempDir = os.tmpdir()
+const mongoConfigs = new Mongo({ collection: "configs"})
 
 //upload config bundle
 router.post('/config', async function (req, res, next) {
   const identifier = uuidv4()
-  const mongo = new Mongo({ collection: identifier, db: "configs" })
+   
 
   try {
     if (!req.files.camunda || !req.files.neo4j) {
@@ -34,7 +35,7 @@ router.post('/config', async function (req, res, next) {
       neo4j = readFileSync(neo4j).toString()
 
 
-      mongo.addConfig({ id: identifier, camunda, neo4j })
+      mongoConfigs.addConfig({ id: identifier, camunda, neo4j })
       res.status(201).send(identifier)
     }
   } catch (error) {
@@ -44,8 +45,8 @@ router.post('/config', async function (req, res, next) {
 })
 //get config bundle by id
 router.get('/config/:id', async function (req, res, next) {
-  const mongo = new Mongo({ collection: req.params.id, db: "configs" })
-  const r = await mongo.getConfig()
+   
+  const r = await mongoConfigs.getConfig({id:req.params.id})
   if (r && r.length) {
     const { camunda, neo4j } = r[0]
     res.send({ camunda, neo4j })
@@ -165,9 +166,7 @@ router.post('/neo4j', async function (req, res, next) {
 
  
 /*
-take config identifier as input
-delete deployment
-delete graph
+ 
 load deployment
 load graph
 
@@ -175,19 +174,38 @@ start simulation
 
 return results
 
-
+validate req body against schema
 */
 
 
 router.post('/start', async function (req, res, next) {
-  const { body } = req
-  // initialize new pending events list
-  const controller = new Controller({ ...body })
-  await controller.init({ ...body.input })
   try {
+  const { body, params } = req
+  //get configs
+  const {camunda, neo4j} = axios.get(`http://localhost:${process.env.PORT}//config/${params.id}`)
+  
+  
+  //delete and upload new camunda config
+  await axios.delete(`http://localhost:${process.env.PORT}/deployment`)
+  await axios.post(`http://localhost:${process.env.PORT}/deployment`, {
+    camunda
+  })
+  
+  //delete and upload new neo4j config
+  await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
+  await axios.post(`http://localhost:${process.env.PORT}/neo4j`, {
+    neo4j
+  })
+
+
+
+    /* // initialize new pending events list
+    const controller = new Controller({ ...body })
+    await controller.init({ ...body.input })
     const r = await Executor.execute(controller)
     logger.log("info", r)
-    res.send(r)
+    res.send(r) */
+    res.send(200)
   } catch (error) {
     logger.log("error", error)
     next(error)
