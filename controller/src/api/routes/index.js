@@ -12,12 +12,13 @@ var FormData = require('form-data');
 const os = require("os");
 const fs = require("fs");
 const tempDir = os.tmpdir()
-const mongoConfigs = new Mongo({ collection: "configs"})
+const mongoConfigs = new Mongo({ collection: "configs" })
+const { body, validationResult } = require('express-validator');
 
 //upload config bundle
 router.post('/config', async function (req, res, next) {
   const identifier = uuidv4()
-   
+
 
   try {
     if (!req.files.camunda || !req.files.neo4j) {
@@ -45,8 +46,8 @@ router.post('/config', async function (req, res, next) {
 })
 //get config bundle by id
 router.get('/config/:id', async function (req, res, next) {
-   
-  const r = await mongoConfigs.getConfig({id:req.params.id})
+
+  const r = await mongoConfigs.getConfig({ id: req.params.id })
   if (r && r.length) {
     const { camunda, neo4j } = r[0]
     res.send({ camunda, neo4j })
@@ -73,11 +74,18 @@ router.post('/deployment', async function (req, res, next) {
   //body to readstream
   var data = new FormData()
   try {
+    let value = ""
     const { body } = req
-    if (typeof body !== "string") throw new Error("expected bpmn model as string")       
-            
-    const tempPath = `${tempDir}/temporary.bpmn`      
-    writeFileSync(tempPath, body);
+    if (req.headers["content-type"].includes("application/json")) {
+      value = body.value
+    }
+    else {
+      value = body
+    }
+    if (typeof value !== "string") throw new Error("expected bpmn model as string")
+
+    const tempPath = `${tempDir}/temporary.bpmn`
+    writeFileSync(tempPath, value);
 
 
     data.append('deployment-name', 'aName', { contentType: 'text/plain' });
@@ -155,8 +163,19 @@ router.get('/neo4j', async function (req, res, next) {
 //create greaph. req as plaintext body
 router.post('/neo4j', async function (req, res, next) {
   const { body } = req
+
+
   try {
-    await executeQuery({ query: body })
+    let value = ""
+    const { body } = req
+    if (req.headers["content-type"].includes("application/json")) {
+      value = body.value
+    }
+    else {
+      value = body
+    }
+    if (typeof value !== "string") throw new Error("expected bpmn model as string")
+    await executeQuery({ query: value })
     res.send(200)
   } catch (error) {
     if (error && error.name === "Neo4jError") res.send(error.message)
@@ -164,7 +183,7 @@ router.post('/neo4j', async function (req, res, next) {
   }
 });
 
- 
+
 /*
  
 load deployment
@@ -178,38 +197,83 @@ validate req body against schema
 */
 
 
-router.post('/start', async function (req, res, next) {
+
+router.post('/start/:id', async function (req, res, next) {
   try {
-  const { body, params } = req
-  //get configs
-  const {camunda, neo4j} = axios.get(`http://localhost:${process.env.PORT}//config/${params.id}`)
-  
-  
-  //delete and upload new camunda config
-  await axios.delete(`http://localhost:${process.env.PORT}/deployment`)
-  await axios.post(`http://localhost:${process.env.PORT}/deployment`, {
-    camunda
-  })
-  
-  //delete and upload new neo4j config
-  await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
-  await axios.post(`http://localhost:${process.env.PORT}/neo4j`, {
-    neo4j
-  })
+    const { body, params } = req
+    //get configs
+    let { data, status } = await axios.get(`http://localhost:${process.env.PORT}/config/${params.id}`)
+    if (status !== 200) throw new Error("could not find any configs for the provided id")
+    const { camunda, neo4j } = data
+
+    //delete and upload new camunda config
+    await axios.delete(`http://localhost:${process.env.PORT}/deployment`)
+
+    await axios({
+      url: `http://localhost:${process.env.PORT}/deployment`,
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      data: { value: camunda }
+    });
+
+    //delete and upload new neo4j config
+    await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
+    await axios({
+      url: `http://localhost:${process.env.PORT}/neo4j`,
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      data: { value: neo4j }
+    });
 
 
-
-    /* // initialize new pending events list
+    // initialize new pending events list
     const controller = new Controller({ ...body })
     await controller.init({ ...body.input })
     const r = await Executor.execute(controller)
     logger.log("info", r)
-    res.send(r) */
+    res.send(r)
     res.send(200)
   } catch (error) {
     logger.log("error", error)
     next(error)
   }
 });
+
+
+router.get('/healthz', async function (req, res, next) {
+
+  try {
+    await axios({
+      url: `http://localhost:${process.env.MONGO_PORT}`,
+      method: 'get',
+    });
+
+    await axios({
+      url: `http://localhost:${process.env.PROCESS_ENGINE_PORT}`,
+      method: 'get',
+    });
+
+
+    try {
+      await axios({
+        url: `http://localhost:${process.env.NEO4J_PORT}`,
+        method: 'get',
+      });      
+    } catch (error) {
+      const {status} = error.response
+      if(!(status=== 200 || status=== 400)) throw new Error("could not connect to Neo4j") 
+    }
+     
+
+    res.send(200)
+  } catch (error) {
+    console.error(error)
+    next(error)
+  }
+
+
+
+
+})
 
 module.exports = router;

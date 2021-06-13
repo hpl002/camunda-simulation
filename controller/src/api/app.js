@@ -16,9 +16,7 @@ app.set('view engine', 'jade');
 //app.use(express.text()); 
 app.use(express.text());
 app.use(express.json());
-app.use(express.urlencoded({
-  extended: true
-}));
+ 
 
 app.use(fileUpload({
   useTempFiles : true,
@@ -26,7 +24,6 @@ app.use(fileUpload({
   debug:false
 }));
 
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/', indexRouter);
 app.use('/camunda', createProxyMiddleware({ target: process.env.PROCESS_ENGINE, changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
