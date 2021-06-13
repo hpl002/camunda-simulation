@@ -24,7 +24,6 @@ router.post('/config', async function (req, res, next) {
       throw new Error("could not upload files. Missing camunda")
     }
     else {
-
       let neo4j = ""
       if (req.files.camunda.name.split(".")[1].toUpperCase() !== "BPMN") throw new Error("camunda: incorrect filetype. Requires .bpmn")
       let camunda = req.files.camunda.tempFilePath
@@ -64,10 +63,15 @@ router.get('/deployment', async function (req, res, next) {
   //TODO: path param for retrieving deployment from neo4j
   try {
     let { data } = await axios.get(`http://localhost:${process.env.PORT}/camunda/engine-rest/deployment`)
-    if(data.length) res.send(data)
-     res.send(204)
+    if (data.length) {
+      res.send(data)
+    }
+    else {
+      res.send(204)
+    }
   } catch (error) {
-    res.send(500)
+    logger.log("error", error)
+    next(error)
   }
 });
 
@@ -104,6 +108,7 @@ router.post('/deployment', async function (req, res, next) {
       data: data
     };
   } catch (error) {
+    logger.log("error", error)
     next(error)
   }
 
@@ -113,6 +118,7 @@ router.post('/deployment', async function (req, res, next) {
     })
     .catch(function (error) {
       console.log(error);
+      logger.log("error", error)
       next(error)
     });
 
@@ -123,15 +129,12 @@ router.delete('/deployment', async function (req, res, next) {
   try {
     let { data } = await axios.get(`http://localhost:${process.env.PORT}/deployment`)
     for (const d of data) {
-      try {
-        await axios.delete(`http://localhost:${process.env.PORT}/camunda/engine-rest/deployment/${d.id}?cascade=true`)
-      } catch (error) {
-        console.log(error);
-      }
+      await axios.delete(`http://localhost:${process.env.PORT}/camunda/engine-rest/deployment/${d.id}?cascade=true`)
     }
     res.send(200)
   } catch (error) {
-    res.send(500)
+    logger.log("error", error)
+    next(error)
   }
 });
 
@@ -141,7 +144,8 @@ router.delete('/nuke', async function (req, res, next) {
     await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
     res.send(200)
   } catch (error) {
-    res.send(500)
+    logger.log("error", error)
+    next(error)
   }
 });
 
@@ -152,7 +156,8 @@ router.delete('/neo4j', async function (req, res, next) {
     await executeQuery({ query })
     res.send(200)
   } catch (error) {
-    res.send(500)
+    logger.log("error", error)
+    next(error)
   }
 });
 
@@ -161,10 +166,15 @@ router.get('/neo4j', async function (req, res, next) {
   const query = "MATCH (n) Return n"
   try {
     let record = await executeQuery({ query })
-    if (record.length) res.send(record)
-    res.send(204)
+    if (record.length) {
+      res.send(record)
+    }
+    else {
+      res.send(204)
+    }
   } catch (error) {
-    res.send(500)
+    logger.log("error", error)
+    next(error)
   }
 });
 
@@ -187,14 +197,13 @@ router.post('/neo4j', async function (req, res, next) {
     res.send(200)
   } catch (error) {
     if (error && error.name === "Neo4jError") res.send(error.message)
-    res.send(500)
+    logger.log("error", error)
+    next(error)
   }
 });
 
 router.post('/load/:id', async function (req, res, next) {
   try {
-
-
     const { body, params } = req
     //get configs
     let { data, status } = await axios.get(`http://localhost:${process.env.PORT}/config/${params.id}`)
@@ -222,36 +231,17 @@ router.post('/load/:id', async function (req, res, next) {
 
     res.send(200)
   } catch (error) {
+    logger.log("error", error)
     next(error)
   }
 
 })
+
 router.post('/start/:id', async function (req, res, next) {
   try {
     const { body, params } = req
-    //get configs
-    let { data, status } = await axios.get(`http://localhost:${process.env.PORT}/config/${params.id}`)
-    if (status !== 200) throw new Error("could not find any configs for the provided id")
-    const { camunda, neo4j } = data
+    //load config
 
-    //delete and upload new camunda config
-    await axios.delete(`http://localhost:${process.env.PORT}/deployment`)
-
-    await axios({
-      url: `http://localhost:${process.env.PORT}/deployment`,
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      data: { value: camunda }
-    });
-
-    //delete and upload new neo4j config
-    await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
-    await axios({
-      url: `http://localhost:${process.env.PORT}/neo4j`,
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      data: { value: neo4j }
-    });
 
 
     // initialize new pending events list
@@ -266,7 +256,6 @@ router.post('/start/:id', async function (req, res, next) {
     next(error)
   }
 });
-
 
 router.get('/healthz', async function (req, res, next) {
 
