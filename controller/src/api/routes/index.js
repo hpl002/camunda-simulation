@@ -4,21 +4,12 @@ var router = express.Router();
 const { Controller, Executor } = require('../../index')
 const { logger } = require('../../helpers/winston')
 const { v4: uuidv4 } = require('uuid');
-const { Mongo } = require("../../classes/Mongo") 
-var { readFileSync } = require('fs') 
+const { Mongo } = require("../../classes/Mongo")
+var { readFileSync } = require('fs')
+const { executeQuery } = require('../../helpers/neo4j')
 
- 
-/* GET home page. */
-router.get('/', function (req, res, nCext) {
-  res.render('index', { title: 'Express' });
-});
-/**
- * @param  {} '/load'
- * @param  {} asyncfunction(req
- * @param  {} res
- * @param  {} next
- * upload files to mongo
- */
+
+//upload config bundle
 router.post('/config', async function (req, res, next) {
   const identifier = uuidv4()
   const mongo = new Mongo({ collection: identifier, db: "configs" })
@@ -34,11 +25,11 @@ router.post('/config', async function (req, res, next) {
       let camunda = req.files.camunda.tempFilePath
       let neo4j = req.files.neo4j.tempFilePath
 
-      
-       camunda = readFileSync(camunda).toString()
-       neo4j = readFileSync(neo4j).toString()
 
-       
+      camunda = readFileSync(camunda).toString()
+      neo4j = readFileSync(neo4j).toString()
+
+
       mongo.addConfig({ id: identifier, camunda, neo4j })
       res.status(201).send(identifier)
     }
@@ -47,19 +38,85 @@ router.post('/config', async function (req, res, next) {
     next(error)
   }
 })
-
-  router.get('/config/:id', async function (req, res, next) {
-    const mongo = new Mongo({ collection: req.params.id, db: "configs" })
-      const r = await mongo.getConfig()
-      if(r && r.length){ 
-        const {camunda, neo4j} = r[0]
-        res.send({camunda, neo4j})
-      }  
-      else{
-        res.send(204)
-      }
+//get config bundle by id
+router.get('/config/:id', async function (req, res, next) {
+  const mongo = new Mongo({ collection: req.params.id, db: "configs" })
+  const r = await mongo.getConfig()
+  if (r && r.length) {
+    const { camunda, neo4j } = r[0]
+    res.send({ camunda, neo4j })
+  }
+  else {
+    res.send(204)
+  }
 });
 
+
+//get deployments from camunda
+router.get('/deployment', async function (req, res, next) {
+  //TODO: path param for retrieving deployment from neo4j
+  try {
+    let { data } = await axios.get(`http://localhost:${process.env.PORT}/camunda/engine-rest/deployment`)
+    res.send(data)
+  } catch (error) {
+    res.send(500)
+  }
+});
+
+//delete deployments in camunda
+router.delete('/deployment', async function (req, res, next) {
+  try {
+    let { data } = await axios.get(`http://localhost:${process.env.PORT}/deployment`)
+    for (const d of data) {
+      try {
+        await axios.delete(`http://localhost:${process.env.PORT}/camunda/engine-rest/deployment/${d.id}?cascade=true`)
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    res.send(200)
+  } catch (error) {
+    res.send(500)
+  }
+});
+
+//delete graph
+router.delete('/neo4j', async function (req, res, next) {
+  const query = "MATCH (n) DETACH DELETE n"
+  try {
+    await executeQuery({ query })
+    res.send(200)
+  } catch (error) {
+    res.send(500)
+  }
+});
+
+//get graph
+router.get('/neo4j', async function (req, res, next) {
+  const query = "MATCH (n) Return n"
+  try {
+    let record = await executeQuery({ query })
+    if(record.length) res.send(record)
+    res.send(204)
+  } catch (error) {
+    res.send(500)
+  }
+});
+
+//create greaph. req as plaintext body
+router.post('/neo4j', async function (req, res, next) {   
+  const { body } = req   
+  try {
+    await executeQuery({ query:body })
+    res.send(200)
+  } catch (error) {
+    if(error && error.name === "Neo4jError") res.send(error.message)
+    res.send(500)
+  }
+});
+
+
+//start new simulation run
 router.post('/start', async function (req, res, next) {
   const { body } = req
   // initialize new pending events list
@@ -69,71 +126,6 @@ router.post('/start', async function (req, res, next) {
     const r = await Executor.execute(controller)
     logger.log("info", r)
     res.send(r)
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-});
-
-router.post('/deploy', async function (req, res, next) {
-  /*
-    TODO: take in all the required parameters and execute
-  
-  */
-
-  try {
-
-    res.sendStatus(403)
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-});
-
-router.delete('/delete/deployments', async function (req, res, next) {
-  try {
-    try {
-      const { data } = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/deployment`)
-      const id = []
-      data.forEach(d => {
-        id.push(d.id)
-      });
-
-      while (id.length > 0) {
-        const c = id.pop()
-        await axios.delete(`${process.env.PROCESS_ENGINE}/engine-rest/deployment/${c}?cascade=true`)
-      }
-
-      res.sendStatus(200)
-    } catch (error) {
-      logger.log("error", error)
-      throw error
-    }
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-});
-
-router.delete('/delete/process', async function (req, res, next) {
-  try {
-    try {
-      const { data } = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/history/process-instance`)
-      const id = []
-      data.forEach(d => {
-        id.push(d.id)
-      });
-
-      while (id.length > 0) {
-        const c = id.pop()
-        await axios.delete(`${process.env.PROCESS_ENGINE}/engine-rest/process-instance/${c}`)
-      }
-
-      res.sendStatus(200)
-    } catch (error) {
-      logger.log("error", error);
-      throw error
-    }
   } catch (error) {
     logger.log("error", error)
     next(error)

@@ -28,12 +28,6 @@ const close = () => {
     driver.close();
 }
 
-
-/* (async () => {
-    const s = await executeQuery("MATCH (t:Task {category: 'front-desk'})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r")
-    console.log(s)
-})() */
-
 exports.executeQuery = executeQuery;
 exports.close = close;
 

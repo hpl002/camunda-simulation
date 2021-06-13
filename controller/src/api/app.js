@@ -1,9 +1,8 @@
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var fileUpload = require('express-fileupload');
-var cookieParser = require('cookie-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const bodyParser = require('body-parser')
 
 var indexRouter = require('./routes/index');
 
@@ -13,6 +12,9 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+//This is the needed text parser middleware 
+//app.use(express.text()); 
+app.use(express.text());
 app.use(express.json());
 app.use(express.urlencoded({
   extended: true
@@ -26,8 +28,6 @@ app.use(fileUpload({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//app.use(cookieParser());
-//app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/camunda', createProxyMiddleware({ target: process.env.PROCESS_ENGINE, changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
 function errorHandler (error, req, res, next) {   

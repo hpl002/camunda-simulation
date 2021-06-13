@@ -61,7 +61,6 @@ class Mongo {
     mongoose.connect(this.connectionString, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 21474899,
     });     
   }
@@ -79,7 +78,6 @@ class Mongo {
       if (err) throw err
     });
   }
-
 
   async startEvent({ case_id, activity_id, activity_start, activity_end, resource_id }) {          
     logger.log("mongo", `Mongo Logging:Starting process case_id:${case_id}`)
