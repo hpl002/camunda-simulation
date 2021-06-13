@@ -19,22 +19,24 @@ const { body, validationResult } = require('express-validator');
 router.post('/config', async function (req, res, next) {
   const identifier = uuidv4()
 
-
   try {
-    if (!req.files.camunda || !req.files.neo4j) {
-      throw new Error("could not upload files. Missing either camunda og neo4j")
+    if (!req.files.camunda) {
+      throw new Error("could not upload files. Missing camunda")
     }
     else {
+
+      let neo4j = ""
       if (req.files.camunda.name.split(".")[1].toUpperCase() !== "BPMN") throw new Error("camunda: incorrect filetype. Requires .bpmn")
-      if (req.files.neo4j.name.split(".")[1].toUpperCase() !== "TXT") throw new Error("neo4j: incorrect filetype. Requires .txt")
-
       let camunda = req.files.camunda.tempFilePath
-      let neo4j = req.files.neo4j.tempFilePath
-
-
       camunda = readFileSync(camunda).toString()
-      neo4j = readFileSync(neo4j).toString()
-
+      if (req.files.neo4j) {
+        if (req.files.neo4j.name.split(".")[1].toUpperCase() !== "TXT") throw new Error("neo4j: incorrect filetype. Requires .txt")
+        neo4j = req.files.camunda.tempFilePath
+        neo4j = readFileSync(neo4j).toString()
+      }
+      else {
+        neo4j = "CREATE ()"
+      }
 
       mongoConfigs.addConfig({ id: identifier, camunda, neo4j })
       res.status(201).send(identifier)
@@ -56,7 +58,6 @@ router.get('/config/:id', async function (req, res, next) {
     res.send(204)
   }
 });
-
 
 //get deployments from camunda
 router.get('/deployment', async function (req, res, next) {
@@ -116,7 +117,6 @@ router.post('/deployment', async function (req, res, next) {
 
 })
 
-
 //delete deployments in camunda
 router.delete('/deployment', async function (req, res, next) {
   try {
@@ -134,8 +134,15 @@ router.delete('/deployment', async function (req, res, next) {
   }
 });
 
-
-
+router.delete('/nuke', async function (req, res, next) {
+  try {
+    await axios.delete(`http://localhost:${process.env.PORT}/deployment`)
+    await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
+    res.send(200)
+  } catch (error) {
+    res.send(500)
+  }
+});
 
 //delete graph
 router.delete('/neo4j', async function (req, res, next) {
@@ -258,12 +265,12 @@ router.get('/healthz', async function (req, res, next) {
       await axios({
         url: `http://localhost:${process.env.NEO4J_PORT}`,
         method: 'get',
-      });      
+      });
     } catch (error) {
-      const {status} = error.response
-      if(!(status=== 200 || status=== 400)) throw new Error("could not connect to Neo4j") 
+      const { status } = error.response
+      if (!(status === 200 || status === 400)) throw new Error("could not connect to Neo4j")
     }
-     
+
 
     res.send(200)
   } catch (error) {
