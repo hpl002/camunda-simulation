@@ -48,7 +48,6 @@ class Resource {
               { readable: start, epoch: this.asEpoch({ time: start, day, week, year }), full: Common.convertToReadableTime(this.asEpoch({ time: start, day, week, year })) },
             end: { readable: end, epoch: this.asEpoch({ time: end, day, week, year }), full: Common.convertToReadableTime(this.asEpoch({ time: end, day, week, year })) }
           })
-          console.log("asd")
         }
         else {
           const message = `could not build schedule for day:${day} in week ${week} for resource ${this.id} due to missing start or end time`
@@ -206,7 +205,6 @@ class Resource {
       const v = r()
       dragPercentage = Math.round((1 - v + Number.EPSILON) * 100) / 100
       if (dragPercentage >= 1) throw new Error(`resource efficiency cannot be reduced beyond 100 percent. Attempted to declare that resource was working at ${v} efficiency`)
-      console.log("asd");
     }
     logger.log("process", "adding additional time to task duration to account for a reduced efficiency")
     return time + (time * dragPercentage)

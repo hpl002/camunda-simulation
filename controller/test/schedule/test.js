@@ -206,8 +206,8 @@ describe('Calcualte insertion time for completion event while accounting fro sch
         const sum = clock + duration + deadTime + deadTime1 + deadTime2
 
         const newTime = lisa.addSchedulingTime({ clock, duration })
-        console.log("sum as calculated", Common.convertToReadableTime(sum))
-        console.log("newTime as calculated", Common.convertToReadableTime(newTime))
+        /* console.log("sum as calculated", Common.convertToReadableTime(sum))
+        console.log("newTime as calculated", Common.convertToReadableTime(newTime)) */
 
         assert.equal(newTime, sum);
     })
@@ -230,8 +230,8 @@ describe('Calcualte insertion time for completion event while accounting fro sch
         const duration = hourasseconds * 20 //30 hours
         const sum = clock + duration + deadTime + deadTime1
         const newTime = lisa.addSchedulingTime({ clock, duration })
-        console.log("sum as calculated", Common.convertToReadableTime(sum))
-        console.log("newTime as calculated", Common.convertToReadableTime(newTime))
+        /* console.log("sum as calculated", Common.convertToReadableTime(sum))
+        console.log("newTime as calculated", Common.convertToReadableTime(newTime)) */
 
         assert.equal(newTime, sum);
     })
@@ -256,8 +256,8 @@ describe('Calcualte insertion time for completion event while accounting fro sch
 
         const sum = clock + duration
         const newTime = lisa.addSchedulingTime({ clock: clock - (2 * hourasseconds), duration })
-        console.log("sum as calculated", Common.convertToReadableTime(sum))
-        console.log("newTime as calculated", Common.convertToReadableTime(newTime))
+        /* console.log("sum as calculated", Common.convertToReadableTime(sum))
+        console.log("newTime as calculated", Common.convertToReadableTime(newTime)) */
 
         assert.equal(newTime, sum);
     })
@@ -277,8 +277,8 @@ describe('Calcualte insertion time for completion event while accounting fro sch
 
         const sum = Thursday + duration
         const newTime = lisa.addSchedulingTime({ clock: Thursday, duration })
-        console.log("sum as calculated", Common.convertToReadableTime(sum))
-        console.log("newTime as calculated", Common.convertToReadableTime(newTime))
+        /* console.log("sum as calculated", Common.convertToReadableTime(sum))
+        console.log("newTime as calculated", Common.convertToReadableTime(newTime)) */
 
         assert.equal(newTime, sum);
     })

@@ -6,9 +6,8 @@
     "start": "nodemon --trace-warnings ./src/api/bin/www",
     "debug": "nodemon --inspect ./src/api/bin/www",
     "debug-brk": "nodemon --inspect-brk ./src/api/bin/www",
-    "test": "mocha",
-    "test:jest": "jest",
-    "debug-test": "mocha --reporter spec --inspect"
+    "test": "jest",
+    "test:debug": "node --inspect node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -37,7 +36,6 @@
   "devDependencies": {
     "chai": "^4.3.4",
     "jest": "^27.0.4",
-    "mocha": "^8.3.2",
     "nodemon": "^2.0.7"
   }
 }
