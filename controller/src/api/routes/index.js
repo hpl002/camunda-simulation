@@ -19,7 +19,7 @@ router.get('/', function (req, res, nCext) {
  * @param  {} next
  * upload files to mongo
  */
-router.post('/load/:id', async function (req, res, next) {
+router.post('/config', async function (req, res, next) {
   const identifier = uuidv4()
   const mongo = new Mongo({ collection: identifier, db: "configs" })
 
@@ -46,12 +46,18 @@ router.post('/load/:id', async function (req, res, next) {
     logger.log("error", error)
     next(error)
   }
+})
 
-
-
-
-
-
+  router.get('/config/:id', async function (req, res, next) {
+    const mongo = new Mongo({ collection: req.params.id, db: "configs" })
+      const r = await mongo.getConfig()
+      if(r && r.length){ 
+        const {camunda, neo4j} = r[0]
+        res.send({camunda, neo4j})
+      }  
+      else{
+        res.send(204)
+      }
 });
 
 router.post('/start', async function (req, res, next) {

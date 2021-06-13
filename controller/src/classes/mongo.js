@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+const { REPL_MODE_SLOPPY } = require('repl');
 var Schema = mongoose.Schema;
 var { logger } = require('../helpers/winston');
 const sleep = require('util').promisify(setTimeout)
@@ -39,12 +40,7 @@ class Mongo {
       }, { timestamps: { createdAt: 'created_at' }, })
     }
     else{
-      schema = new Schema({         
-        id: {
-          type: String,
-          required: true,
-          immutable: true
-        },
+      schema = new Schema({                  
         camunda: {
           type: String,
           required: true,
@@ -67,27 +63,23 @@ class Mongo {
       useUnifiedTopology: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 21474899,
-    });
-    //Get the default connection
-    var db = mongoose.connection;
-    //Bind connection to error event (to get notification of connection errors)
+    });     
   }
-  /**
-   * @param  {} {case_id
-   * @param  {} activity_id=""
-   * @param  {} activity_start=""
-   * @param  {} activity_end=""
-   * @param  {} resource_id=""}
-   */
-
-
+  async getConfig() {          
+    logger.log("mongo", `Retrieving configs`)     
+    const Model = mongoose.model(this.collection, this.schema);
+    const temp = await Model.find()  
+    return temp     
+  }
+  
    async addConfig({id,camunda, neo4j}) {          
     logger.log("mongo", `Uploading configs with id:${id}`)     
     const Model = mongoose.model(this.collection, this.schema);
-    await Model.create({ id, camunda, neo4j}, function (err, small) {
+    await Model.create({ camunda, neo4j}, function (err, small) {
       if (err) throw err
     });
   }
+
 
   async startEvent({ case_id, activity_id, activity_start, activity_end, resource_id }) {          
     logger.log("mongo", `Mongo Logging:Starting process case_id:${case_id}`)
