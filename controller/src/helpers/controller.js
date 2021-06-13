@@ -2,9 +2,9 @@ const { Event, PendingEvents, Common, Resource } = require('./index.js')
 const { executeQuery } = require("./neo4j")
 const { logger } = require('./winston')
 class Contoller {
-  constructor({ processID, input }) {
-    this.clock = Date.parse(input.startTime)
-    this.readableTime = Common.convertToReadableTime(Date.parse(input.startTime))
+  constructor({ processID, startTime }) {
+    this.clock = Date.parse(startTime)
+    this.readableTime = Common.convertToReadableTime(Date.parse(startTime))
     this.pendingEvents = new PendingEvents()
     this.pendingEventsCopy = {}
     this.processID = processID

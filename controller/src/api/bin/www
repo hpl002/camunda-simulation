@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+var {app} = require('../app');
 var debug = require('debug')('simulation-controller:server');
 var http = require('http');
 const { logger } = require('../../helpers/winston')

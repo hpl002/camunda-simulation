@@ -4,16 +4,15 @@ var router = express.Router();
 const { Controller, Executor } = require('../../index')
 const { logger } = require('../../helpers/winston')
 const { v4: uuidv4 } = require('uuid');
-const { Mongo } = require("../../classes/Mongo")
+const { mongo } = require("../../classes/Mongo")
 var { readFileSync, writeFileSync } = require('fs')
 const { executeQuery } = require('../../helpers/neo4j')
 var FormData = require('form-data');
 // import os module
 const os = require("os");
 const fs = require("fs");
-const tempDir = os.tmpdir()
-const mongoConfigs = new Mongo({ collection: "configs" })
-const { body, validationResult } = require('express-validator');
+const Joi = require("joi");
+const tempDir = os.tmpdir() 
 
 //upload config bundle
 router.post('/config', async function (req, res, next) {
@@ -37,7 +36,7 @@ router.post('/config', async function (req, res, next) {
         neo4j = "CREATE ()"
       }
 
-      mongoConfigs.addConfig({ id: identifier, camunda, neo4j })
+      mongo.addConfig({ id: identifier, camunda, neo4j })
       res.status(201).send(identifier)
     }
   } catch (error) {
@@ -48,7 +47,7 @@ router.post('/config', async function (req, res, next) {
 //get config bundle by id
 router.get('/config/:id', async function (req, res, next) {
 
-  const r = await mongoConfigs.getConfig({ id: req.params.id })
+  const r = await mongo.getConfig({ id: req.params.id })
   if (r && r.length) {
     const { camunda, neo4j } = r[0]
     res.send({ camunda, neo4j })
@@ -238,24 +237,87 @@ router.post('/load/:id', async function (req, res, next) {
 })
 
 router.post('/start/:id', async function (req, res, next) {
+  const { body, params } = req
+
+  // create schema object
+  const schema = Joi.object({
+    startTime: Joi.string().required(),
+    tokens: Joi.array().items(
+      Joi.object({
+        distribution: Joi.object({
+          type: Joi.string().required(),
+          frequency: Joi.string().required(),
+          amount: Joi.number().positive().min(1).required(),
+        }),
+        body: Joi.object().required(),
+      })
+    )
+  })
+
+  // schema options
+  const options = {
+    abortEarly: true, // include all errors
+    allowUnknown: false, // ignore unknown props
+    stripUnknown: false // remove unknown props
+  };
+
   try {
-    const { body, params } = req
+    //add schema validation to request
+    const { error, value } = schema.validate(req.body, options);
+    if (error) {
+      throw error
+    }
+    else {
+      req.body = value;
+    }
+
     //load config
+    var config = {
+      method: 'post',
+      url: `http://localhost:3000/load/${params.id}`,
+    };
+    await axios(config)
 
 
+    //get process key
+    var config = {
+      method: 'get',
+      url: `http://localhost:3000/process`,
+    };
+    const {data} = await axios(config)
+      const { key } = data[0]
+      console.log(key)
 
-    // initialize new pending events list
-    /* const controller = new Controller({ ...body })
-    await controller.init({ ...body.input })
+
+    const controller = new Controller({processID:key, startTime: req.body.startTime })
+    await controller.init({ tokens: req.body.tokens })
     const r = await Executor.execute(controller)
     logger.log("info", r)
-    res.send(r) */
+    res.send(r)
     res.send(200)
   } catch (error) {
     logger.log("error", error)
     next(error)
   }
 });
+
+
+
+router.get('/process', async function (req, res, next) {
+  try {
+    var config = {
+      method: 'get',
+      url: `http://localhost:${process.env.PORT}/camunda/engine-rest/process-definition`
+    };
+    const { data } = await axios(config)     
+    res.send(data)
+  } catch (error) {
+    logger.log("error", error)
+    next(error)
+  }
+});
+
+
 
 router.get('/healthz', async function (req, res, next) {
 
