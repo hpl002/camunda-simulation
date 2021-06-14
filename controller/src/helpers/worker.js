@@ -17,7 +17,6 @@ const Worker = {
     logger.log("process", `Freeing resource: ${controller.resourceArr[index].id}`)
   },
 
-
   getTasks: async ({ processInstanceId }) => {
     try {
       const { data } = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/external-task?processInstanceId=${processInstanceId}&active=true&priorityHigherThanOrEquals=0`)
@@ -30,7 +29,7 @@ const Worker = {
 
   startProcess: async ({ event, controller, mongo }) => {
     const { processID } = controller
-    const variableKeys = Object.keys(event.data.variables)
+    const variableKeys = Object.keys(event.data)
     //initialize the random variables needed
     variableKeys.forEach(key => {
       if (key.toUpperCase().includes("RANDOM")) {
@@ -68,8 +67,8 @@ const Worker = {
           }
           response = await axios.post(`${process.env.PROCESS_ENGINE}/engine-rest/external-task/${task.id}/lock`, body)
           if (response.status !== 204) throw new Error("could not lock task")
-          logger.log("process", `Starting task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
-          await mongo.startTask({ case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
+          logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
+          await mongo.startTask({id:controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
           return { task, startTime: completionTime, type: "complete task" }
         } catch (error) {
           logger.log("error", error)
@@ -243,8 +242,8 @@ const Worker = {
     if (!task.hasResourceCandidates) {
       // no resource no schedule
       workerId = "no-resource"
-      completionTime = controller.clock + taskDuration
-      return await start({ workerId, completionTime })
+      completionTime = controller.clock + Helper.taskDuration
+      return await Helper.start({ resources:[workerId], completionTime })
     }
     else {
       if (Helper.allSpecializationsFilled()) {
@@ -272,6 +271,7 @@ const Worker = {
       }
     }
   },
+
   completeTask: async ({ task, controller, mongo }) => {
     // check that resources are indeed available
     if (task.workerId && task.workerId !== "no-resource") {
@@ -285,7 +285,7 @@ const Worker = {
       response = await axios.post(`${process.env.PROCESS_ENGINE}/engine-rest/external-task/${task.id}/complete`, body)
       if (response.status !== 204) throw new Error("could not complete task")
       logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
-      await mongo.completeTask({ case_id: task.processInstanceId, activity_id: task.activityId, activity_end: Common.formatClock(controller.clock) })
+      await mongo.completeTask({id:controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_end: Common.formatClock(controller.clock) })
     } catch (error) {
       logger.log("error", error)
       throw error

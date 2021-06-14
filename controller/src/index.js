@@ -1,11 +1,9 @@
 const { Event, Worker } = require('../src/helpers/index.js')
 const { mongo } = require("./classes/Mongo")
-const { v4: uuidv4 } = require('uuid');
 const { Controller } = require('./helpers/controller') 
 
 const Executor = {
-  execute: async (controller) => {
-    const runIdentifier = uuidv4()
+  execute: async (controller) => {     
     while (controller.getPendingEventsLength() !== 0) {
       let { time, arr } = controller.popNextPendingEvent()       
       controller.setSimulationTime(time)
@@ -31,7 +29,7 @@ const Executor = {
       controller.deleteEvent(time.toString())
     }
     console.log("terminated")
-    return { "collection_identifier": runIdentifier }
+    return { "collection_identifier": controller.runIdentifier }
   }
 }
 exports.Executor = Executor;

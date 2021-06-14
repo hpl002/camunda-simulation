@@ -20,6 +20,7 @@
     "http-errors": "~1.6.3",
     "http-proxy-middleware": "^1.1.1",
     "jade": "~1.11.0",
+    "joi": "^17.4.0",
     "lodash": "^4.17.21",
     "lodash.find": "^4.6.0",
     "moment": "^2.29.1",

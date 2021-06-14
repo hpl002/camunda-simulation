@@ -27,7 +27,7 @@ class Mongo {
       }, { timestamps: { createdAt: 'created_at' }, })),
 
       logs: mongoose.model("logs", new Schema({
-        simulation: {
+        simulation_id: {
           type: String,
           required: true,
           immutable: true
@@ -80,30 +80,30 @@ class Mongo {
     });
   }
 
-  async startEvent({ case_id, activity_id, activity_start, activity_end, resource_id }) {
+  async startEvent({id, case_id, activity_id, activity_start, activity_end, resource_id }) {
     logger.log("mongo", `Mongo Logging:Starting process case_id:${case_id}`)
     logger.log("mongo", `Mongo Logging:Starting process activity_id:${activity_id}`)
     logger.log("mongo", `Mongo Logging:Starting process activity_start:${activity_start}`)
     logger.log("mongo", `Mongo Logging:Starting process activity_end:${activity_end}`)
     logger.log("mongo", `Mongo Logging:Starting process resource_id:${resource_id}`)
 
-    await this.model.logs.create({ case_id, activity_id, activity_start, activity_end, resource_id }, function (err, small) {
+    await this.model.logs.create({simulation_id:id, case_id, activity_id, activity_start, activity_end, resource_id }, function (err, small) {
       if (err) throw err
     });
   }
 
-  async startTask({ case_id, activity_id, activity_start, resource_id }) {
+  async startTask({id, case_id, activity_id, activity_start, resource_id }) {
     logger.log("mongo", `Mongo Logging:Starting task case_id:${case_id}`)
     logger.log("mongo", `Mongo Logging:Starting task activity_id:${activity_id}`)
     logger.log("mongo", `Mongo Logging:Starting task activity_start:${activity_start}`)
     logger.log("mongo", `Mongo Logging:Starting task resource_id:${resource_id}`)
     if (!(case_id && activity_id && activity_start && resource_id)) throw new Error("failed while trying to start task due to invalid params")
-    await this.model.logs.create({ case_id, activity_id, activity_start, resource_id }, function (err, small) {
+    await this.model.logs.create({simulation_id:id, case_id, activity_id, activity_start, resource_id }, function (err, small) {
       if (err) throw err
     });
   }
 
-  async completeTask({ case_id, activity_id, activity_end }) {
+  async completeTask({id, case_id, activity_id, activity_end }) {
     logger.log("mongo", `Mongo Logging:Completing task case_id:${case_id}`)
     logger.log("mongo", `Mongo Logging:Completing task activity_id:${activity_id}`)
     logger.log("mongo", `Mongo Logging:Completing task activity_end:${activity_end}`)

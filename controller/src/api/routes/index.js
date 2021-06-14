@@ -12,7 +12,7 @@ var FormData = require('form-data');
 const os = require("os");
 const fs = require("fs");
 const Joi = require("joi");
-const tempDir = os.tmpdir() 
+const tempDir = os.tmpdir()
 
 //upload config bundle
 router.post('/config', async function (req, res, next) {
@@ -284,12 +284,13 @@ router.post('/start/:id', async function (req, res, next) {
       method: 'get',
       url: `http://localhost:3000/process`,
     };
-    const {data} = await axios(config)
-      const { key } = data[0]
-      console.log(key)
+    const { data } = await axios(config)
+    const { key } = data[0]
+    console.log(key)
 
 
-    const controller = new Controller({processID:key, startTime: req.body.startTime })
+    const runIdentifier = uuidv4()
+    const controller = new Controller({ processID: key, startTime: req.body.startTime, runIdentifier })
     await controller.init({ tokens: req.body.tokens })
     const r = await Executor.execute(controller)
     logger.log("info", r)
@@ -309,7 +310,7 @@ router.get('/process', async function (req, res, next) {
       method: 'get',
       url: `http://localhost:${process.env.PORT}/camunda/engine-rest/process-definition`
     };
-    const { data } = await axios(config)     
+    const { data } = await axios(config)
     res.send(data)
   } catch (error) {
     logger.log("error", error)
