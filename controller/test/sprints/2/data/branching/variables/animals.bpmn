@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1efztxe" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
+  <bpmn:process id="Process_0rndb9u" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0s1pr7z</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0s1pr7z" sourceRef="StartEvent_1" targetRef="Activity_0snub25" />
+    <bpmn:serviceTask id="Activity_0snub25" name="animal noise" camunda:type="external" camunda:topic="">
+      <bpmn:incoming>Flow_0s1pr7z</bpmn:incoming>
+      <bpmn:outgoing>Flow_1b7ltmc</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0m7h68y">
+      <bpmn:incoming>Flow_1b7ltmc</bpmn:incoming>
+      <bpmn:outgoing>Flow_0y40n22</bpmn:outgoing>
+      <bpmn:outgoing>Flow_03elwzp</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1k1izb0</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1b7ltmc" sourceRef="Activity_0snub25" targetRef="Gateway_0m7h68y" />
+    <bpmn:sequenceFlow id="Flow_0y40n22" name="dog" sourceRef="Gateway_0m7h68y" targetRef="dog">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${animal=="dog"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_03elwzp" name="cat" sourceRef="Gateway_0m7h68y" targetRef="cat">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${animal=="cat"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1k1izb0" name="pig" sourceRef="Gateway_0m7h68y" targetRef="pig">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${animal=="pig"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="pig" name="pig" camunda:type="external" camunda:topic="a">
+      <bpmn:incoming>Flow_1k1izb0</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="dog" name="dog" camunda:type="external" camunda:topic="a">
+      <bpmn:incoming>Flow_0y40n22</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="cat" name="cat" camunda:type="external" camunda:topic="a">
+      <bpmn:incoming>Flow_03elwzp</bpmn:incoming>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0rndb9u">
+      <bpmndi:BPMNEdge id="Flow_0s1pr7z_di" bpmnElement="Flow_0s1pr7z">
+        <di:waypoint x="215" y="200" />
+        <di:waypoint x="270" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1b7ltmc_di" bpmnElement="Flow_1b7ltmc">
+        <di:waypoint x="370" y="200" />
+        <di:waypoint x="425" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0y40n22_di" bpmnElement="Flow_0y40n22">
+        <di:waypoint x="450" y="175" />
+        <di:waypoint x="450" y="100" />
+        <di:waypoint x="530" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="456" y="135" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03elwzp_di" bpmnElement="Flow_03elwzp">
+        <di:waypoint x="475" y="200" />
+        <di:waypoint x="530" y="200" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="495" y="182" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1k1izb0_di" bpmnElement="Flow_1k1izb0">
+        <di:waypoint x="450" y="225" />
+        <di:waypoint x="450" y="310" />
+        <di:waypoint x="530" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="458" y="265" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_0m7h68y_di" bpmnElement="Gateway_0m7h68y" isMarkerVisible="true">
+        <dc:Bounds x="425" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1b7moxl_di" bpmnElement="Activity_0snub25">
+        <dc:Bounds x="270" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1vt8zgr_di" bpmnElement="pig">
+        <dc:Bounds x="530" y="270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0qrf20c_di" bpmnElement="dog">
+        <dc:Bounds x="530" y="60" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1d0oge7_di" bpmnElement="cat">
+        <dc:Bounds x="530" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
