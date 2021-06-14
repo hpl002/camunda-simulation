@@ -215,6 +215,64 @@ it('should use a random distribution', async () => {
 
 });
 
+it('should use a random distribution', async () => {
+  jest.setTimeout(99999999);
+  const data = {
+    "startTime": "2021-04-14T19:15:30+0000",
+    "tokens": [
+      {
+        "distribution": {
+          "type": "random",
+          "frequency": {
+            "min":"PT6M",
+            "max":"PT39M"
+          }, 
+          "amount": 3
+        },
+        "body": {
+          "name": "troy",
+          "animal": "dog",
+          "age": 14
+        }
+      },
+      {
+        "distribution": {
+          "type": "constant",
+          "frequency": "PT10M", 
+          "amount": 30
+        },
+        "body": {
+          "name": "troy",
+          "animal": "dog",
+          "age": 14
+        }
+      },
+      {
+        "distribution": {
+          "type": "random",
+          "frequency": {
+            "min":"PT6M",
+            "max":"PT39M"
+          }, 
+          "amount": 30
+        },
+        "body": {
+          "name": "troy",
+          "animal": "dog",
+          "age": 14
+        }
+      }
+
+    ]
+  }
+  const response = await startSimulation({ data })
+  const logs = await getData({ id: response.data.collection_identifier })
+
+  expect(response.status).toBe(200);
+  expect(logs.length > 0).toBe(true);
+
+});
+
 
 
 /*    logs.forEach(element => {
