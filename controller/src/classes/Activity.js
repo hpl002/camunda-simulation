@@ -60,12 +60,12 @@ class Activity {
                 return MathHelper.poisson({ value })
             }
         }
-        else if (type.toUpperCase() === "BERNOULLI") {
+    /*     else if (type.toUpperCase() === "BERNOULLI") {
             if (!(value)) throw new Error("misconfigured BERNOULLI")
             return () => {
                 return MathHelper.bernoulli({ value })
             }
-        }
+        } */
         else if (type.toUpperCase() === "CONSTANT") {
             if (!(value)) throw new Error("misconfigured CONSTANT")
             return () => {

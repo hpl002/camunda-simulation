@@ -1,0 +1,7 @@
+CREATE (:Activity {id: "isThirsty"})-[:_RELATED]->(:Timing)-[:_RELATED]->(During:During)<-[:_RELATED]-(n22:Timing),
+(:Activity {id: "drinkWater"})-[:_RELATED]->(n22),
+(During)-[:_RELATED]->(:Distribution {type: "random", min: "PT01H", max: "PT30M"}),
+(:Before),
+(:Distribution {type: "normalDistribution", m: "PT01H", sd: "PT30M"}),
+(:Distribution {type: "CONSTANT", value: "PT3M"}),
+(:Distribution {type: "poisson", value: "PT30M"})
