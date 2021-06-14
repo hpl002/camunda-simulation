@@ -85,7 +85,6 @@ const Worker = {
         return res
       },
 
-
       /**
        * @param  {} {specializationMap
        * @param  {} hasSchedule}
