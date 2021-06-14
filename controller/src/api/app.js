@@ -33,7 +33,10 @@ function errorHandler (error, req, res, next) {
     const {status, data} = response
     res.status(status).send(data)
   }
-  res.status(500).send(error.message || "no erorr message available")
+  else{
+    console.error(error)
+    res.status(500).send(error.message || "no erorr message available")
+  }
    
    
 }
