@@ -47,7 +47,6 @@ describe('simple simulation run', () => {
 
   it('Should start a simulation run using the uploaded config', async () => {
     //this is a run where the simulation config is empty(has no nodes)
-
     var config = {
       method: 'post',
       url: `http://localhost:3000/start/${global.config.id}`,
@@ -75,6 +74,46 @@ describe('simple simulation run', () => {
 
     const response = await axios(config)
     const { status, data } = response
+    global.config.startTime = "2021-04-14T19:15:30+0000"
+    global.config.log = {id:data.collection_identifier}
+
+    expect(!!data.collection_identifier).toBe(true);
     expect(status).toBe(200);
   })
+
+  it('Should retrieve event log', async () => {
+    //this is a run where the simulation config is empty(has no nodes)
+    var config = {
+      method: 'get',
+      url: `http://localhost:3000/events/${global.config.log.id}`,       
+    };
+
+    const response = await axios(config)
+    const { status, data } = response
+     global.config.log.data =  data
+     
+    expect(status).toBe(200);
+    expect(data.length).toBe(2); 
+    data.forEach(element => {
+      expect(element["simulation_id"]).toBe(global.config.log.id);       
+    });
+
+expect(data.length).toBe(2);      
+  })
+
+  it('should not have any added durations to any tasks', async () => {
+    //this is a run where the simulation config is empty(has no nodes)     
+     //get time at which simulation was started, all subsequent events should be the same
+     const startAsEpoch = Date.parse(global.config.startTime)
+    global.config.log.data.forEach(element => {
+      const start = Date.parse(element["activity_start"])
+      const end = Date.parse(element["activity_end"])
+       
+      expect(start).toBe(startAsEpoch);
+      expect(end).toBe(startAsEpoch);
+    });
+
+
+  })
+
 })
