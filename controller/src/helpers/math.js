@@ -23,9 +23,9 @@ const MathHelper = {
         return res
     },
 
-    bernoulli({ value, iso=true }) {
+/*     bernoulli({ value, iso=true }) {
         if(iso){
-            if (typeof mean !== "value") throw new Error("input has to be formatted as iso8601 duration")
+            if (typeof value !== "string") throw new Error("input has to be formatted as iso8601 duration")
             value = Common.isoToMilliseconds(value)
         }
 
@@ -36,11 +36,11 @@ const MathHelper = {
         }
 
         return res
-    },
+    }, */
 
     poisson({ value, iso=true }) {
         if(iso){
-            if (typeof mean !== "value") throw new Error("input has to be formatted as iso8601 duration")
+            if (typeof value !== "string") throw new Error("input has to be formatted as iso8601 duration")
             value = Common.isoToMilliseconds(value)
         }
 
