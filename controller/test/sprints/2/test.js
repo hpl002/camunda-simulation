@@ -58,7 +58,7 @@ describe('simple simulation run', () => {
             "distribution": {
               "type": "constant",
               "frequency": "PT0M",
-              "amount": 100
+              "amount": 1
             },
             "body": {
               "name": "troy",
