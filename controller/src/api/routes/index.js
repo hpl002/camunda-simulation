@@ -294,15 +294,24 @@ router.post('/start/:id', async function (req, res, next) {
     await controller.init({ tokens: req.body.tokens })
     const r = await Executor.execute(controller)
     logger.log("info", r)
-    res.send(r)
-    res.send(200)
+    res.send(r)     
   } catch (error) {
     logger.log("error", error)
     next(error)
   }
 });
 
+//1ed768ce-0e23-40ad-a7fe-45be242dabe0
 
+router.get('/events/:id', async function (req, res, next) {
+  try {     
+    const events = await mongo.getLogs({ id:  req.params.id })
+    res.send(events)
+  } catch (error) {
+    logger.log("error", error)
+    next(error)
+  }
+});
 
 router.get('/process', async function (req, res, next) {
   try {
