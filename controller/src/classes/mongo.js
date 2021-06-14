@@ -80,6 +80,13 @@ class Mongo {
     });
   }
 
+  async getLogs({ id }) {
+    logger.log("mongo", `Retrieving logs`)
+    await sleep(500)
+    const temp = await this.model.logs.find({ simulation_id: id })
+    return temp
+  }
+
   async startEvent({id, case_id, activity_id, activity_start, activity_end, resource_id }) {
     logger.log("mongo", `Mongo Logging:Starting process case_id:${case_id}`)
     logger.log("mongo", `Mongo Logging:Starting process activity_id:${activity_id}`)
