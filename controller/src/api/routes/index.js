@@ -246,7 +246,7 @@ router.post('/start/:id', async function (req, res, next) {
       Joi.object({
         distribution: Joi.object({
           type: Joi.string().required(),
-          frequency: Joi.string().required(),
+          frequency: Joi.any().required(),
           amount: Joi.number().positive().min(1).required(),
         }),
         body: Joi.object().required(),
@@ -300,8 +300,6 @@ router.post('/start/:id', async function (req, res, next) {
     next(error)
   }
 });
-
-//1ed768ce-0e23-40ad-a7fe-45be242dabe0
 
 router.get('/events/:id', async function (req, res, next) {
   try {     
