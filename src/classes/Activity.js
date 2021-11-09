@@ -1,4 +1,3 @@
-const { executeQuery } = require('../helpers/neo4j')
 const { MathHelper } = require('../helpers/math')
 const { set } = require('lodash')
 

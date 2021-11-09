@@ -20,11 +20,6 @@ class Mongo {
           required: true,
           immutable: true
         },
-        neo4j: {
-          type: String,
-          required: false,
-          immutable: true
-        },
       }, { timestamps: { createdAt: 'created_at' }, })),
 
       logs: mongoose.model("logs", new Schema({
@@ -74,9 +69,9 @@ class Mongo {
     return temp
   }
 
-  async addConfig({ id, camunda, neo4j }) {
+  async addConfig({ id, camunda }) {
     logger.log("mongo", `Uploading configs with id:${id}`)
-    await this.model.configs.create({ camunda, neo4j, id }, function (err, small) {
+    await this.model.configs.create({ camunda, id }, function (err, small) {
       if (err) throw err
     });
   }

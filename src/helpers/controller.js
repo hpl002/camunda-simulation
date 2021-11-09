@@ -1,5 +1,4 @@
 const { Event, PendingEvents, Common, Resource } = require('./index.js')
-const { executeQuery } = require("./neo4j")
 const { logger } = require('./winston')
 const { MathHelper } = require('./math')
 class Contoller {
