@@ -1,14 +1,4 @@
----
-docker image of camunda
+fix env rc file
 
-script for building docker image of controller
+must be able to set different host and port
 
-docker compose script that inits camunda 
-
-
-
-try to perform some basic tests
-
-remove mongo
-
-write unit tests
