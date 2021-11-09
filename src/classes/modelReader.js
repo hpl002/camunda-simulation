@@ -3,6 +3,7 @@ var xml2js = require('xml2js');
 var _ = require('lodash');
 var parser = new xml2js.Parser();
 const { logger } = require('./winston')
+const config = require("../../config")
 
 class ModelReader {
   constructor({ key }) {
@@ -14,7 +15,7 @@ class ModelReader {
 
   async getModel() {
     try {
-      const response = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/process-definition/key/${this.key}/xml`)
+      const response = await axios.get(`${config.processEngine}/engine-rest/process-definition/key/${this.key}/xml`)
       const { data, status } = response
       const { bpmn20Xml } = data
       if (status === 200) {

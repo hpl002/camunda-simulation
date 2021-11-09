@@ -3,8 +3,7 @@ const { Event } = require('../classes/Event')
 const { Activity } = require('../classes/Activity')
 const { Common } = require('./common')
 const { logger } = require('../helpers/winston')
-const { executeQuery } = require('../helpers/neo4j')
-const { MathHelper } = require('./math')
+const appConfigs = require("../../config")
 
 const Worker = {
   freeResource: ({ task, controller }) => {
@@ -19,7 +18,7 @@ const Worker = {
 
   getTasks: async ({ processInstanceId }) => {
     try {
-      const { data } = await axios.get(`${process.env.PROCESS_ENGINE}/engine-rest/external-task?processInstanceId=${processInstanceId}&active=true&priorityHigherThanOrEquals=0`)
+      const { data } = await axios.get(`${appConfigs.processEngine}/engine-rest/external-task?processInstanceId=${processInstanceId}&active=true&priorityHigherThanOrEquals=0`)
       return data
     } catch (error) {
       logger.log("error", error)
@@ -38,7 +37,7 @@ const Worker = {
       }
     });
 
-    const basePath = process.env.PROCESS_ENGINE
+    const basePath = appConfigs.processEngine
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
     const processData = { variables: event?.data ? event?.data : {} }
     processData.businessKey = "simulation-controller"
@@ -65,7 +64,7 @@ const Worker = {
             "workerId": task.workerId,
             "lockDuration": 1800000
           }
-          response = await axios.post(`${process.env.PROCESS_ENGINE}/engine-rest/external-task/${task.id}/lock`, body)
+          response = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${task.id}/lock`, body)
           if (response.status !== 204) throw new Error("could not lock task")
           logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
           await mongo.startTask({ id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
@@ -281,7 +280,7 @@ const Worker = {
         "workerId": task.workerId,
         "variables": {}
       }
-      response = await axios.post(`${process.env.PROCESS_ENGINE}/engine-rest/external-task/${task.id}/complete`, body)
+      response = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${task.id}/complete`, body)
       if (response.status !== 204) throw new Error("could not complete task")
       logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
       await mongo.completeTask({ id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_end: Common.formatClock(controller.clock) })
@@ -316,7 +315,7 @@ const Worker = {
    */
   setPriority: async ({ processInstanceId }) => {
     try {
-      const response = await axios.put(`${process.env.PROCESS_ENGINE}/engine-rest/external-task/${processInstanceId}/priority`, {
+      const response = await axios.put(`${appConfigs.processEngine}/engine-rest/external-task/${processInstanceId}/priority`, {
         "priority": -1
       }, {
         headers: {

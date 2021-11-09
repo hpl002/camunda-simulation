@@ -2,15 +2,16 @@ const axios = require('axios');
 const fs = require('fs');
 var FormData = require('form-data');
 let common = {}
+const appConfigs = require("../../../config")
 
 
 //ping all services
 beforeAll(async () => {
-  var { status } = await axios.get(`http://localhost:${process.env.PORT}/healthz`)
+  var { status } = await axios.get(`${appConfigs.controller}/healthz`)
   expect(status).toBe(200);
 
   //delete any existing config
-  ({ status } = await axios.delete(`http://localhost:${process.env.PORT}/nuke`))
+  ({ status } = await axios.delete(`${appConfigs.controller}/nuke`))
   expect(status).toBe(200);
 
 

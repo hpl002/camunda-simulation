@@ -5,6 +5,8 @@ var FormData = require('form-data');
 const { Config } = require('../../helpers');
 const globalConfig = new Config()
 
+const appConfigs = require("../../../config")
+
 
 
 
@@ -61,11 +63,11 @@ const getData = async ({ id }) => {
 
 beforeEach(async () => {
   //ping all services and wipe any state
-  var { status } = await axios.get(`http://localhost:${process.env.PORT}/healthz`)
+  var { status } = await axios.get(`${appConfigs.controller}/healthz`)
   expect(status).toBe(200);
 
   //delete any existing config
-  ({ status } = await axios.delete(`http://localhost:${process.env.PORT}/nuke`))
+  ({ status } = await axios.delete(`${appConfigs.controller}/nuke`))
   expect(status).toBe(200);
 });
 

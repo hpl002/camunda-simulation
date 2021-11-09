@@ -8,6 +8,8 @@ globalConfig.files.before = {}
 globalConfig.files.during = {}
 globalConfig.files.beforeDuring = {}
 
+const appConfigs = require("../../../config")
+
 
 const initConfig = async ({ type, when = "during" }) => {
   var form = new FormData();
@@ -53,11 +55,11 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   //ping all services and wipe any state
-  var { status } = await axios.get(`http://localhost:${process.env.PORT}/healthz`)
+  var { status } = await axios.get(`${appConfigs.controller}/healthz`)
   expect(status).toBe(200);
 
   //delete any existing config
-  ({ status } = await axios.delete(`http://localhost:${process.env.PORT}/nuke`))
+  ({ status } = await axios.delete(`${appConfigs.controller}/nuke`))
   expect(status).toBe(200);
 });
 

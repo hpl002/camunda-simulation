@@ -1,6 +1,7 @@
 var neo4j = require('neo4j-driver')
 var { logger } = require('../helpers/winston')
-var driver = neo4j.driver(process.env.NEO4J_URL, neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD), { disableLosslessIntegers: true });
+const appConfigs = require("../../config")
+var driver = neo4j.driver(appConfigs.neo4j, neo4j.auth.basic(appConfigs.neo4j_username, appConfigs.neo4j_password), { disableLosslessIntegers: true });
 
 
 

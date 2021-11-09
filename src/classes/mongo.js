@@ -2,10 +2,11 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var { logger } = require('../helpers/winston');
 const sleep = require('util').promisify(setTimeout)
+const config = require("../../config")
 
 class Mongo {
   constructor() {
-    this.connectionString = `${process.env.MONGO}/simulation`
+    this.connectionString = `${config.mongo}/simulation`
     this.init()
     this.model = {
       configs: mongoose.model("configs", new Schema({

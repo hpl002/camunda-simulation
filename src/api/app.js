@@ -3,6 +3,7 @@ var path = require('path');
 var fileUpload = require('express-fileupload');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const bodyParser = require('body-parser')
+const config = require("../../config")
 
 var indexRouter = require('./routes/index');
 
@@ -26,7 +27,7 @@ app.use(fileUpload({
 
 app.use(express.urlencoded({ extended: false }));
 app.use('/', indexRouter);
-app.use('/camunda', createProxyMiddleware({ target: process.env.PROCESS_ENGINE, changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
+app.use('/camunda', createProxyMiddleware({ target:`${config.processEngine}`, changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
 function errorHandler (error, req, res, next) {   
   const {response }= error
   if(response){

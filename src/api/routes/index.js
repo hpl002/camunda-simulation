@@ -13,6 +13,7 @@ const os = require("os");
 const fs = require("fs");
 const Joi = require("joi");
 const tempDir = os.tmpdir()
+const appConfigs = require("../../../config");
 
 //upload config bundle
 router.post('/config', async function (req, res, next) {
@@ -60,8 +61,9 @@ router.get('/config/:id', async function (req, res, next) {
 //get deployments from camunda
 router.get('/deployment', async function (req, res, next) {
   //TODO: path param for retrieving deployment from neo4j
+  //TODO:  request targets itself, which im sure is a bad pattern..
   try {
-    let { data } = await axios.get(`http://localhost:${process.env.PORT}/camunda/engine-rest/deployment`)
+    let { data } = await axios.get(`${appConfigs.processEngine}/camunda/engine-rest/deployment`)
     if (data.length) {
       res.send(data)
     }
@@ -100,7 +102,7 @@ router.post('/deployment', async function (req, res, next) {
 
     var config = {
       method: 'post',
-      url: `${process.env.PROCESS_ENGINE}/engine-rest/deployment/create`,
+      url: `${appConfigs.processEngine}/engine-rest/deployment/create`,
       headers: {
         ...data.getHeaders()
       },
@@ -126,9 +128,9 @@ router.post('/deployment', async function (req, res, next) {
 //delete deployments in camunda
 router.delete('/deployment', async function (req, res, next) {
   try {
-    let { data } = await axios.get(`http://localhost:${process.env.PORT}/deployment`)
+    let { data } = await axios.get(`${appConfigs.controller}/deployment`)
     for (const d of data) {
-      await axios.delete(`http://localhost:${process.env.PORT}/camunda/engine-rest/deployment/${d.id}?cascade=true`)
+      await axios.delete(`${appConfigs.controller}/camunda/engine-rest/deployment/${d.id}?cascade=true`)
     }
     res.send(200)
   } catch (error) {
@@ -139,8 +141,8 @@ router.delete('/deployment', async function (req, res, next) {
 
 router.delete('/nuke', async function (req, res, next) {
   try {
-    await axios.delete(`http://localhost:${process.env.PORT}/deployment`)
-    await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
+    await axios.delete(`${appConfigs.controller}/deployment`)
+    await axios.delete(`${appConfigs.controller}/neo4j`)
     res.send(200)
   } catch (error) {
     logger.log("error", error)
@@ -205,24 +207,24 @@ router.post('/load/:id', async function (req, res, next) {
   try {
     const { body, params } = req
     //get configs
-    let { data, status } = await axios.get(`http://localhost:${process.env.PORT}/config/${params.id}`)
+    let { data, status } = await axios.get(`${appConfigs.controller}/config/${params.id}`)
     if (status !== 200) throw new Error("could not find any configs for the provided id")
     const { camunda, neo4j } = data
 
     //delete and upload new camunda config
-    await axios.delete(`http://localhost:${process.env.PORT}/deployment`)
+    await axios.delete(`${appConfigs.controller}/deployment`)
 
     await axios({
-      url: `http://localhost:${process.env.PORT}/deployment`,
+      url: `${appConfigs.controller}/deployment`,
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       data: { value: camunda }
     });
 
     //delete and upload new neo4j config
-    await axios.delete(`http://localhost:${process.env.PORT}/neo4j`)
+    await axios.delete(`${appConfigs.controller}/neo4j`)
     await axios({
-      url: `http://localhost:${process.env.PORT}/neo4j`,
+      url: `${appConfigs.controller}/neo4j`,
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       data: { value: neo4j }
@@ -274,7 +276,7 @@ router.post('/start/:id', async function (req, res, next) {
     //load config
     var config = {
       method: 'post',
-      url: `http://localhost:3000/load/${params.id}`,
+      url: `${appConfigs.controller}/load/${params.id}`,
     };
     await axios(config)
 
@@ -282,7 +284,7 @@ router.post('/start/:id', async function (req, res, next) {
     //get process key
     var config = {
       method: 'get',
-      url: `http://localhost:3000/process`,
+      url: `${appConfigs.controller}/process`,
     };
     const { data } = await axios(config)
     const { key } = data[0]
@@ -315,7 +317,7 @@ router.get('/process', async function (req, res, next) {
   try {
     var config = {
       method: 'get',
-      url: `http://localhost:${process.env.PORT}/camunda/engine-rest/process-definition`
+      url: `${appConfigs.controller}/camunda/engine-rest/process-definition`
     };
     const { data } = await axios(config)
     res.send(data)
@@ -331,19 +333,19 @@ router.get('/healthz', async function (req, res, next) {
 
   try {
     await axios({
-      url: `http://localhost:${process.env.MONGO_PORT}`,
+      url: `${appConfigs.mongo}`,
       method: 'get',
     });
 
     await axios({
-      url: `http://localhost:${process.env.PROCESS_ENGINE_PORT}`,
+      url: `${appConfigs.processEngine}`,
       method: 'get',
     });
 
 
     try {
       await axios({
-        url: `http://localhost:${process.env.NEO4J_PORT}`,
+        url: `${appConfigs.neo4j}`,
         method: 'get',
       });
     } catch (error) {
