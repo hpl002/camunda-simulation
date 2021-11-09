@@ -333,7 +333,7 @@ router.get('/healthz', async function (req, res, next) {
 
   try {
     await axios({
-      url: `${appConfigs.mongo}`,
+      url: `${appConfigs.mongoHTTP}`,
       method: 'get',
     });
 
