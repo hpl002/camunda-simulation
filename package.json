@@ -9,6 +9,9 @@
     "test": "jest",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand"
   },
+  "nodemonConfig": {
+    "ignore": ["work/*"]
+},
   "dependencies": {
     "axios": "^0.21.1",
     "cookie-parser": "~1.4.4",
@@ -17,6 +20,7 @@
     "express-fileupload": "^1.2.1",
     "express-validator": "^6.11.1",
     "form-data": "^4.0.0",
+    "fs-extra": "^10.0.0",
     "http-errors": "~1.6.3",
     "http-proxy-middleware": "^1.1.1",
     "jade": "~1.11.0",
