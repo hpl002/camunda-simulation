@@ -23,7 +23,6 @@ app.use(fileUpload({
 
 app.use(express.urlencoded({ extended: false }));
 app.use('/', indexRouter);
-app.use('/camunda', createProxyMiddleware({ target:`${config.processEngine}`, changeOrigin: true, pathRewrite: {'^/camunda' : ''} }));
 function errorHandler (error, req, res, next) {   
   const {response }= error
   if(response){
