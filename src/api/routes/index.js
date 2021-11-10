@@ -10,13 +10,18 @@ var FormData = require('form-data');
 // import os module
 const os = require("os");
 const fs = require("fs");
+const fsExtra = require('fs-extra')
 const Joi = require("joi");
 const tempDir = os.tmpdir()
 const appConfigs = require("../../../config");
 const { validate } = require("../validator")
 
 
-//upload config bundle and store locally
+// TODO: delete any and all local configs
+//store config locally
+// TODO: delete any and all configs from camunda
+// upload config to camunda
+// verify that everything has been uploaded ok
 router.post('/config', async function (req, res, next) {
   const identifier = uuidv4()
 
@@ -59,13 +64,19 @@ router.post('/config', async function (req, res, next) {
   }
 
   try {
+    // validate request
     const s = validateReq({ req, res })
     if (s) return s
 
+    // wipe all files in local working dir
+    fsExtra.emptyDirSync(`${process.env.PWD}/work`)
+
+    //store bpmn
     writeBPMN({ sourceFile: req.files.camunda.tempFilePath, targetDir: `${process.env.PWD}/work` })
 
     let payload = req.body["JSON"].replace(/(\r\n|\n|\r)/gm, "");
     payload = JSON.parse(payload)
+    //store payload
     writePayload({ payload, targetDir: `${process.env.PWD}/work` })
 
     res.status(201).send(identifier)
@@ -74,7 +85,7 @@ router.post('/config', async function (req, res, next) {
     next(error)
   }
 })
- 
+
 //get deployments from camunda
 router.get('/deployment', async function (req, res, next) {
   try {
