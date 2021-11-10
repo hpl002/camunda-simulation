@@ -1,181 +1,40 @@
 var express = require('express');
-const axios = require('axios');
 var router = express.Router();
-const { Controller, Executor } = require('../../index')
-const { logger } = require('../../helpers/winston')
-const { v4: uuidv4 } = require('uuid');
-const { mongo } = require("../../classes/Mongo")
-var { readFileSync, writeFileSync } = require('fs')
-var FormData = require('form-data');
-// import os module
-const os = require("os");
-const fs = require("fs");
-const fsExtra = require('fs-extra')
-const Joi = require("joi");
-const tempDir = os.tmpdir()
+
+const axios = require('axios');
+const helper = require("./private");
+
 const appConfigs = require("../../../config");
-const { validate } = require("../validator")
+const { Controller, Executor } = require('../../index');
+const { logger } = require('../../helpers/winston'); 
 
 
-// TODO: delete any and all local configs
-//store config locally
 // TODO: delete any and all configs from camunda
 // upload config to camunda
 // verify that everything has been uploaded ok
 router.post('/config', async function (req, res, next) {
-  const identifier = uuidv4()
-
-  const validateReq = ({ req, res }) => {
-    const schema = require("../schemas/upload-config.json")
-    if (!req.body["JSON"]) return res.status(400).send("missing JSON payload")
-    //if any newlines in string then remove these 
-    let payload = req.body["JSON"].replace(/(\r\n|\n|\r)/gm, "");
-
-    try {
-      payload = JSON.parse(payload)
-    } catch (error) {
-      return res.status(400).send("invlaid payload")
-    }
-    const validation = validate({ data: payload, schema })
-    if (validation.errors && validation.errors.length > 0) return res.status(400).send(validation.errors)
-
-    if (!req?.files?.camunda) {
-      return res.status(400).send("Missing camunda bpmn file")
-    }
-    if (req.files.camunda.name.split(".")[1].toUpperCase() !== "BPMN") {
-      return res.status(400).send("camunda: incorrect filetype. Requires .bpmn")
-    }
-  }
-
-  const writeBPMN = ({ sourceFile, targetDir }) => {
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir);
-    }
-
-    fs.copyFile(sourceFile, `${targetDir}/${req.files.camunda.name}`, (err) => {
-      if (err) throw err;
-    });
-  }
-
-  const writePayload = async ({ payload, targetDir }) => {
-    fs.writeFileSync(`${targetDir}/payload.json`, JSON.stringify(payload, null, 4), (err) => {
-      if (err) throw err;
-    });
-  }
-
+  const dir = `${process.env.PWD}/work`
   try {
     // validate request
-    const s = validateReq({ req, res })
-    if (s) return s
+    const errorResponse = helper.validateReq({ req, res })
+    if (errorResponse) return errorResponse
+    // delete any existing configs and store new
+    helper.deleteAndStoreConfigs({ dir, req })
 
-    // wipe all files in local working dir
-    fsExtra.emptyDirSync(`${process.env.PWD}/work`)
+    //delete all existing deployments
+    await helper.camunda.delete()
 
-    //store bpmn
-    writeBPMN({ sourceFile: req.files.camunda.tempFilePath, targetDir: `${process.env.PWD}/work` })
+    //upload bpmn to camunda
+    const {id} = await helper.camunda.upload({ dir })
 
-    let payload = req.body["JSON"].replace(/(\r\n|\n|\r)/gm, "");
-    payload = JSON.parse(payload)
-    //store payload
-    writePayload({ payload, targetDir: `${process.env.PWD}/work` })
-
-    res.status(201).send(identifier)
+    res.status(201).send(`model uploaded: ${id}`)
   } catch (error) {
     logger.log("error", error)
     next(error)
   }
 })
-
-//get deployments from camunda
-router.get('/deployment', async function (req, res, next) {
-  try {
-    let { data } = await axios.get(`${appConfigs.processEngine}/camunda/engine-rest/deployment`)
-    if (data.length) {
-      res.send(data)
-    }
-    else {
-      res.send(204)
-    }
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-});
-
-//upload new daployment to camunda
-router.post('/deployment', async function (req, res, next) {
-  //body to readstream
-  var data = new FormData()
-  try {
-    let value = ""
-    const { body } = req
-    if (req.headers["content-type"].includes("application/json")) {
-      value = body.value
-    }
-    else {
-      value = body
-    }
-    if (typeof value !== "string") throw new Error("expected bpmn model as string")
-
-    const tempPath = `${tempDir}/temporary.bpmn`
-    writeFileSync(tempPath, value);
-
-
-    data.append('deployment-name', 'aName', { contentType: 'text/plain' });
-    data.append('enable-duplicate-filtering', 'true');
-    data.append('deployment-source', 'simulation-controller');
-    data.append('data', fs.createReadStream(tempPath));
-
-    var config = {
-      method: 'post',
-      url: `${appConfigs.processEngine}/engine-rest/deployment/create`,
-      headers: {
-        ...data.getHeaders()
-      },
-      data: data
-    };
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-
-  axios(config)
-    .then(function (response) {
-      return res.send("model uploaded");
-    })
-    .catch(function (error) {
-      console.log(error);
-      logger.log("error", error)
-      next(error)
-    });
-
-})
-
-//delete deployments in camunda
-router.delete('/deployment', async function (req, res, next) {
-  try {
-    let { data } = await axios.get(`${appConfigs.controller}/deployment`)
-    for (const d of data) {
-      await axios.delete(`${appConfigs.controller}/camunda/engine-rest/deployment/${d.id}?cascade=true`)
-    }
-    res.send(200)
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-});
-
-router.delete('/nuke', async function (req, res, next) {
-  try {
-    await axios.delete(`${appConfigs.controller}/deployment`)
-    res.send(200)
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-});
-
-router.post('/start/:id', async function (req, res, next) {
+ 
+/* router.post('/start/:id', async function (req, res, next) {
   const { body, params } = req
 
   // create schema object
@@ -263,7 +122,7 @@ router.get('/process', async function (req, res, next) {
     logger.log("error", error)
     next(error)
   }
-});
+}); */
 
 
 router.get('/healthz', async function (req, res, next) {
