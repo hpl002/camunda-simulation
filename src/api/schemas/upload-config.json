@@ -8,45 +8,80 @@
         "tokens"
     ],
     "properties": {
+        "start-time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 date-time -- https://json-schema.org/understanding-json-schema/reference/string.html#id8"
+        },
         "tokens": {
             "type": "array",
             "items": {
                 "type": "object",
                 "required": [
-                    "frequency",
+                    "id",
                     "variables",
-                    "id"
+                    "amount",
+                    "distribution"
                 ],
                 "properties": {
                     "id": {
                         "type": "string"
                     },
-                    "frequency": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 100
-                    },
                     "variables": {
                         "type": "array",
-                        "minItems": 1,
                         "items": {
                             "type": "object",
                             "required": [
+                                "type",
                                 "name",
                                 "value"
                             ],
                             "properties": {
-                                "name": {
-                                    "type": "string"
+                                "type": {
+                                    "const": "string"
                                 },
                                 "value": {
                                     "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
                                 }
-                            }
+                            },
+                            "additionalProperties": false
                         }
+                    },
+                    "amount": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "distribution": {
+                        "description": "distributions describe the interval in which tokens are spawned",
+                        "type": "object",
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "required": [
+                                    "type",
+                                    "frequency"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "const": "constant"
+                                    },
+                                    "frequency": {
+                                        "type": "string",
+                                        "format": "duration",
+                                        "description": "Frequency described as a ISO 8601 duration",
+                                        "example": "P10M"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        ]
                     }
                 }
             }
         }
-    }     
+    }
 }
