@@ -7,7 +7,7 @@
 var {app} = require('../app');
 var debug = require('debug')('simulation-controller:server');
 var http = require('http');
-const { logger } = require('../../helpers/winston')
+const fsExtra = require('fs-extra');
 
 /**
  * Get port from environment and store in Express.
@@ -21,6 +21,13 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+/*
+delete any local files to force fresh upload
+*/
+
+fsExtra.emptyDirSync(`${process.env.PWD}/work`)
+
 
 /**
  * Listen on provided port, on all network interfaces.
