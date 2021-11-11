@@ -2,11 +2,13 @@ var express = require('express');
 var router = express.Router();
 
 const axios = require('axios');
-const helper = require("./private");
+const { v4: uuidv4 } = require('uuid');
 
+const helper = require("./private");
 const appConfigs = require("../../../config");
 const { Controller, Executor } = require('../../index');
-const { logger } = require('../../helpers/winston'); 
+const { logger } = require('../../helpers/winston');
+let processKey = undefined
 
 
 // TODO: delete any and all configs from camunda
@@ -25,7 +27,8 @@ router.post('/config', async function (req, res, next) {
     await helper.camunda.delete()
 
     //upload bpmn to camunda
-    const {id} = await helper.camunda.upload({ dir })
+    const { id } = await helper.camunda.upload({ dir })
+    processKey = id
 
     res.status(201).send(`model uploaded: ${id}`)
   } catch (error) {
@@ -33,71 +36,24 @@ router.post('/config', async function (req, res, next) {
     next(error)
   }
 })
- 
-/* router.post('/start/:id', async function (req, res, next) {
-  const { body, params } = req
 
-  // create schema object
-  const schema = Joi.object({
-    startTime: Joi.string().required(),
-    tokens: Joi.array().items(
-      Joi.object({
-        distribution: Joi.object({
-          type: Joi.string().required(),
-          frequency: Joi.any().required(),
-          amount: Joi.number().positive().min(1).required(),
-        }),
-        body: Joi.object().required(),
-      })
-    )
-  })
+router.post('/start', async function (req, res, next) {
+  if(!!!processKey) return res.status(400).send("No configs provided. Please upload.")
+  // dynamially require input
+  const input = require(`${process.env.PWD}/work/payload.json`)
 
-  // schema options
-  const options = {
-    abortEarly: true, // include all errors
-    allowUnknown: false, // ignore unknown props
-    stripUnknown: false // remove unknown props
-  };
+  let startTime = input["start-time"]
+  if(!startTime) startTime = new Date()
+  const tokens = input.tokens
 
-  try {
-    //add schema validation to request
-    const { error, value } = schema.validate(req.body, options);
-    if (error) {
-      throw error
-    }
-    else {
-      req.body = value;
-    }
-
-    //load config
-    var config = {
-      method: 'post',
-      url: `${appConfigs.controller}/load/${params.id}`,
-    };
-    await axios(config)
-
-
-    //get process key
-    var config = {
-      method: 'get',
-      url: `${appConfigs.controller}/process`,
-    };
-    const { data } = await axios(config)
-    const { key } = data[0]
-    console.log(key)
-
-
-    const runIdentifier = uuidv4()
-    const controller = new Controller({ processID: key, startTime: req.body.startTime, runIdentifier })
-    await controller.init({ tokens: req.body.tokens })
-    const r = await Executor.execute(controller)
-    logger.log("info", r)
-    res.send(r)
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
+  const controller = new Controller({ startTime, runIdentifier: uuidv4(), processKey })
+  await controller.init({ tokens })
+  // return execution log
+  const r = await Executor.execute(controller)
+  logger.log("info", r)
 });
+/*  
+
 
 router.get('/events/:id', async function (req, res, next) {
   //TODO: refactor. should return loca events file instead
@@ -128,11 +84,6 @@ router.get('/process', async function (req, res, next) {
 router.get('/healthz', async function (req, res, next) {
 
   try {
-    await axios({
-      url: `${appConfigs.mongoHTTP}`,
-      method: 'get',
-    });
-
     await axios({
       url: `${appConfigs.processEngine}`,
       method: 'get',
