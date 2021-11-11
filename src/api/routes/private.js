@@ -47,6 +47,23 @@ module.exports = {
 
         let payload = req.body["JSON"].replace(/(\r\n|\n|\r)/gm, "");
         payload = JSON.parse(payload)
+
+        // fix formatting of variables to aligh with what camunda expects.
+        // defining anon objects in json schema is a hassle, we therefore fix this on our end instead
+        const helper = class{
+            constructor({name, value}){
+                this.name = name;
+                this.value = value
+            }
+        }
+        payload.tokens.forEach(token => {
+            const newPayload = {}
+            token.variables.forEach(variable => {
+                newPayload[variable.name] = new helper({...variable})
+            });
+            token.variables = newPayload
+        });
+
         //store payload         
         fs.writeFileSync(`${dir}/payload.json`, JSON.stringify(payload, null, 4));
     },
@@ -70,8 +87,9 @@ module.exports = {
             };
 
             const {status, data} = await axios(config)             
+            let id = Object.keys(data.deployedProcessDefinitions).pop().split(":").shift()
             if(status !== 200) throw new Error("failed while trying to upload bpmn model to camunda")
-            return {id: data.id}
+            return {id}
         },
 
         delete: async () => {
