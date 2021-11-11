@@ -25,30 +25,43 @@ const Worker = {
       throw error
     }
   },
-
+  /**
+   * @param  {} {event
+   * @param  {} controller
+   * @param  {} mongo}
+   * starts new instance of process
+   * https://docs.camunda.org/manual/7.5/reference/rest/process-definition/post-start-process-instance/
+   */
   startProcess: async ({ event, controller, mongo }) => {
-    const { processID } = controller
-    const variableKeys = Object.keys(event.data)
+    const { processKey } = controller
+    /* const variableKeys = Object.keys(event.data)
     //initialize the random variables needed
     variableKeys.forEach(key => {
       if (key.toUpperCase().includes("RANDOM")) {
         event.data[key].type = "integer"
         event.data[key].value = Math.round(Math.random() * 100)
       }
-    });
+    }); */
 
     const basePath = appConfigs.processEngine
-    const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
-    const processData = { variables: event?.data ? event?.data : {} }
+    ///process-definition/key/{key}/start
+    const reqUrl = `${basePath}/engine-rest/process-definition/key/${processKey}/start`
+    const processData = { variables: event && event.data ? event.data : {} }
     processData.businessKey = "simulation-controller"
-    const { data } = await axios.post(reqUrl, processData, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    logger.log("process", `starting process. Case: ${data.id}`)
+    try {
+      const { data } = await axios.post(reqUrl, processData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      logger.log("process", `starting process. Case: ${data.id}`)
+      return data      
+    } catch (error) {
+      console.error("failed while trying to start new process instance in camunda")
+      throw error
+      
+    }
     //await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock), activity_end: Common.formatClock(controller.clock), resource_id: "no-resource" })
-    return data
   },
 
   startTask: async ({ task, controller, mongo }) => {
