@@ -2,102 +2,103 @@ const { Event, PendingEvents, Common, Resource } = require('./index.js')
 const { logger } = require('./winston')
 const { MathHelper } = require('./math')
 class Contoller {
-  constructor({ processID, startTime, runIdentifier }) {
+  constructor({ startTime, runIdentifier, processKey }) {
+    this.processKey = processKey
     this.clock = Date.parse(startTime)
     this.readableTime = Common.convertToReadableTime(Date.parse(startTime))
     this.pendingEvents = new PendingEvents()
-    this.pendingEventsCopy = {}
-    this.processID = processID
+    //this.pendingEventsCopy = {}
     this.resourceArr = []
     this.runIdentifier = runIdentifier
     this.descriptionsMap = {}
     this.taskMap = {}
   }
 
-  addEvent({ startTime, event }) {
-    this.pendingEvents.addEvent({ timestamp: startTime, event: event })
-  }
-
+  /**
+   * @param  {} {tokens=[]}
+   * init list of start events
+   * First event in list always set at time zero (do not offset first event from clock init)
+   */
   initPendingEvents({ tokens = [] }) {
     let startTime = this.clock;
     for (const token of tokens) {
-      const { frequency, type, amount } = token.distribution
-      // look at what type of distribution and add elements to list accordingly
-      if (type.toUpperCase() === "CONSTANT") {         
-        for (let index = 0; index < amount; index++) {
-          //First event in list always set at time zero (do not offset first event from clock init)
-          if (Object.keys(this.pendingEvents.events).length === 0) {
-            startTime = this.clock
-          }
-          else {
-            startTime = startTime + MathHelper.constant({value:frequency})
-          }
-          this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
-        }
-      }
-      else if (type.toUpperCase() === "NORMALDISTRIBUTION") {                  
-        for (let index = 0; index < amount; index++) {
-          //First event in list always set at time zero (do not offset first event from clock init)
-          if (Object.keys(this.pendingEvents.events).length === 0) {
-            startTime = this.clock
-          }
-          else {
-            startTime = startTime + MathHelper.normalDistribution({mean:frequency.mean, sd:frequency.sd})
-          }
-          this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
-        }
-      }
+      const { id, variables, amount, distribution } = token
+      const { type } = distribution
 
-  /*     else if (type.toUpperCase() === "BERNOULLI") {                  
-        for (let index = 0; index < amount; index++) {
-          //First event in list always set at time zero (do not offset first event from clock init)
-          if (Object.keys(this.pendingEvents.events).length === 0) {
-            startTime = this.clock
-          }
-          else {
-            startTime = startTime + MathHelper.bernoulli({value:frequency, iso:false})
-          }
-          this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
-        }
-      } */
 
-      else if (type.toUpperCase() === "POISSON") {                  
+      if (type == "constant") {
+        const { frequency } = distribution
         for (let index = 0; index < amount; index++) {
-          //First event in list always set at time zero (do not offset first event from clock init)
           if (Object.keys(this.pendingEvents.events).length === 0) {
             startTime = this.clock
           }
           else {
-            startTime = startTime + MathHelper.poisson({value:frequency})
+            startTime = startTime + MathHelper.constant({ value: frequency })
           }
-          this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
+          this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ data: token.variables, type: "start process" }) })
         }
       }
-
-      else if (type.toUpperCase() === "RANDOM") {                  
-        for (let index = 0; index < amount; index++) {
-          //First event in list always set at time zero (do not offset first event from clock init)
-          if (Object.keys(this.pendingEvents.events).length === 0) {
-            startTime = this.clock
-          }
-          else {
-            startTime = startTime + MathHelper.random({min:frequency.min, max:frequency.max})
-          }
-          this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
-        }
-      }
-      else {
-        throw new Error("type not supported")
-      }
+      /*       else if (type.toUpperCase() === "NORMALDISTRIBUTION") {
+              for (let index = 0; index < amount; index++) {
+                //First event in list always set at time zero (do not offset first event from clock init)
+                if (Object.keys(this.pendingEvents.events).length === 0) {
+                  startTime = this.clock
+                }
+                else {
+                  startTime = startTime + MathHelper.normalDistribution({ mean: frequency.mean, sd: frequency.sd })
+                }
+                this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
+              }
+            }
+      
+                else if (type.toUpperCase() === "BERNOULLI") {                  
+                  for (let index = 0; index < amount; index++) {
+                    //First event in list always set at time zero (do not offset first event from clock init)
+                    if (Object.keys(this.pendingEvents.events).length === 0) {
+                      startTime = this.clock
+                    }
+                    else {
+                      startTime = startTime + MathHelper.bernoulli({value:frequency, iso:false})
+                    }
+                    this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
+                  }
+                } 
+      
+            else if (type.toUpperCase() === "POISSON") {
+              for (let index = 0; index < amount; index++) {
+                //First event in list always set at time zero (do not offset first event from clock init)
+                if (Object.keys(this.pendingEvents.events).length === 0) {
+                  startTime = this.clock
+                }
+                else {
+                  startTime = startTime + MathHelper.poisson({ value: frequency })
+                }
+                this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
+              }
+            }
+      
+            else if (type.toUpperCase() === "RANDOM") {
+              for (let index = 0; index < amount; index++) {
+                //First event in list always set at time zero (do not offset first event from clock init)
+                if (Object.keys(this.pendingEvents.events).length === 0) {
+                  startTime = this.clock
+                }
+                else {
+                  startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
+                }
+                this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
+              }
+            } */
     }
-    const events = this.getPendingEvents()
-    this.pendingEventsCopy = { ...events }
+    //const events = this.getPendingEvents()
+    //this.pendingEventsCopy = { ...events }
   }
 
   async init({ tokens = [] }) {
     this.initPendingEvents({ tokens })
+    //this.pendingEvents.events
     //this.attributesMap = await modeler.generateAttributesMap()
-    await this.initResourceArr()
+    //await this.initResourceArr()
   }
 
   async initResourceArr() {
@@ -116,12 +117,18 @@ class Contoller {
   }
 
   popNextPendingEvent() {
-    const p = this.getPendingEvents()
-    const keys = Object.keys(p)
+    // get map of all pending events
+    const pending = this.pendingEvents.events
+    // keys are timestamps
+    const keys = Object.keys(pending)
+    // sort all keys from first to last(smallest to largest value)
     keys.sort((a, b) => { return b - a })
+    // get head of list
     const nextEventKey = keys.pop()
-    const event = p[nextEventKey]
+    // set current event as this event
+    const event = pending[nextEventKey]
     //    this.pendingEvents.delete(nextEventKey)
+    // returns timestamd and array of all evenents which are set to occur at this time
     return { time: parseInt(nextEventKey), arr: event }
   }
 
@@ -138,17 +145,6 @@ class Contoller {
       this.readableTime = Common.convertToReadableTime(pTime)
       this.clock = pTime
     }
-  };
-
-  getPendingEvents(copy = false) {
-    if (copy) return this.pendingEventsCopy
-    return this.pendingEvents.getList()
-  };
-
-  getPendingEventsLength(copy = false) {
-    if (copy) return this.pendingEventsCopy
-    const obj = this.pendingEvents.getList()
-    return Object.keys(obj).length
   };
 }
 
