@@ -1,3 +1,4 @@
+//add schema validation or jsdoc
 class Event {
     constructor({ priority = -1, data = {}, type, task = {} }) {
         this.priority = priority;

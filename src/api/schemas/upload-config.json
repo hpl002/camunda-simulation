@@ -72,7 +72,7 @@
                                     "frequency": {
                                         "type": "string",
                                         "format": "duration",
-                                        "description": "Frequency described as a ISO 8601 duration",
+                                        "description": "Frequency described as a ISO 8601 duration.",
                                         "example": "P10M"
                                     }
                                 },

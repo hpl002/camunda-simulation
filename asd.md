@@ -1,10 +1,16 @@
+
+refactor stuff
+upload config to app
+upload config to camunda
+ - wipe any and all existing configs entirely
+ - parse in tokens
+
+
 remove all complexities
-
 start to build app from scratch and write tests for every feature:
-
 1 - remove all neo4j stuff
 
-
+------
 sprint 1 - 
     upload configuration files
         bpmn model
@@ -13,6 +19,9 @@ sprint 1 -
         log to mongo
         get data from mongo
         clear all configs in preparation for new execution
+
+
+task duration as fixed value
 
 
 sprint 2  - 

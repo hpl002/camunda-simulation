@@ -1,7 +1,7 @@
 var axios = require("axios").default;
 var xml2js = require('xml2js');
-var _ = require('lodash');
 var parser = new xml2js.Parser();
+var _ = require('lodash');
 const { logger } = require('./winston')
 const config = require("../../config")
 

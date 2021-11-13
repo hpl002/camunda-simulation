@@ -3,10 +3,16 @@ var router = express.Router();
 
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+const { parse } = require('json2csv');
 
 const helper = require("./private");
 const appConfigs = require("../../../config");
-const { Controller, Executor } = require('../../index');
+const { Executor } = require('../../index');
+const { Controller } = require('../../helpers/controller');
+const { Mongo } = require('../../classes/mongo');
+const mongo = new Mongo()
+mongo.init()
+
 const { logger } = require('../../helpers/winston');
 let processKey = undefined
 
@@ -18,10 +24,14 @@ router.post('/config', async function (req, res, next) {
   const dir = `${process.env.PWD}/work`
   try {
     // validate request
-    const errorResponse = helper.validateReq({ req, res })
+    const schema = require("../schemas/upload-config.json")
+    const errorResponse = helper.validateReq({ req, res, schema })
     if (errorResponse) return errorResponse
     // delete any existing configs and store new
     helper.deleteAndStoreConfigs({ dir, req })
+
+    //parse and update configs
+    helper.parseAndUpdateConfig({ dir, req })
 
     //delete all existing deployments
     await helper.camunda.delete()
@@ -38,19 +48,64 @@ router.post('/config', async function (req, res, next) {
 })
 
 router.post('/start', async function (req, res, next) {
-  if(!!!processKey) return res.status(400).send("No configs provided. Please upload.")
+  if (!req.body["response"]) return res.status(400).send("missing response on req body")
+  const schema = require("../schemas/start.json")
+  const errorResponse = helper.validateReqAgainstSchema({ data: req.body, res, schema })
+  if (errorResponse.length > 0) return errorResponse
+  if (!!!processKey) return res.status(400).send("No configs provided. Please upload.")
+
+  await mongo.wipe()
+
   // dynamially require input
   const input = require(`${process.env.PWD}/work/payload.json`)
 
   let startTime = input["start-time"]
-  if(!startTime) startTime = new Date()
+  if (!startTime) startTime = new Date()
   const tokens = input.tokens
 
   const controller = new Controller({ startTime, runIdentifier: uuidv4(), processKey })
   await controller.init({ tokens })
   // return execution log
-  const r = await Executor.execute(controller)
-  logger.log("info", r)
+
+
+  /*
+    check param for what format we want it returned as, json or csv
+  
+  */
+
+
+  await Executor.execute({ controller, mongo })
+  // get all data from mongo
+  let log = await mongo.getLogs()
+  if (req.body.response === "json") {
+    res.type('application/json')
+    // get all case_ids
+    let caseids = log.map(e => e.case_id)
+    caseids = new Set(caseids)
+    caseids = Array.from(caseids)
+
+    const final = {}
+    caseids.forEach(id => {
+      final[id] = log.filter(e => e.case_id === id)
+    });
+    log = final
+
+  }
+  else if (req.body.response === "csv") {
+    // convert to vsc
+    try {
+      res.type('text/csv')
+      const csv = parse(log, { fields: ['case_id', 'activity_id', 'activity_start', "resource_id", "activity_end"] });
+      log = csv
+      console.log(csv);
+    } catch (err) {
+      console.error(err);
+    }
+
+  }
+
+  res.send(log)
+
 });
 /*  
 

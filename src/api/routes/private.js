@@ -5,6 +5,12 @@ const axios = require('axios');
 const fs = require("fs")
 var FormData = require('form-data');
 
+var xml2js = require('xml2js');
+var parser = new xml2js.Parser();
+var builder = new xml2js.Builder();
+
+
+
 const writeBPMN = ({ sourceFile, targetDir }) => {
     if (!fs.existsSync(targetDir)) {
         fs.mkdirSync(targetDir);
@@ -15,20 +21,29 @@ const writeBPMN = ({ sourceFile, targetDir }) => {
     });
 }
 
+const validateReqAgainstSchema = ({ data, res, schema }) => {
+    let payload = data
+    if(!!(typeof payload !== 'string' || (payload instanceof String)) === true){
+        payload = JSON.stringify(payload)
+    }
+      payload = payload.replace(/(\r\n|\n|\r)/gm, "");
+
+    try {
+        payload = JSON.parse(payload)
+    } catch (error) {
+        return res.status(400).send("invlaid payload")
+    }
+    const validation = validate({ data: payload, schema })
+    return validation.errors
+}
 module.exports = {
-    validateReq: ({ req, res }) => {
-        const schema = require("../schemas/upload-config.json")
+    validateReqAgainstSchema,
+
+    validateReq: ({ req, res, schema }) => {
         if (!req.body["JSON"]) return res.status(400).send("missing JSON payload")
         //if any newlines in string then remove these 
-        let payload = req.body["JSON"].replace(/(\r\n|\n|\r)/gm, "");
-
-        try {
-            payload = JSON.parse(payload)
-        } catch (error) {
-            return res.status(400).send("invlaid payload")
-        }
-        const validation = validate({ data: payload, schema })
-        if (validation.errors && validation.errors.length > 0) return res.status(400).send(validation.errors)
+        const err = validateReqAgainstSchema({ data: req.body["JSON"], res, schema })
+        if (err.length > 0) return res.status(400).send(err)
 
         if (!req?.files?.camunda) {
             return res.status(400).send("Missing camunda bpmn file")
@@ -50,8 +65,8 @@ module.exports = {
 
         // fix formatting of variables to aligh with what camunda expects.
         // defining anon objects in json schema is a hassle, we therefore fix this on our end instead
-        const helper = class{
-            constructor({name, value}){
+        const helper = class {
+            constructor({ name, value }) {
                 this.name = name;
                 this.value = value
             }
@@ -59,13 +74,56 @@ module.exports = {
         payload.tokens.forEach(token => {
             const newPayload = {}
             token.variables.forEach(variable => {
-                newPayload[variable.name] = new helper({...variable})
+                newPayload[variable.name] = new helper({ ...variable })
             });
             token.variables = newPayload
         });
 
         //store payload         
         fs.writeFileSync(`${dir}/payload.json`, JSON.stringify(payload, null, 4));
+    },
+    /**
+     * @param  {} {dir}
+     * change all regular tasks to service tasks
+     */
+    parseAndUpdateConfig: async ({ dir }) => {
+        const parseModel = async (string) => {
+            return parser.parseStringPromise(string).then(function (result) {
+                return result;
+            }).catch((error) => {
+                logger.log("error", error)
+                throw new Error("Failed while parsing xml string to js")
+            })
+        }
+
+        const changeAllTasksToServiceTask = (xml) => {
+            xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"].forEach(element => {
+                element["$"]["camunda:topic"] = "topic"
+                element["$"]["camunda:type"] = "external"
+            })
+            if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]) {
+                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = [...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"], ...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]]
+            }
+            else {
+                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
+            }
+            delete xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
+        }
+
+        // read xml from file to string
+        let xml = fs.readFileSync(`${dir}/simulation.bpmn`, "utf8")
+
+        // parse xml to js
+        xml = await parseModel(xml)
+
+        changeAllTasksToServiceTask(xml)
+
+        // parse js to xml
+        xml = builder.buildObject(xml);
+
+        // store xml
+        xml = fs.writeFileSync(`${dir}/simulation.bpmn`, xml)
+
     },
 
     camunda: {
@@ -86,10 +144,10 @@ module.exports = {
                 data: form
             };
 
-            const {status, data} = await axios(config)             
+            const { status, data } = await axios(config)
             let id = Object.keys(data.deployedProcessDefinitions).pop().split(":").shift()
-            if(status !== 200) throw new Error("failed while trying to upload bpmn model to camunda")
-            return {id}
+            if (status !== 200) throw new Error("failed while trying to upload bpmn model to camunda")
+            return { id }
         },
 
         delete: async () => {
@@ -99,7 +157,8 @@ module.exports = {
             }
             let { data } = await getDeployment()
             for (const deployment of data) {
-                await axios.delete(`${appConfigs.processEngine}/engine-rest/deployment/${deployment.id}?cascade=true`)
+                const { status } = await axios.delete(`${appConfigs.processEngine}/engine-rest/deployment/${deployment.id}?cascade=true`)
+                if (status !== 204) throw new Error("failed while trying to delete deployment from camunda")
             }
         }
     }
