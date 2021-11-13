@@ -37,10 +37,6 @@ class PendingEvents {
       }
     }
   
-    getList() {
-      return this.events
-    }
-  
     getEventsAt(timestamp) {
       return this.events[timestamp].events
     }

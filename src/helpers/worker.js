@@ -25,48 +25,63 @@ const Worker = {
       throw error
     }
   },
-
+  /**
+   * @param  {} {event
+   * @param  {} controller
+   * @param  {} mongo}
+   * starts new instance of process
+   * https://docs.camunda.org/manual/7.5/reference/rest/process-definition/post-start-process-instance/
+   */
   startProcess: async ({ event, controller, mongo }) => {
-    const { processID } = controller
-    const variableKeys = Object.keys(event.data)
+    const { processKey } = controller
+    /* const variableKeys = Object.keys(event.data)
     //initialize the random variables needed
     variableKeys.forEach(key => {
       if (key.toUpperCase().includes("RANDOM")) {
         event.data[key].type = "integer"
         event.data[key].value = Math.round(Math.random() * 100)
       }
-    });
+    }); */
 
     const basePath = appConfigs.processEngine
-    const reqUrl = `${basePath}/engine-rest/process-definition/key/${processID}/start`
-    const processData = { variables: event?.data ? event?.data : {} }
+    ///process-definition/key/{key}/start
+    const reqUrl = `${basePath}/engine-rest/process-definition/key/${processKey}/start`
+    const processData = { variables: event && event.data ? event.data : {} }
     processData.businessKey = "simulation-controller"
-    const { data } = await axios.post(reqUrl, processData, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    logger.log("process", `starting process. Case: ${data.id}`)
-    //await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock), activity_end: Common.formatClock(controller.clock), resource_id: "no-resource" })
-    return data
+    try {
+      const { data } = await axios.post(reqUrl, processData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      logger.log("process", `starting process. Case: ${data.id}`)
+      await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock)})
+      return data
+    } catch (error) {
+      console.error("failed while trying to start new process instance in camunda")
+      throw error
+
+    }
   },
 
   startTask: async ({ task, controller, mongo }) => {
-
     const Helper = {
-      taskDuration: task.timing.duration(),
+      taskDuration: "task.timing.duration()",
 
       start: async ({ resources, completionTime }) => {
         try {
-          await Common.refreshRandomVariables({ task })
-          task.workerId = resources.join()
+          //await Common.refreshRandomVariables({ task })
+          //task.workerId = resources.join()
           const body = {
-            "workerId": task.workerId,
+            "workerId": "task.workerId",
             "lockDuration": 1800000
           }
-          response = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${task.id}/lock`, body)
-          if (response.status !== 204) throw new Error("could not lock task")
-          logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
+
+          //lock task with worker
+          const { status } = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${task.id}/lock`, body)
+          if (status !== 204) throw new Error("could not lock task")
+          //logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
+          logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)}`)
           await mongo.startTask({ id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
           return { task, startTime: completionTime, type: "complete task" }
         } catch (error) {
@@ -228,46 +243,54 @@ const Worker = {
       }
     }
 
+
+    const workerId = "no-resource"
+    //const completionTime = controller.clock + Helper.taskDuration
+    const completionTime = controller.clock
+    return await Helper.start({ resources: [workerId], completionTime })
+
+
+
     //TODO: get 
     // filled being specializations which have been filled by a resource
     // not filled being specializaton which has not been filled by a resource
-    let { filled, notFilled } = await Helper.getAvailableResources({ task, controller })
+    /* let { filled, notFilled } = await Helper.getAvailableResources({ task, controller })
 
     let workerId = undefined
     let completionTime = 0
-    let resources = []
+    let resources = [] */
 
-    if (!task.hasResourceCandidates) {
-      // no resource no schedule
-      workerId = "no-resource"
-      completionTime = controller.clock + Helper.taskDuration
-      return await Helper.start({ resources: [workerId], completionTime })
-    }
-    else {
-      if (Helper.allSpecializationsFilled()) {
-        await Helper.applyEfficiency({ specializationResourceArr: filled })
-        const resourcesWithSchedules = Helper.getResourcesWithSchedules({ specializationMap: filled, hasSchedule: true })
-        const resourcesWithoutSchedules = Helper.getResourcesWithSchedules({ specializationMap: filled, hasSchedule: false })
-        if (!!resourcesWithSchedules.length === !!resourcesWithoutSchedules.length) throw new Error("Task cannot have resources with and without schedules. These are mutually exclusive")
-        //account for resource schedules
-        if (!!resourcesWithSchedules.length) {
-          Helper.applyScheduling({ specializationResourceArr: filled })
-          Helper.filterDuration({ specializationResourceArr: filled })
-          Helper.verifyScheduling({ specializationResourceArr: filled, task })
-        }
-        Helper.sortDuration({ specializationResourceArr: filled, task })
-        Helper.selectResources({ specializationResourceArr: filled })
-
-        const r = Helper.lockResource({ task, controller, specializationResourceArr: filled })
-        return await Helper.start({ ...r })
+    /*   if (!task.hasResourceCandidates) {
+        // no resource no schedule
+        workerId = "no-resource"
+        completionTime = controller.clock + Helper.taskDuration
+        return await Helper.start({ resources: [workerId], completionTime })
       }
       else {
-        // TODO: pass in array. Functions finds earliest time at which all resources are available
-        const startTime = await Helper.howLongUntilResourceAvailable({ potential, controller })
-        logger.log("process", `Found resource on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
-        return { task, startTime, type: "start task", reason: "Reschedule: Could not find any available resource" }
-      }
-    }
+        if (Helper.allSpecializationsFilled()) {
+          await Helper.applyEfficiency({ specializationResourceArr: filled })
+          const resourcesWithSchedules = Helper.getResourcesWithSchedules({ specializationMap: filled, hasSchedule: true })
+          const resourcesWithoutSchedules = Helper.getResourcesWithSchedules({ specializationMap: filled, hasSchedule: false })
+          if (!!resourcesWithSchedules.length === !!resourcesWithoutSchedules.length) throw new Error("Task cannot have resources with and without schedules. These are mutually exclusive")
+          //account for resource schedules
+          if (!!resourcesWithSchedules.length) {
+            Helper.applyScheduling({ specializationResourceArr: filled })
+            Helper.filterDuration({ specializationResourceArr: filled })
+            Helper.verifyScheduling({ specializationResourceArr: filled, task })
+          }
+          Helper.sortDuration({ specializationResourceArr: filled, task })
+          Helper.selectResources({ specializationResourceArr: filled })
+  
+          const r = Helper.lockResource({ task, controller, specializationResourceArr: filled })
+          return await Helper.start({ ...r })
+        }
+        else {
+          // TODO: pass in array. Functions finds earliest time at which all resources are available
+          const startTime = await Helper.howLongUntilResourceAvailable({ potential, controller })
+          logger.log("process", `Found resource on task and resources is not available. Rescheduling to ${Common.formatClock(completionTime)}`)
+          return { task, startTime, type: "start task", reason: "Reschedule: Could not find any available resource" }
+        }
+      } */
   },
 
   completeTask: async ({ task, controller, mongo }) => {
@@ -277,14 +300,15 @@ const Worker = {
     }
     try {
       const body = {
-        "workerId": task.workerId,
+        "workerId": "task.workerId",
         "variables": {}
       }
       response = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${task.id}/complete`, body)
       if (response.status !== 204) throw new Error("could not complete task")
-      logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
+      //logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
+      logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)}`)
       await mongo.completeTask({ id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_end: Common.formatClock(controller.clock) })
-    } catch (error) {       
+    } catch (error) {
       logger.log("error", error.response.data.message)
       throw error
     }
@@ -302,8 +326,9 @@ const Worker = {
         controller.taskMap[currTask.activityId] = newTask
       }
       //TODO: How should tasks be prioritized? Should new fetched evens be configured to run as soon as possible       
-      let startTime = controller.taskMap[currTask.activityId].timing.before() + controller.clock
-      controller.addEvent({ startTime, event: new Event({ task: { ...currTask, ...controller.taskMap[currTask.activityId] }, type: "start task" }) })
+      //let startTime = controller.taskMap[currTask.activityId].timing.before() + controller.clock
+      let startTime = controller.clock
+      controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task: { ...currTask, ...controller.taskMap[currTask.activityId] }, type: "start task" }) })
       await Worker.setPriority({ processInstanceId: currTask.id })
     }
   },

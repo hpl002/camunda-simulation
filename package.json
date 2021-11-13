@@ -4,10 +4,15 @@
   "private": true,
   "scripts": {
     "start": "nodemon --trace-warnings ./src/api/bin/www",
-    "debug": "nodemon --inspect ./src/api/bin/www",
+    "debug": "node --inspect ./src/api/bin/www",
     "debug-brk": "nodemon --inspect-brk ./src/api/bin/www",
     "test": "jest",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "work/*"
+    ]
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -17,17 +22,20 @@
     "express-fileupload": "^1.2.1",
     "express-validator": "^6.11.1",
     "form-data": "^4.0.0",
+    "fs-extra": "^10.0.0",
     "http-errors": "~1.6.3",
     "http-proxy-middleware": "^1.1.1",
     "jade": "~1.11.0",
     "joi": "^17.4.0",
+    "json2csv": "^5.0.6",
+    "jsonschema": "^1.4.0",
     "lodash": "^4.17.21",
     "lodash.find": "^4.6.0",
     "moment": "^2.29.1",
     "mongodb": "^3.6.6",
     "mongoose": "^5.12.7",
     "morgan": "~1.9.1",
-    "neo4j-driver": "^4.2.3",
+    "nedb": "^1.8.0",
     "random": "^3.0.6",
     "temp": "^0.9.4",
     "uuid": "^8.3.2",

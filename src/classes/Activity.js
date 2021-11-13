@@ -1,19 +1,18 @@
-const { executeQuery } = require('../helpers/neo4j')
 const { MathHelper } = require('../helpers/math')
 const { set } = require('lodash')
 
 class Activity {
     constructor({ activityId }) {
         this.activityId = activityId
-        this.timing = {}
+        //this.timing = {}
         // all resources which an complete the task
-        this.resourceCandidates = []
-        this.hasResourceCandidates = false
+        //this.resourceCandidates = []
+        //this.hasResourceCandidates = false
     }
 
     async init() {
         //the duration of the task         
-        let r  = await this.getTiming({ type: "During" })
+        /* let r  = await this.getTiming({ type: "During" })
         this.timing.duration = await this.generateFunc({...r})
         // the waiting period before a task
         // this waiting period is independent of any resource
@@ -21,7 +20,7 @@ class Activity {
         this.timing.before = await this.generateFunc({...r})
         this.resourceCandidates = await this.getResources()
         this.specializationRequirement = await this.getSpecializationRequirement()
-        this.hasResourceCandidates = !!this.resourceCandidates.length > 0
+        this.hasResourceCandidates = !!this.resourceCandidates.length > 0 */
     }
     
     async getTiming({ type }) {

@@ -1,6 +1,5 @@
 var moment = require('moment');
 var _ = require('lodash');
-const { executeQuery } = require('../helpers/neo4j')
 const { Common } = require('../helpers/common')
 const { MathHelper } = require('../helpers/math');
 const { logger } = require('../helpers/winston');
@@ -19,8 +18,9 @@ class Resource {
 
   async hasSchedule() {
     const queryForHasSchedule = `MATCH (r:Resource)-[]-(sc:Schedule)  Where r.id="${this.id}" return sc`
-    let hasSchedule = await executeQuery({ query: queryForHasSchedule })
-    this.hasSchedule = !!hasSchedule.length > 0
+    //let hasSchedule = await executeQuery({ query: queryForHasSchedule })
+    //this.hasSchedule = !!hasSchedule.length > 0
+    this.hasSchedule = false
   }
 
   asEpoch({ time, day, week, year }) {
@@ -58,12 +58,12 @@ class Resource {
     }
   }
 
-  async getSpecializations() {
+/*   async getSpecializations() {
     const query = `MATCH (r:Resource)-[]-(s:Specialization) WHERE r.id="${this.id}" return s.id`
     let s = await executeQuery({ query })
     s = s.map(e => e.get("s.id"))
     this.specialization = s
-  }
+  } */
 
   soonestAvailability({ time }) {
     const { week, day, full, hour } = Common.convertToReadableTime(time)
@@ -194,10 +194,11 @@ class Resource {
   async efficiency({ time, options }) {
     if (this.efficiencyDistribution === false || Object.keys(this.efficiencyDistribution).length == 0) {
       // query neo4j to get distribution connected to efficiency
-      const query = `MATCH (r:Resource)-[]-(e:Efficiency)-[]-(d:Distribution) WHERE r.id="${this.id}" return d`
+      /* const query = `MATCH (r:Resource)-[]-(e:Efficiency)-[]-(d:Distribution) WHERE r.id="${this.id}" return d`
       let distribution = await executeQuery({ query })
-      distribution = distribution.map(e => e.get("d"))
-      this.efficiencyDistribution = distribution.length > 0 ? { ...distribution[0] } : false
+      distribution = distribution.map(e => e.get("d")) */
+      //this.efficiencyDistribution = distribution.length > 0 ? { ...distribution[0] } : false
+      this.efficiencyDistribution = false
     }
     let dragPercentage = 0 //no lag
     if (this.efficiencyDistribution) {
@@ -274,7 +275,7 @@ class Resource {
   }
 
   async init() {
-    await this.getSpecializations()
+    //await this.getSpecializations()
     await this.hasSchedule()
     if (this.hasSchedule) {
       await this.buildSchedule()

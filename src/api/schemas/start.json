@@ -1,15 +1,16 @@
 {
-    "filename_bpmn":"none",
-    "filename_graphdb":"none",
-    "input":{
-        "startTime":"2021-04-14T19:15:30+0000",
-        "tokens":[{
-            "distribution":{
-                "type":"constant",
-                "frequency":0,
-                "amount":0
-            },
-            "body":{"name":"troy", "animal":"dog", "age":14}
-        }]
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "response"
+    ],
+    "properties": {
+        "response": {
+            "type": "string",
+            "enum": [
+                "csv",
+                "json"
+            ]
+        }
     }
 }
