@@ -51,7 +51,7 @@ router.post('/start', async function (req, res, next) {
   if (!req.body["response"]) return res.status(400).send("missing response on req body")
   const schema = require("../schemas/start.json")
   const errorResponse = helper.validateReqAgainstSchema({ data: req.body, res, schema })
-  if (errorResponse.length > 0) return errorResponse
+  if (errorResponse.length > 0) return res.status(400).send(errorResponse)
   if (!!!processKey) return res.status(400).send("No configs provided. Please upload.")
 
   await mongo.wipe()
@@ -141,6 +141,11 @@ router.get('/healthz', async function (req, res, next) {
   try {
     await axios({
       url: `${appConfigs.processEngine}`,
+      method: 'get',
+    });
+
+    await axios({
+      url: `${appConfigs.mongoPing}`,
       method: 'get',
     });
 
