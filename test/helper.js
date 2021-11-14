@@ -1,7 +1,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const appconfigs = require("../../config")
+const appconfigs = require("../config")
 
 module.exports = {
     upload: async ({modelPath,payload, options={} }) => {

@@ -53,12 +53,12 @@ const Executor = {
           await Worker.fetchAndAppendNewTasks({ processInstanceId: id, controller, mongo })
         }
         else if (event.type === "start task") {
-          const data = await Worker.startTask({ task: event.task, controller, mongo })           
+          const data = await Worker.startTask({ event, controller, mongo })           
           const { startTime, task, type } = data
           controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task, type }) })
         }
         else if (event.type === "complete task") {
-          await Worker.completeTask({ ...event, controller, mongo })
+          await Worker.completeTask({ event, controller, mongo })
           await Worker.fetchAndAppendNewTasks({ ...event.task, controller, mongo })
         }
         else {

@@ -43,7 +43,10 @@ module.exports = {
         if (!req.body["JSON"]) return res.status(400).send("missing JSON payload")
         //if any newlines in string then remove these 
         const err = validateReqAgainstSchema({ data: req.body["JSON"], res, schema })
-        if (err.length > 0) return res.status(400).send(err)
+        if (err.length > 0){
+            console.log(err);
+            return res.status(400).send(err)
+        }  
 
         if (!req?.files?.camunda) {
             return res.status(400).send("Missing camunda bpmn file")

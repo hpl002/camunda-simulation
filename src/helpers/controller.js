@@ -14,6 +14,7 @@ module.exports = {
       this.runIdentifier = runIdentifier
       this.descriptionsMap = {}
       this.taskMap = {}
+      this.tokenMap = {}
     }
 
     /**
@@ -37,7 +38,7 @@ module.exports = {
             else {
               startTime = startTime + MathHelper.constant({ value: frequency })
             }
-            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ data: token.variables, type: "start process" }) })
+            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token:token, type: "start process", originatingToken: id }) })
           }
         }
         /*       else if (type.toUpperCase() === "NORMALDISTRIBUTION") {
@@ -116,6 +117,15 @@ module.exports = {
         await newResource.init()
         this.resourceArr.push(newResource)
       }
+    }
+
+    getProcessIdFromTokenId(id) {
+      Object.keys(this.tokenMap).forEach(key => {
+        if (this.tokenMap[key] === id) return key
+      });
+
+
+
     }
 
     popNextPendingEvent() {

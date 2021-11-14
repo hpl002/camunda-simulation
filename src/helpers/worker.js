@@ -57,7 +57,7 @@ const Worker = {
     const basePath = appConfigs.processEngine
     ///process-definition/key/{key}/start
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processKey}/start`
-    const processData = { variables: event && event.data ? event.data : {} }
+    const processData = { variables: event && event.token && event.token.variables ? event.token.variables : {} }
     processData.businessKey = "simulation-controller"
     try {
       const { data } = await axios.post(reqUrl, processData, {
@@ -66,7 +66,8 @@ const Worker = {
         }
       })
       logger.log("process", `starting process. Case: ${data.id}`)
-      await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock) })
+      controller.tokenMap[data.id] = event.token.id
+      await mongo.startEvent({token_id:event.token.id, case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock) })
       return data
     } catch (error) {
       console.error("failed while trying to start new process instance in camunda")
@@ -75,7 +76,7 @@ const Worker = {
     }
   },
 
-  startTask: async ({ task, controller, mongo }) => {
+  startTask: async ({ event, controller, mongo }) => {
     const Helper = {
       taskDuration: "task.timing.duration()",
 
@@ -93,7 +94,10 @@ const Worker = {
           if (status !== 204) throw new Error("could not lock task")
           //logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
           logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)}`)
-          await mongo.startTask({ id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
+          // check tokenMap
+          // get key where value is task.processInstanceId
+          //const tokenId = controller.getTokenId()
+          await mongo.startTask({token_id: controller.tokenMap[task.processInstanceId] ,id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
           return { task, startTime: completionTime, type: "complete task" }
         } catch (error) {
           logger.log("error", error)
@@ -255,10 +259,7 @@ const Worker = {
     }
 
 
-    const workerId = "no-resource"
-    //const completionTime = controller.clock + Helper.taskDuration
-    const completionTime = controller.clock
-    return await Helper.start({ resources: [workerId], completionTime })
+   
 
 
 
@@ -302,9 +303,18 @@ const Worker = {
           return { task, startTime, type: "start task", reason: "Reschedule: Could not find any available resource" }
         }
       } */
+
+      const task = event.task     
+     
+      const workerId = "no-resource"
+      //const completionTime = controller.clock + Helper.taskDuration
+      const completionTime = controller.clock
+      return await Helper.start({ resources: [workerId], completionTime })
+
   },
 
-  completeTask: async ({ task, controller, mongo }) => {
+  completeTask: async ({ event, controller, mongo }) => {
+    const task = event.task
     // check that resources are indeed available
     if (task.workerId && task.workerId !== "no-resource") {
       Worker.freeResource({ task, controller })
@@ -317,8 +327,8 @@ const Worker = {
       response = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${task.id}/complete`, body)
       if (response.status !== 204) throw new Error("could not complete task")
       //logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
-      logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)}`)
-      await mongo.completeTask({ id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_end: Common.formatClock(controller.clock) })
+      logger.log("process", `Completing task ${task.activityId}at ${Common.formatClock(controller.clock)}`)       
+      await mongo.completeTask({token_id: controller.tokenMap[task.processInstanceId], id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_end: Common.formatClock(controller.clock) })
     } catch (error) {
       logger.log("error", error.response.data.message)
       throw error
@@ -353,8 +363,8 @@ const Worker = {
   checkIfProcessComplete: async ({ processInstanceId, controller, mongo }) => {
     //get tasks list from process engine. Filtered on the current process
     const {data} = await Worker.getHistory({ processInstanceId })
-    if (data.state === "COMPLETED") {
-      await mongo.endEvent({ case_id: data.id, activity_id: "end", activity_start: Common.formatClock(controller.clock) })
+    if (data.state === "COMPLETED") {       
+      await mongo.endEvent({token_id:controller.tokenMap[processInstanceId], case_id: data.id, activity_id: "end", activity_start: Common.formatClock(controller.clock) })
     }
   },
 
