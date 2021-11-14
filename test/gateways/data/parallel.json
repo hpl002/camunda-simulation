@@ -1,0 +1,19 @@
+{
+    "tokens": [
+        {
+            "id": "lazy sunday",
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "age",
+                    "value": "18"
+                }
+            ],
+            "amount": 1,
+            "distribution": {
+                "type": "constant",
+                "frequency": "P1M"
+            }
+        }
+    ]
+}

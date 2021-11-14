@@ -93,10 +93,7 @@ const Worker = {
           const { status } = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${task.id}/lock`, body)
           if (status !== 204) throw new Error("could not lock task")
           //logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
-          logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)}`)
-          // check tokenMap
-          // get key where value is task.processInstanceId
-          //const tokenId = controller.getTokenId()
+          logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)}`)           
           await mongo.startTask({token_id: controller.tokenMap[task.processInstanceId] ,id: controller.runIdentifier, case_id: task.processInstanceId, activity_id: task.activityId, activity_start: Common.formatClock(controller.clock), resource_id: task.workerId })
           return { task, startTime: completionTime, type: "complete task" }
         } catch (error) {

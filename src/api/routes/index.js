@@ -69,37 +69,41 @@ router.post('/start', async function (req, res, next) {
   await controller.init({ tokens })
   // return execution log
 
-  await Executor.execute({ controller, mongo })
-  // get all data from mongo
-  let log = await mongo.getLogs()
-  if (req.body.response === "json") {
-    res.type('application/json')
-    // get all case_ids
-    let caseids = log.map(e => e.case_id)
-    caseids = new Set(caseids)
-    caseids = Array.from(caseids)
-
-    const final = {}
-    caseids.forEach(id => {
-      final[id] = log.filter(e => e.case_id === id)
-    });
-    log = final
-
-  }
-  else if (req.body.response === "csv") {
-    // convert to vsc
-    try {
-      res.type('text/csv')
-      const csv = parse(log, { fields: ['case_id', 'activity_id', 'activity_start', "resource_id", "activity_end"] });
-      log = csv
-      console.log(csv);
-    } catch (err) {
-      console.error(err);
+  try {
+    await Executor.execute({ controller, mongo })
+    // get all data from mongo
+    let log = await mongo.getLogs()
+    if (req.body.response === "json") {
+      res.type('application/json')
+      // get all case_ids
+      let caseids = log.map(e => e.case_id)
+      caseids = new Set(caseids)
+      caseids = Array.from(caseids)
+  
+      const final = {}
+      caseids.forEach(id => {
+        final[id] = log.filter(e => e.case_id === id)
+      });
+      log = final
+  
     }
-
+    else if (req.body.response === "csv") {
+      // convert to vsc
+      try {
+        res.type('text/csv')
+        const csv = parse(log, { fields: ['case_id', 'activity_id', 'activity_start', "resource_id", "activity_end"] });
+        log = csv
+        console.log(csv);
+      } catch (err) {
+        console.error(err);
+      }
+  
+    }
+  
+    res.send(log)
+  } catch (error) {
+    next(error)
   }
-
-  res.send(log)
 
 });
 /*  

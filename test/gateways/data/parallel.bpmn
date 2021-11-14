@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1cdvo57" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.9.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="Process_0azew2v" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0yhatdu</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0yhatdu" sourceRef="StartEvent_1" targetRef="Activity_1o32h8r" />
+    <bpmn:task id="Activity_1o32h8r" name="What to do">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="resource" value="something" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0yhatdu</bpmn:incoming>
+      <bpmn:outgoing>Flow_1nxvl23</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1nxvl23" sourceRef="Activity_1o32h8r" targetRef="Gateway_1ebydei" />
+    <bpmn:parallelGateway id="Gateway_1ebydei">
+      <bpmn:incoming>Flow_1nxvl23</bpmn:incoming>
+      <bpmn:outgoing>Flow_153y7fs</bpmn:outgoing>
+      <bpmn:outgoing>Flow_06mrgxa</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="eat-dinner" name="Eat dinner">
+      <bpmn:incoming>Flow_153y7fs</bpmn:incoming>
+      <bpmn:outgoing>Flow_1uygqd5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_153y7fs" sourceRef="Gateway_1ebydei" targetRef="eat-dinner" />
+    <bpmn:task id="watch-tv" name="Watch tv">
+      <bpmn:incoming>Flow_06mrgxa</bpmn:incoming>
+      <bpmn:outgoing>Flow_0klzgay</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_06mrgxa" sourceRef="Gateway_1ebydei" targetRef="watch-tv" />
+    <bpmn:sequenceFlow id="Flow_1uygqd5" sourceRef="eat-dinner" targetRef="Gateway_0kuzauv" />
+    <bpmn:parallelGateway id="Gateway_0kuzauv">
+      <bpmn:incoming>Flow_1uygqd5</bpmn:incoming>
+      <bpmn:incoming>Flow_0klzgay</bpmn:incoming>
+      <bpmn:outgoing>Flow_0c03k9p</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_0klzgay" sourceRef="watch-tv" targetRef="Gateway_0kuzauv" />
+    <bpmn:endEvent id="Event_1ugwh78">
+      <bpmn:incoming>Flow_0c03k9p</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0c03k9p" sourceRef="Gateway_0kuzauv" targetRef="Event_1ugwh78" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0azew2v">
+      <bpmndi:BPMNEdge id="Flow_0yhatdu_di" bpmnElement="Flow_0yhatdu">
+        <di:waypoint x="215" y="217" />
+        <di:waypoint x="320" y="217" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1nxvl23_di" bpmnElement="Flow_1nxvl23">
+        <di:waypoint x="420" y="217" />
+        <di:waypoint x="525" y="217" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_153y7fs_di" bpmnElement="Flow_153y7fs">
+        <di:waypoint x="550" y="192" />
+        <di:waypoint x="550" y="120" />
+        <di:waypoint x="680" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06mrgxa_di" bpmnElement="Flow_06mrgxa">
+        <di:waypoint x="550" y="242" />
+        <di:waypoint x="550" y="330" />
+        <di:waypoint x="680" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1uygqd5_di" bpmnElement="Flow_1uygqd5">
+        <di:waypoint x="780" y="120" />
+        <di:waypoint x="910" y="120" />
+        <di:waypoint x="910" y="192" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0klzgay_di" bpmnElement="Flow_0klzgay">
+        <di:waypoint x="780" y="330" />
+        <di:waypoint x="910" y="330" />
+        <di:waypoint x="910" y="242" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0c03k9p_di" bpmnElement="Flow_0c03k9p">
+        <di:waypoint x="935" y="217" />
+        <di:waypoint x="1042" y="217" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="199" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lcsdr8_di" bpmnElement="Activity_1o32h8r">
+        <dc:Bounds x="320" y="177" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1dbmkyl_di" bpmnElement="Gateway_1ebydei">
+        <dc:Bounds x="525" y="192" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1m53wfw_di" bpmnElement="watch-tv">
+        <dc:Bounds x="680" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0326i3s_di" bpmnElement="eat-dinner">
+        <dc:Bounds x="680" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0ywoktg_di" bpmnElement="Gateway_0kuzauv">
+        <dc:Bounds x="885" y="192" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ugwh78_di" bpmnElement="Event_1ugwh78">
+        <dc:Bounds x="1042" y="199" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

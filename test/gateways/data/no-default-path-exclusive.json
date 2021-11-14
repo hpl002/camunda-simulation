@@ -1,0 +1,12 @@
+{
+  "tokens": [
+      {
+          "id": "token without any variables",           
+          "amount": 1,
+          "distribution": {
+              "type": "constant",
+              "frequency": "P1M"
+          }
+      }       
+  ]
+}

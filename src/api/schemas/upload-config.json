@@ -19,7 +19,6 @@
                 "type": "object",
                 "required": [
                     "id",
-                    "variables",
                     "amount",
                     "distribution"
                 ],

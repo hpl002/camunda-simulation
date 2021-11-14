@@ -23,10 +23,10 @@ const writeBPMN = ({ sourceFile, targetDir }) => {
 
 const validateReqAgainstSchema = ({ data, res, schema }) => {
     let payload = data
-    if(!!(typeof payload !== 'string' || (payload instanceof String)) === true){
+    if (!!(typeof payload !== 'string' || (payload instanceof String)) === true) {
         payload = JSON.stringify(payload)
     }
-      payload = payload.replace(/(\r\n|\n|\r)/gm, "");
+    payload = payload.replace(/(\r\n|\n|\r)/gm, "");
 
     try {
         payload = JSON.parse(payload)
@@ -43,10 +43,10 @@ module.exports = {
         if (!req.body["JSON"]) return res.status(400).send("missing JSON payload")
         //if any newlines in string then remove these 
         const err = validateReqAgainstSchema({ data: req.body["JSON"], res, schema })
-        if (err.length > 0){
+        if (err.length > 0) {
             console.log(err);
             return res.status(400).send(err)
-        }  
+        }
 
         if (!req?.files?.camunda) {
             return res.status(400).send("Missing camunda bpmn file")
@@ -76,9 +76,11 @@ module.exports = {
         }
         payload.tokens.forEach(token => {
             const newPayload = {}
-            token.variables.forEach(variable => {
-                newPayload[variable.name] = new helper({ ...variable })
-            });
+            if (token && token.variables && token.variables.length > 0) {
+                token.variables.forEach(variable => {
+                    newPayload[variable.name] = new helper({ ...variable })
+                });
+            }
             token.variables = newPayload
         });
 
