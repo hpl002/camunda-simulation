@@ -3,9 +3,9 @@ const appconfigs = require("../../config")
 const axios = require('axios');
 const { upload } = require("./helper")
 const CSV = require('csv-string');
+jest.setTimeout(30000);
 
 
-// `${process.send.PWD}/data/test.bpmn`
 describe('core functionality', () => {
     beforeEach(() => {
         // ping service
@@ -63,13 +63,7 @@ describe('core functionality', () => {
 
     });
 
-    describe('execute model', () => {
-        beforeEach(() => {
-            // ping service
-            const { status } = axios.get(`${appconfigs.controller}/healthz`)
-            if (status !== 200) throw new Error("Error while testing: controller or related services are not online")
-
-        });
+    describe('execute model', () => {         
 
         describe('positive', () => {
             test('upload config and exexute simulation: get response as csv', async () => {
@@ -138,6 +132,71 @@ describe('core functionality', () => {
             });
 
         })
+    });
+
+    describe('check produced log', () => {
+        test('check log of very simple execution with 2 tokens', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/data/task/single-task.bpmn`, payload: require("./data/task/2-tokens-payload.json") })
+            expect(status === 201).toBe(true);
+
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect( Object.keys(response.data).length === 2).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e=>e.activity_id)
+                expect( activities.length === 3).toBe(true);
+                expect( activities.filter(e=>["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+        });   
+        
+        test('check log of very simple execution with 20 tokens', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/data/task/single-task.bpmn`, payload: require("./data/task/20-tokens-payload.json") })
+            expect(status === 201).toBe(true);
+
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect( Object.keys(response.data).length === 20).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e=>e.activity_id)
+                expect( activities.length === 3).toBe(true);
+                expect( activities.filter(e=>["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+        });  
+
+        test('check log of very simple execution with 200 tokens', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/data/task/single-task.bpmn`, payload: require("./data/task/200-tokens-payload.json") })
+            expect(status === 201).toBe(true);
+
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect( Object.keys(response.data).length === 200).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e=>e.activity_id)
+                expect( activities.length === 3).toBe(true);
+                expect( activities.filter(e=>["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+        });  
     });
 
 })

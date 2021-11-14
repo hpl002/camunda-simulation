@@ -1,0 +1,13 @@
+{
+    "tokens": [
+        {
+            "id": "token identifier",
+            "variables": [],
+            "amount": 20,
+            "distribution": {
+                "type": "constant",
+                "frequency": "P1M"
+            }
+        }
+    ]
+}

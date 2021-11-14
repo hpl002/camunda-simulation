@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 const axios = require('axios');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { parse } = require('json2csv');
 
@@ -57,8 +58,9 @@ router.post('/start', async function (req, res, next) {
   await mongo.wipe()
 
   // dynamially require input
-  const input = require(`${process.env.PWD}/work/payload.json`)
-
+  //const input = require(`${process.env.PWD}/work/payload.json`)
+  let input = fs.readFileSync(`${process.env.PWD}/work/payload.json`, "utf-8")
+  input = JSON.parse(input)
   let startTime = input["start-time"]
   if (!startTime) startTime = new Date()
   const tokens = input.tokens
@@ -66,13 +68,6 @@ router.post('/start', async function (req, res, next) {
   const controller = new Controller({ startTime, runIdentifier: uuidv4(), processKey })
   await controller.init({ tokens })
   // return execution log
-
-
-  /*
-    check param for what format we want it returned as, json or csv
-  
-  */
-
 
   await Executor.execute({ controller, mongo })
   // get all data from mongo

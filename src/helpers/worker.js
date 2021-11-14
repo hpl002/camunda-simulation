@@ -25,6 +25,17 @@ const Worker = {
       throw error
     }
   },
+
+  getHistory: async ({ processInstanceId }) => {
+    //http://localhost:8080/engine-rest/history/process-instance/fb744ed8-454b-11ec-a122-0242ac1b0002
+    try {
+      const { data } = await axios.get(`${appConfigs.processEngine}/engine-rest/history/process-instance/${processInstanceId}`)
+      return {data}
+    } catch (error) {
+      logger.log("error", error)
+      throw error
+    }
+  },
   /**
    * @param  {} {event
    * @param  {} controller
@@ -55,7 +66,7 @@ const Worker = {
         }
       })
       logger.log("process", `starting process. Case: ${data.id}`)
-      await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock)})
+      await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock) })
       return data
     } catch (error) {
       console.error("failed while trying to start new process instance in camunda")
@@ -314,7 +325,10 @@ const Worker = {
     }
   },
 
-  fetchAndAppendNewTasks: async ({ processInstanceId, controller }) => {
+  fetchAndAppendNewTasks: async ({ processInstanceId, controller, mongo }) => {
+
+    await Worker.checkIfProcessComplete({ processInstanceId, mongo, controller })         
+
     //get tasks list from process engine. Filtered on the current process
     const tasks = await Worker.getTasks({ processInstanceId })
     if (tasks.length !== 0) logger.log("info", `fetching new tasks from Camunda. Found a total of ${tasks.length} new tasks`)
@@ -325,11 +339,22 @@ const Worker = {
         await newTask.init()
         controller.taskMap[currTask.activityId] = newTask
       }
-      //TODO: How should tasks be prioritized? Should new fetched evens be configured to run as soon as possible       
-      //let startTime = controller.taskMap[currTask.activityId].timing.before() + controller.clock
+
       let startTime = controller.clock
       controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task: { ...currTask, ...controller.taskMap[currTask.activityId] }, type: "start task" }) })
       await Worker.setPriority({ processInstanceId: currTask.id })
+    }
+  },
+  /**
+   * @param  {} {processInstanceId
+   * @param  {} controller}
+   * Check if process is complete. If complete then we a event to signal this
+   */
+  checkIfProcessComplete: async ({ processInstanceId, controller, mongo }) => {
+    //get tasks list from process engine. Filtered on the current process
+    const {data} = await Worker.getHistory({ processInstanceId })
+    if (data.state === "COMPLETED") {
+      await mongo.endEvent({ case_id: data.id, activity_id: "end", activity_start: Common.formatClock(controller.clock) })
     }
   },
 

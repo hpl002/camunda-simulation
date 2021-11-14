@@ -50,17 +50,16 @@ const Executor = {
         const event = arr.pop()
         if (event.type === "start process") {
           const { id } = await Worker.startProcess({ event, controller, mongo })
-          await Worker.fetchAndAppendNewTasks({ processInstanceId: id, controller })
+          await Worker.fetchAndAppendNewTasks({ processInstanceId: id, controller, mongo })
         }
         else if (event.type === "start task") {
-          const data = await Worker.startTask({ task: event.task, controller, mongo })
-          //await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock), activity_end: Common.formatClock(controller.clock), resource_id: "no-resource" })
+          const data = await Worker.startTask({ task: event.task, controller, mongo })           
           const { startTime, task, type } = data
           controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task, type }) })
         }
         else if (event.type === "complete task") {
           await Worker.completeTask({ ...event, controller, mongo })
-          await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
+          await Worker.fetchAndAppendNewTasks({ ...event.task, controller, mongo })
         }
         else {
           throw new Error("could not read event type")

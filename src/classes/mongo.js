@@ -110,6 +110,10 @@ module.exports = {
             await this.writeToLog({ string: "Start Process", case_id, activity_id, activity_start, resource_id })
         }
 
+        async endEvent({ case_id, activity_id, activity_start, resource_id = undefined }) {
+            await this.writeToLog({ string: "Start Process", case_id, activity_id, activity_start, resource_id })
+        }
+
         async startTask({ case_id, activity_id, activity_start, resource_id = undefined }) {
             await this.writeToLog({ string: "Start Task", case_id, activity_id, activity_start, resource_id })
         }
