@@ -101,7 +101,7 @@ module.exports = {
             })
         }
 
-        const changeAllTasksToServiceTask = (xml) => {
+        const changeAllTasksToServiceTask = (xml, ids) => {
             xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"].forEach(element => {
                 element["$"]["camunda:topic"] = "topic"
                 element["$"]["camunda:type"] = "external"
@@ -115,6 +115,15 @@ module.exports = {
             delete xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
         }
 
+        const getAllServiceTaskIds = (xml) => {
+            const final = []
+            const tasks = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]
+                    tasks.forEach(task => {
+                        final.push(task["$"].id)
+                    });
+                    return final
+        }
+
         // read xml from file to string
         let xml = fs.readFileSync(`${dir}/simulation.bpmn`, "utf8")
 
@@ -123,11 +132,15 @@ module.exports = {
 
         changeAllTasksToServiceTask(xml)
 
+        const ids = getAllServiceTaskIds(xml)
+
         // parse js to xml
         xml = builder.buildObject(xml);
 
         // store xml
         xml = fs.writeFileSync(`${dir}/simulation.bpmn`, xml)
+
+        return {serviceTaskIds:ids}
 
     },
 

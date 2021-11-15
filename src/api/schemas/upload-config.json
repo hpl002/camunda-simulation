@@ -74,7 +74,7 @@
                         "type": "string",
                         "description": "id must match some task in model"
                     },
-                    "desription": {
+                    "description": {
                         "type": "string",
                         "description": "task description"
                     },
