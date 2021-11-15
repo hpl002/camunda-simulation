@@ -1,6 +1,0 @@
-CREATE (:Activity {id: "isThirsty"})-[:_RELATED]->(Timing:Timing)-[:_RELATED]->(Before:Before),
-(Before)-[:_RELATED]->(:Distribution {type: "CONSTANT", value: "PT3M"}),
-(:Activity {id: "drinkWater"})-[:_RELATED]->(Timing),
-(:Distribution {type: "normalDistribution", m: "PT01H", sd: "PT30M"}),
-(:Distribution {type: "poisson", value: "PT30M"}),
-(:Distribution {type: "random", min: "PT01H", max: "PT30M"})

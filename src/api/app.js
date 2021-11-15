@@ -27,7 +27,7 @@ function errorHandler (error, req, res, next) {
   const {response }= error
   if(response){
     const {status, data} = response
-    res.status(status).send(data)
+    res.status(status || 500).send(data || "Could not get error")
   }
   else{
     console.error(error)

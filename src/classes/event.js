@@ -1,8 +1,8 @@
 //add schema validation or jsdoc
 class Event {
-    constructor({ priority = -1, data = {}, type, task = {} }) {
+    constructor({ priority = -1, token = {}, type, task = {} }) {
         this.priority = priority;
-        this.data = data;
+        this.token = token;
         this.type = type;
         this.task = task;
     }

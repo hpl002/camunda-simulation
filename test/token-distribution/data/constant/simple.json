@@ -1,0 +1,13 @@
+{
+    "start-time": "2021-11-15T16:00:00+01:00",
+    "tokens": [
+        {
+            "id": "token-id-123",             
+            "amount": 7,
+            "distribution": {
+                "type": "constant",
+                "frequency": "PT10M"
+            }
+        }
+    ]
+}

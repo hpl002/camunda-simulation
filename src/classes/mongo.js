@@ -38,6 +38,11 @@ module.exports = {
                         required: false,
                         immutable: false
                     },
+                    token_id: {
+                        type: String,
+                        required: false,
+                        immutable: false
+                    },
                     activity_start: {
                         type: String,
                     },
@@ -79,8 +84,8 @@ module.exports = {
         async getLogs() {
             // get all records
             console.log("retrieving all data from mongo")
-            const data =   await this.model.logs.find({ "case_id": { $regex: /./, $options: 'i' }})              
-            let res = data.map(e=>e._doc)
+            const data = await this.model.logs.find({ "case_id": { $regex: /./, $options: 'i' } })
+            let res = data.map(e => e._doc)
             res.forEach(element => {
                 //del unwanted data
                 delete element._id
@@ -90,31 +95,35 @@ module.exports = {
             });
 
 
-                return res
+            return res
 
         }
 
-        async writeToLog({ string, case_id, activity_id, activity_start = undefined, activity_end = undefined, resource_id }) {
+        async writeToLog({ string, case_id, activity_id, activity_start = undefined, activity_end = undefined, resource_id, token_id }) {
             if (!!(case_id && activity_id && (activity_start || activity_end)) === false) throw new Error("tried to write to log wihout prividing values for all requiredparams")
             logger.log("mongo", `Mongo Logging:${string} case_id:${case_id}`)
             logger.log("mongo", `Mongo Logging:${string} activity_id:${activity_id}`)
             logger.log("mongo", `Mongo Logging:${string} activity_start:${activity_start}`)
             logger.log("mongo", `Mongo Logging:${string} activity_end:${activity_end}`)
             logger.log("mongo", `Mongo Logging:${string} resource_id:${resource_id}`)
-            await this.model.logs.create({ case_id, activity_id, activity_start, activity_end, resource_id }, function (err, small) {
+            await this.model.logs.create({ case_id, activity_id, activity_start, activity_end, resource_id, token_id }, function (err, small) {
                 if (err) throw err
             });
         }
 
-        async startEvent({ case_id, activity_id, activity_start, resource_id = undefined }) {
-            await this.writeToLog({ string: "Start Process", case_id, activity_id, activity_start, resource_id })
+        async startEvent({ token_id, case_id, activity_id, activity_start, resource_id = undefined }) {
+            await this.writeToLog({ string: "Start Process", case_id, activity_id, activity_start, resource_id, token_id })
         }
 
-        async startTask({ case_id, activity_id, activity_start, resource_id = undefined }) {
-            await this.writeToLog({ string: "Start Task", case_id, activity_id, activity_start, resource_id })
+        async endEvent({ token_id, case_id, activity_id, activity_start, resource_id = undefined }) {
+            await this.writeToLog({ string: "Start Process", case_id, activity_id, activity_start, resource_id, token_id })
         }
 
-        async completeTask({ case_id, activity_id, activity_end, resource_id = undefined }) {
+        async startTask({ token_id, case_id, activity_id, activity_start, resource_id = undefined }) {
+            await this.writeToLog({ string: "Start Task", case_id, activity_id, activity_start, resource_id, token_id })
+        }
+
+        async completeTask({token_id, case_id, activity_id, activity_end, resource_id = undefined }) {
             logger.log("mongo", `Mongo Logging:Completing task case_id:${case_id}`)
             logger.log("mongo", `Mongo Logging:Completing task activity_id:${activity_id}`)
             logger.log("mongo", `Mongo Logging:Completing task activity_end:${activity_end}`)

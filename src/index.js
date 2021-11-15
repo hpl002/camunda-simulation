@@ -43,32 +43,37 @@ Sorting strategies:
 */
 const Executor = {
   execute: async ({ controller, mongo }) => {
-    while (Object.keys(controller.pendingEvents.events).length !== 0) {
-      let { time, arr } = controller.popNextPendingEvent()
-      controller.setSimulationTime(time)
-      while (arr.length !== 0) {
-        const event = arr.pop()
-        if (event.type === "start process") {
-          const { id } = await Worker.startProcess({ event, controller, mongo })
-          await Worker.fetchAndAppendNewTasks({ processInstanceId: id, controller })
-        }
-        else if (event.type === "start task") {
-          const data = await Worker.startTask({ task: event.task, controller, mongo })
-          //await mongo.startEvent({ case_id: data.id, activity_id: "start", activity_start: Common.formatClock(controller.clock), activity_end: Common.formatClock(controller.clock), resource_id: "no-resource" })
-          const { startTime, task, type } = data
-          controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task, type }) })
-        }
-        else if (event.type === "complete task") {
-          await Worker.completeTask({ ...event, controller, mongo })
-          await Worker.fetchAndAppendNewTasks({ ...event.task, controller })
-        }
-        else {
-          throw new Error("could not read event type")
-        }
-      };
-      delete controller.pendingEvents.events[time.toString()]
-    }
-    console.log("terminated")
+try {
+  while (Object.keys(controller.pendingEvents.events).length !== 0) {
+    let { time, arr } = controller.popNextPendingEvent()
+    controller.setSimulationTime(time)
+    while (arr.length !== 0) {
+      const event = arr.pop()
+      if (event.type === "start process") {
+        const { id } = await Worker.startProcess({ event, controller, mongo })
+        await Worker.fetchAndAppendNewTasks({ processInstanceId: id, controller, mongo })
+      }
+      else if (event.type === "start task") {
+        const data = await Worker.startTask({ event, controller, mongo })           
+        const { startTime, task, type } = data
+        controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task, type }) })
+      }
+      else if (event.type === "complete task") {
+        await Worker.completeTask({ event, controller, mongo })
+        await Worker.fetchAndAppendNewTasks({ ...event.task, controller, mongo })
+      }
+      else {
+        throw new Error("could not read event type")
+      }
+    };
+    delete controller.pendingEvents.events[time.toString()]
+  }
+  console.log("terminated")  
+} catch (error) {
+  console.error("Error in main execution loop");
+  throw error
+}
+
   }
 }
 exports.Executor = Executor;
