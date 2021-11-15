@@ -35,7 +35,7 @@ const MathHelper = {
         return res
     }, */
 
-    poisson({ value, iso=true }) {
+   /*  poisson({ value, iso=true }) {
         if(iso){
             if (typeof value !== "string") throw new Error("input has to be formatted as iso8601 duration")
             value = Common.isoToMilliseconds(value)
@@ -56,7 +56,7 @@ const MathHelper = {
             max = Common.isoToMilliseconds(max)
         }
         return random.int(min, max)
-    },
+    }, */
 
     constant({ value, iso=true }) {
         if(iso){
