@@ -10,16 +10,13 @@ const MathHelper = {
         }
 
         if (sd > mean) {
-            throw new Error("standard deviation cannot be greater than the mean. Check model", task)
+            throw new Error("standard deviation cannot be greater than the mean")
         }
 
         const s = random.normal((mu = mean), (sigma = sd))
         //TODO: awaiting fix -> https://github.com/transitive-bullshit/random/issues/30
         let res = Math.round(s())
-        while (res < 0) {
-            res = Math.round(s())
-        }
-
+        if(res<0) return 0
         return res
     },
 

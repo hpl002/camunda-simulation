@@ -105,14 +105,8 @@ describe('Test gateways and variables', () => {
         try {
             await axios(config)
         } catch (error) {             
-            expect(error.response.status === 500).toBe(true);
-            expect(error.response.data.type).toEqual("ProcessEngineException");
-            expect(error.response.data.message).toEqual("Unknown property used in expression: ${someOtherValue}. Cause: Cannot resolve identifier 'someOtherValue'");
+            expect(error.response.status === 500).toBe(true);             
+            expect(error.response.data.message.includes("Unknown property used in expression: ${someOtherValue}. Cause: Cannot resolve identifier 'someOtherValue'")).toBe(true);
         }
-
-
-
     });
-
-
 })

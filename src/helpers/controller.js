@@ -26,34 +26,35 @@ module.exports = {
       let startTime = this.clock;
       for (const token of tokens) {
         const { id, variables, amount, distribution } = token
+        const { frequency } = distribution
         const { type } = distribution
 
 
         if (type == "constant") {
-          const { frequency } = distribution
           for (let index = 0; index < amount; index++) {
             if (Object.keys(this.pendingEvents.events).length === 0) {
+              // first event starts at time zero
               startTime = this.clock
             }
             else {
               startTime = startTime + MathHelper.constant({ value: frequency })
             }
-            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token:token, type: "start process", originatingToken: id }) })
+            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
           }
         }
-        /*       else if (type.toUpperCase() === "NORMALDISTRIBUTION") {
-                for (let index = 0; index < amount; index++) {
-                  //First event in list always set at time zero (do not offset first event from clock init)
-                  if (Object.keys(this.pendingEvents.events).length === 0) {
-                    startTime = this.clock
-                  }
-                  else {
-                    startTime = startTime + MathHelper.normalDistribution({ mean: frequency.mean, sd: frequency.sd })
-                  }
-                  this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
-                }
-              }
-        
+        else if (type=== "normal distribution") {
+          for (let index = 0; index < amount; index++) {
+            //First event in list always set at time zero (do not offset first event from clock init)
+            if (Object.keys(this.pendingEvents.events).length === 0) {
+              startTime = this.clock
+            }
+            else {
+              startTime = startTime + MathHelper.normalDistribution({ mean: frequency.mean, sd: frequency.sd })
+            }
+            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })             
+          }
+        }
+        /*
                   else if (type.toUpperCase() === "BERNOULLI") {                  
                     for (let index = 0; index < amount; index++) {
                       //First event in list always set at time zero (do not offset first event from clock init)
