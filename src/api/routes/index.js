@@ -106,33 +106,6 @@ router.post('/start', async function (req, res, next) {
   }
 
 });
-/*  
-
-
-router.get('/events/:id', async function (req, res, next) {
-  //TODO: refactor. should return loca events file instead
-  try {
-    const events = await mongo.getLogs({ id: req.params.id })
-    res.send(events)
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-});
-
-router.get('/process', async function (req, res, next) {
-  try {
-    var config = {
-      method: 'get',
-      url: `${appConfigs.controller}/camunda/engine-rest/process-definition`
-    };
-    const { data } = await axios(config)
-    res.send(data)
-  } catch (error) {
-    logger.log("error", error)
-    next(error)
-  }
-}); */
 
 
 router.get('/healthz', async function (req, res, next) {
