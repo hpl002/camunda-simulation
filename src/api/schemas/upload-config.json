@@ -55,67 +55,96 @@
                         "maximum": 1000
                     },
                     "distribution": {
-                        "description": "distributions describe the interval in which tokens are spawned",
-                        "type": "object",
-                        "oneOf": [
-                            {
-                                "type": "object",
-                                "required": [
-                                    "type",
-                                    "frequency"
-                                ],
-                                "properties": {
-                                    "type": {
-                                        "const": "constant"
-                                    },
-                                    "frequency": {
-                                        "type": "string",
-                                        "format": "duration",
-                                        "description": "Frequency described as a ISO 8601 duration.",
-                                        "example": "PT10M"
-                                    }
-                                },
-                                "additionalProperties": false
-                            },
-                            {
-                                "description":"distribution is biased and forces zero if it encounters a negative value. The mean must also always be greater than the SD",
-                                "type": "object",
-                                "required": [
-                                    "type",
-                                    "frequency"
-                                ],
-                                "properties": {
-                                    "type": {
-                                        "const": "normal distribution"
-                                    },
-                                    "frequency": {
-                                        "type": "object",
-                                        "required": [
-                                            "mean",
-                                            "sd"
-                                        ],
-                                        "properties": {
-                                            "mean": {
-                                                "type": "string",
-                                                "description":"mean value",
-                                                "format": "duration",
-                                                "example": "PT10M"
-                                            },
-                                            "sd": {
-                                                "type": "string",
-                                                "description":"standard deviation",
-                                                "format": "duration",
-                                                "example": "PT10M"
-                                            }
-                                        }
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        ]
+                        "description": "distribution is biased and forces zero if it encounters a negative value. The mean must also always be greater than the SD",
+                        "$ref": "#/$defs/distribution"
                     }
                 }
             }
+        },
+        "tasks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "timing"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "id must match some task in model"
+                    },
+                    "desription": {
+                        "type": "string",
+                        "description": "task description"
+                    },
+                    "timing": {
+                        "description": "describes task duration as a distribution",
+                        "$ref": "#/$defs/distribution"
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "distribution": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "constant"
+                        },
+                        "frequency": {
+                            "type": "string",
+                            "format": "duration",
+                            "description": "Frequency described as a ISO 8601 duration.",
+                            "example": "PT10M"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "description": "distribution is biased and forces zero if it encounters a negative value. The mean must also always be greater than the SD",
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "normal distribution"
+                        },
+                        "frequency": {
+                            "type": "object",
+                            "required": [
+                                "mean",
+                                "sd"
+                            ],
+                            "properties": {
+                                "mean": {
+                                    "type": "string",
+                                    "description": "mean value",
+                                    "format": "duration",
+                                    "example": "PT10M"
+                                },
+                                "sd": {
+                                    "type": "string",
+                                    "description": "standard deviation",
+                                    "format": "duration",
+                                    "example": "PT10M"
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
         }
     }
 }
