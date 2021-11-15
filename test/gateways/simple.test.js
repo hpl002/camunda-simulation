@@ -13,7 +13,7 @@ describe('Test gateways and variables', () => {
 
     });
     test('Process with single exclusive gateway', async () => {
-        const { status } = await upload({ modelPath: `${process.env.PWD}/data/exclusive.bpmn`, payload: require("./data/exclusive.json") })
+        const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/exclusive.json`) })
         expect(status === 201).toBe(true);
 
         let config = {
@@ -42,7 +42,7 @@ describe('Test gateways and variables', () => {
     });
 
     test('Process execution contains reference to its originating token', async () => {
-        const { status } = await upload({ modelPath: `${process.env.PWD}/data/exclusive.bpmn`, payload: require("./data/exclusive.json") })
+        const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/exclusive.json`) })
         expect(status === 201).toBe(true);
 
         let config = {
@@ -68,7 +68,7 @@ describe('Test gateways and variables', () => {
     });
 
     test('Process with parallle gateway', async () => {
-        const { status } = await upload({ modelPath: `${process.env.PWD}/data/parallel.bpmn`, payload: require("./data/parallel.json") })
+        const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/parallel.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/parallel.json`) })
         expect(status === 201).toBe(true);
 
         let config = {
@@ -91,7 +91,7 @@ describe('Test gateways and variables', () => {
     });
 
     test('Process with exclusive gateway, but missing required variables', async () => {
-        const { status } = await upload({ modelPath: `${process.env.PWD}/data/no-default-path-exclusive.bpmn`, payload: require("./data/no-default-path-exclusive.json") })
+        const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/no-default-path-exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/no-default-path-exclusive.json`) })
         expect(status === 201).toBe(true);
 
         let config = {
@@ -104,9 +104,7 @@ describe('Test gateways and variables', () => {
 
         try {
             await axios(config)
-        } catch (error) {
-            console.log("as");
-            error
+        } catch (error) {             
             expect(error.response.status === 500).toBe(true);
             expect(error.response.data.type).toEqual("ProcessEngineException");
             expect(error.response.data.message).toEqual("Unknown property used in expression: ${someOtherValue}. Cause: Cannot resolve identifier 'someOtherValue'");
