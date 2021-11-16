@@ -75,11 +75,11 @@ router.post('/start', async function (req, res, next) {
   input = JSON.parse(input)
   let startTime = input["start-time"]
   if (!startTime) startTime = new Date()
-  const tokens = input.tokens
-  const tasks = input && input.tasks ? input.tasks : []
+  const tokens = input.tokens   
 
   const controller = new Controller({ startTime, runIdentifier: uuidv4(), processKey })
-  await controller.init({ tokens, tasks })
+  await controller.init({ tokens })
+  controller.input = input
   // return execution log
 
   try {

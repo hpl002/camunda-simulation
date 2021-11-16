@@ -12,14 +12,11 @@
     ],
     "tasks": [
         {
-            "id": "read-book",
+            "id": "invalid-task-id-123",
             "description": "reading in the book always takes 30 min",
             "timing": {
-                "type": "normal distribution",
-                "frequency": {
-                    "mean": "PT10M",
-                    "sd": "PT2M"
-                }
+                "type": "constant",
+                "frequency": "PT30M"
             }
         }
     ]

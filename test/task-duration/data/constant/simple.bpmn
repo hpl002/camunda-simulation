@@ -19,10 +19,10 @@
       <bpmn:incoming>Flow_07iy4vv</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_07iy4vv" sourceRef="read-book" targetRef="Event_0mgy1o2" />
-    <bpmn:serviceTask id="read-book" camunda:type="external" camunda:topic="topic">
+    <bpmn:task id="read-book">
       <bpmn:incoming>Flow_1rbg63f</bpmn:incoming>
       <bpmn:outgoing>Flow_07iy4vv</bpmn:outgoing>
-    </bpmn:serviceTask>
+    </bpmn:task>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0azew2v">
@@ -47,7 +47,7 @@
       <bpmndi:BPMNShape id="Event_0mgy1o2_di" bpmnElement="Event_0mgy1o2">
         <dc:Bounds x="692" y="99" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_038eazf_di" bpmnElement="read-book">
+      <bpmndi:BPMNShape id="Activity_0eh0fsf_di" bpmnElement="read-book">
         <dc:Bounds x="480" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

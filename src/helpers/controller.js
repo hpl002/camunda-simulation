@@ -97,15 +97,6 @@ module.exports = {
       //const events = this.getPendingEvents()
       //this.pendingEventsCopy = { ...events }
     }
-    initPendingEvents({ tasks = [] }) {
-      for (const task of tasks) {
-        const { id, timing } = task
-         // check that task exists in model
-
-
-
-      }
-    }
 
     async init({ tokens = [] }) {
       this.initPendingEvents({ tokens })
