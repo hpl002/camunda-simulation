@@ -32,7 +32,19 @@ router.post('/config', async function (req, res, next) {
     helper.deleteAndStoreConfigs({ dir, req })
 
     //parse and update configs
-    helper.parseAndUpdateConfig({ dir, req })
+    // translate all regular tasks to serivce tasks
+    // create array of all service task ids
+    const { serviceTaskIds } = await helper.parseAndUpdateConfig({ dir, req })
+
+    // ensure that all references tasks exist
+    let input = fs.readFileSync(`${process.env.PWD}/work/payload.json`, "utf-8")
+    input = JSON.parse(input)
+
+    if (input && input.tasks) {
+      input.tasks.forEach(task => {
+        if (!serviceTaskIds.find(e => e === task.id)) throw new Error(`could not find a matching task in .bpmn model for task in payload: ${task.id}`)
+      });
+    }
 
     //delete all existing deployments
     await helper.camunda.delete()
@@ -63,10 +75,11 @@ router.post('/start', async function (req, res, next) {
   input = JSON.parse(input)
   let startTime = input["start-time"]
   if (!startTime) startTime = new Date()
-  const tokens = input.tokens
+  const tokens = input.tokens   
 
   const controller = new Controller({ startTime, runIdentifier: uuidv4(), processKey })
   await controller.init({ tokens })
+  controller.input = input
   // return execution log
 
   try {
@@ -79,13 +92,13 @@ router.post('/start', async function (req, res, next) {
       let caseids = log.map(e => e.case_id)
       caseids = new Set(caseids)
       caseids = Array.from(caseids)
-  
+
       const final = {}
       caseids.forEach(id => {
         final[id] = log.filter(e => e.case_id === id)
       });
       log = final
-  
+
     }
     else if (req.body.response === "csv") {
       // convert to vsc
@@ -97,9 +110,9 @@ router.post('/start', async function (req, res, next) {
       } catch (err) {
         console.error(err);
       }
-  
+
     }
-  
+
     res.send(log)
   } catch (error) {
     next(error)

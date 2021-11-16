@@ -100,6 +100,7 @@ module.exports = {
 
     async init({ tokens = [] }) {
       this.initPendingEvents({ tokens })
+      //this.initTasks({ tasks })
       //this.pendingEvents.events
       //this.attributesMap = await modeler.generateAttributesMap()
       //await this.initResourceArr()
