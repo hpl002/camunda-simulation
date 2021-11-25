@@ -13,6 +13,10 @@
             "format": "date-time",
             "description": "ISO 8601 date-time -- https://json-schema.org/understanding-json-schema/reference/string.html#id8"
         },
+        "variables": {
+            "description": "Process variables which are scoped to all process instances",
+            "$ref": "#/$defs/variables"
+        },
         "tokens": {
             "type": "array",
             "items": {
@@ -36,15 +40,11 @@
                         "maximum": 1000
                     },
                     "distribution": {
-                        "description": "distribution is biased and forces zero if it encounters a negative value. The mean must also always be greater than the SD",
-                        "$ref": "#/$defs/distribution"
+                        "description": "Distribution that determines the rate at which tokens are introduced. Must be described in ISO 8601 duration format",
+                        "$ref": "#/$defs/iso8601Distribution"
                     }
                 }
             }
-        },
-        "variables": {
-            "description": "Process variables which are scoped to all process instances",
-            "$ref": "#/$defs/variables"
         },
         "tasks": {
             "type": "array",
@@ -64,8 +64,8 @@
                         "description": "task description"
                     },
                     "timing": {
-                        "description": "describes task duration as a distribution",
-                        "$ref": "#/$defs/distribution"
+                        "description": "Describes task duration as a distribution. The duration must be described in ISO 8601 duration format",
+                        "$ref": "#/$defs/iso8601Distribution"
                     }
                 }
             }
@@ -86,9 +86,9 @@
                             "const": "constant"
                         },
                         "frequency": {
-                            "type": "string",
-                            "description": "Frequency described as a ISO 8601 duration.",
-                            "example": "PT10M"
+                            "type": "number",
+                            "description": "Frequency",
+                            "example": 100
                         }
                     },
                     "additionalProperties": false
@@ -112,14 +112,14 @@
                             ],
                             "properties": {
                                 "mean": {
-                                    "type": "string",
+                                    "type": "integer",
                                     "description": "mean value",
-                                    "example": "PT10M"
+                                    "example": 100
                                 },
                                 "sd": {
-                                    "type": "string",
+                                    "type": "integer",
                                     "description": "standard deviation",
-                                    "example": "PT10M"
+                                    "example": 2
                                 }
                             }
                         }
@@ -144,14 +144,14 @@
                             ],
                             "properties": {
                                 "min": {
-                                    "type": "string",
-                                    "description": "Min value described as a ISO 8601 duration.",
-                                    "example": "PT10M"
+                                    "type": "number",
+                                    "description": "Min value",
+                                    "example": 10
                                 },
                                 "max": {
-                                    "type": "string",
-                                    "description": "Max value described as a ISO 8601 duration.",
-                                    "example": "PT10M"
+                                    "type": "number",
+                                    "description": "Max value",
+                                    "example": 100
                                 }
                             }
                         }
@@ -160,6 +160,94 @@
                 }
             ]
         },
+        "iso8601Distribution": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "constant"
+                        },
+                        "frequency": {
+                            "type": "string",
+                            "description": "Frequency",
+                            "example": "PT2M"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "description": "Distribution is biased and forces zero if it encounters a negative value. The mean must also always be greater than the SD",
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "normal distribution"
+                        },
+                        "frequency": {
+                            "type": "object",
+                            "required": [
+                                "mean",
+                                "sd"
+                            ],
+                            "properties": {
+                                "mean": {
+                                    "type": "string",
+                                    "description": "mean value",
+                                    "example": "PT10M"
+                                },
+                                "sd": {
+                                    "type": "string",
+                                    "description": "standard deviation",
+                                    "example": "PT2M"
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "random"
+                        },
+                        "frequency": {
+                            "type": "object",
+                            "required": [
+                                "max",
+                                "min"
+                            ],
+                            "properties": {
+                                "min": {
+                                    "type": "number",
+                                    "description": "Min value",
+                                    "example": "PT10M"
+                                },
+                                "max": {
+                                    "type": "number",
+                                    "description": "Max value",
+                                    "example": "PT10M"
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },         
         "variable": {
             "type": "object",
             "oneOf": [
@@ -199,6 +287,10 @@
                         },
                         "name": {
                             "type": "string"
+                        },
+                        "refresh": {
+                            "type": "boolean",
+                            "deafult":false
                         }
                     }
                 }
