@@ -33,7 +33,6 @@ describe('core functionality', () => {
                 } catch (error) {
                     const { status, data } = error.response
                     expect(status === 400).toBe(true);
-                    expect(data[0].message === 'requires property "type"').toBe(true);
                 }
             });
 
