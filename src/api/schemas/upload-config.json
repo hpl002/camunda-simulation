@@ -66,9 +66,17 @@
                     "timing": {
                         "description": "Describes task duration as a distribution. The duration must be described in ISO 8601 duration format",
                         "$ref": "#/$defs/iso8601Distribution"
+                    },
+                    "resource-query": {
+                        "type": "string",
+                        "description": "Cypher query that resolves to some resource in the resoruce graph. Must resolve to a node with a id property"
                     }
                 }
             }
+        },
+        "initialize_resources":{
+            "type": "string",
+            "description": "Cypher query used to initialize resources in neo4j. Can be modeled and exported in arrows.app"
         }
     },
     "$defs": {

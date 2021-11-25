@@ -11,6 +11,7 @@ const appConfigs = require("../../../config");
 const { Executor } = require('../../index');
 const { Controller } = require('../../helpers/controller');
 const { Mongo } = require('../../classes/mongo');
+const neo4j = require("../../../controller/src/helpers/neo4j")
 const mongo = new Mongo()
 mongo.init()
 
@@ -40,6 +41,16 @@ router.post('/config', async function (req, res, next) {
     let input = fs.readFileSync(`${process.env.PWD}/work/payload.json`, "utf-8")
     input = JSON.parse(input)
 
+    //initialize new resoruce graph in neo4j 
+    if(input.initialize_resources){
+      await neo4j.executeQuery({ query: input.initialize_resources })       
+      const result = await neo4j.executeQuery({ query: "MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 25" })       
+      if(result.length<1) throw new Error("Cypher create query produced zero nodes")               
+    }
+     
+
+    // check that all queries 
+
     if (input && input.tasks) {
       input.tasks.forEach(task => {
         if (!serviceTaskIds.find(e => e === task.id)) throw new Error(`could not find a matching task in .bpmn model for task in payload: ${task.id}`)
@@ -52,7 +63,7 @@ router.post('/config', async function (req, res, next) {
     //upload bpmn to camunda
     const { id } = await helper.camunda.upload({ dir })
     processKey = id
-
+    neo4j.close()
     res.status(201).send(`model uploaded: ${id}`)
   } catch (error) {
     logger.log("error", error)

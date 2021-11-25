@@ -8,8 +8,7 @@ var FormData = require('form-data');
 var xml2js = require('xml2js');
 var parser = new xml2js.Parser();
 var builder = new xml2js.Builder();
-
-
+const neo4j = require("../../../controller/src/helpers/neo4j")
 
 const writeBPMN = ({ sourceFile, targetDir }) => {
     if (!fs.existsSync(targetDir)) {
@@ -69,7 +68,7 @@ module.exports = {
         // fix formatting of variables to aligh with what camunda expects.
         // defining anon objects in json schema is a hassle, we therefore fix this on our end instead
         const helper = class {
-            constructor({ name, value, type, refresh=false }) {
+            constructor({ name, value, type, refresh = false }) {
                 this.name = name;
                 this.value = value;
                 this.type = type;
@@ -86,16 +85,16 @@ module.exports = {
             token.variables = newPayload
         });
 
-        const formatGlobalVariables= (variables) => {
+        const formatGlobalVariables = (variables) => {
             const newPayload = {}
             variables.forEach(variable => {
-                newPayload[variable.name] = new helper({ ...variable })                 
+                newPayload[variable.name] = new helper({ ...variable })
             });
-            payload.variables = newPayload             
+            payload.variables = newPayload
         }
-         
-        
-        if(payload.variables) formatGlobalVariables(payload.variables)
+
+
+        if (payload.variables) formatGlobalVariables(payload.variables)
 
         //store payload         
         fs.writeFileSync(`${dir}/payload.json`, JSON.stringify(payload, null, 4));
@@ -131,10 +130,10 @@ module.exports = {
         const getAllServiceTaskIds = (xml) => {
             const final = []
             const tasks = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]
-                    tasks.forEach(task => {
-                        final.push(task["$"].id)
-                    });
-                    return final
+            tasks.forEach(task => {
+                final.push(task["$"].id)
+            });
+            return final
         }
 
         // read xml from file to string
@@ -153,7 +152,7 @@ module.exports = {
         // store xml
         xml = fs.writeFileSync(`${dir}/simulation.bpmn`, xml)
 
-        return {serviceTaskIds:ids}
+        return { serviceTaskIds: ids }
 
     },
 

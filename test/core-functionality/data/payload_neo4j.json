@@ -1,0 +1,25 @@
+{
+    "tokens": [
+        {
+            "id": "cillum",
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "laboris",
+                    "value": "est nisi in dolore in"
+                },
+                {
+                    "type": "string",
+                    "name": "officia tempor dolor mollit nostrud",
+                    "value": "sit sed"
+                }
+            ],
+            "amount": 15,
+            "distribution": {
+                "type": "constant",
+                "frequency": "P1M"
+            }
+        }
+    ],
+    "initialize_resources":"CREATE ()-[:profession]->()"
+}
