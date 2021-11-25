@@ -232,12 +232,12 @@
                             ],
                             "properties": {
                                 "min": {
-                                    "type": "number",
+                                    "type": "string",
                                     "description": "Min value",
                                     "example": "PT10M"
                                 },
                                 "max": {
-                                    "type": "number",
+                                    "type": "string",
                                     "description": "Max value",
                                     "example": "PT10M"
                                 }
