@@ -27,27 +27,8 @@
                         "type": "string"
                     },
                     "variables": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "type",
-                                "name",
-                                "value"
-                            ],
-                            "properties": {
-                                "type": {
-                                    "const": "string"
-                                },
-                                "value": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false
-                        }
+                        "description": "Process variables which are scoped to token only that are exposed to process on start",
+                        "$ref": "#/$defs/variables"
                     },
                     "amount": {
                         "type": "integer",
@@ -60,6 +41,10 @@
                     }
                 }
             }
+        },
+        "variables": {
+            "description": "Process variables which are scoped to all process instances",
+            "$ref": "#/$defs/variables"
         },
         "tasks": {
             "type": "array",
@@ -102,7 +87,6 @@
                         },
                         "frequency": {
                             "type": "string",
-                            "format": "duration",
                             "description": "Frequency described as a ISO 8601 duration.",
                             "example": "PT10M"
                         }
@@ -130,13 +114,11 @@
                                 "mean": {
                                     "type": "string",
                                     "description": "mean value",
-                                    "format": "duration",
                                     "example": "PT10M"
                                 },
                                 "sd": {
                                     "type": "string",
                                     "description": "standard deviation",
-                                    "format": "duration",
                                     "example": "PT10M"
                                 }
                             }
@@ -163,13 +145,11 @@
                             "properties": {
                                 "min": {
                                     "type": "string",
-                                    "format": "duration",
                                     "description": "Min value described as a ISO 8601 duration.",
                                     "example": "PT10M"
                                 },
                                 "max": {
                                     "type": "string",
-                                    "format": "duration",
                                     "description": "Max value described as a ISO 8601 duration.",
                                     "example": "PT10M"
                                 }
@@ -177,6 +157,42 @@
                         }
                     },
                     "additionalProperties": false
+                }
+            ]
+        },
+        "variable": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "name",
+                        "value"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "string"
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "$ref": "#/$defs/distribution"
+                }
+            ]
+        },
+        "variables": {
+            "type": "array",
+            "items": [
+                {
+                    "$ref": "#/$defs/variable"
                 }
             ]
         }
