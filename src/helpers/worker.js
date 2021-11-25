@@ -45,20 +45,15 @@ const Worker = {
    * https://docs.camunda.org/manual/7.5/reference/rest/process-definition/post-start-process-instance/
    */
   startProcess: async ({ event, controller, mongo }) => {
-    const { processKey } = controller
-    /* const variableKeys = Object.keys(event.data)
-    //initialize the random variables needed
-    variableKeys.forEach(key => {
-      if (key.toUpperCase().includes("RANDOM")) {
-        event.data[key].type = "integer"
-        event.data[key].value = Math.round(Math.random() * 100)
-      }
-    }); */
-
+    const { processKey } = controller     
+    //const globalVariables = controller.updateGlobalVariables()
     const basePath = appConfigs.processEngine
     ///process-definition/key/{key}/start
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processKey}/start`
-    const processData = { variables: event && event.token && event.token.variables ? event.token.variables : {} }
+    // get variables on token
+    let processData = { variables: event && event.token && event.token.variables ? event.token.variables : {} }
+    // add global variables if exist and refresh all values if refresh enabled
+    processData.variables = controller.updateGlobalVariables(processData.variables)
     processData.businessKey = "simulation-controller"
     try {
       const { data } = await axios.post(reqUrl, processData, {
@@ -103,14 +98,7 @@ const Worker = {
         }
       },
 
-      getResourcesWithSchedules: ({ specializationMap, hasSchedule }) => {
-        const res = []
-        Object.keys(specializationMap).forEach(element => {
-          let r = specializationMap[element].filter(e => e.hasSchedule === hasSchedule)
-          if (r.length > 0) res.push(r)
-        });
-        return res
-      },
+     
 
       /**
        * @param  {} {specializationMap
@@ -125,34 +113,6 @@ const Worker = {
         }
       },
 
-      applyScheduling: ({ specializationResourceArr }) => {
-        Object.keys(specializationResourceArr).forEach(key => {
-          specializationResourceArr[key].forEach(r => {
-            r.duration = r.duration + r.addSchedulingTime({ clock: controller.clock, duration: Helper.taskDuration })
-          });
-        });
-      },
-
-      filterDuration: ({ specializationResourceArr }) => {
-        Object.keys(specializationResourceArr).forEach(key => {
-          specializationResourceArr[key] = specializationResourceArr[key].filter(e => e.duration !== undefined)
-        });
-      },
-
-      sortDuration: ({ specializationResourceArr }) => {
-        Object.keys(specializationResourceArr).forEach(key => {
-          specializationResourceArr[key].sort((a, b) => a.duration > b.duration)
-        });
-      },
-
-      verifyScheduling: ({ specializationResourceArr, task }) => {
-        let elements = []
-        Object.keys(specializationResourceArr).forEach(key => {
-          if (task.specializationRequirement[key].requires > specializationResourceArr[key].length) elements.push(key)
-        });
-        if (elements.length > 0) throw new Error(`Applicable resources for task${task.activityId} ran of of scheduling. Missing resoruces in specialization(s):${elements.join()}`)
-      },
-
       selectResources: ({ specializationResourceArr }) => {
         Object.keys(task.specializationRequirement).forEach(key => {
           //months.splice(months.length-2, months.length);
@@ -161,14 +121,6 @@ const Worker = {
           specializationResourceArr[key].splice(requirement, length);
 
         });
-      },
-
-      allSpecializationsFilled: () => {
-        let f = false
-        Object.keys(task?.specializationRequirement).forEach(s => {
-          f = !!filled[s].length
-        });
-        return f
       },
 
       /**
@@ -308,7 +260,7 @@ const Worker = {
       let taskDuration = controller.input.tasks.find(e => e.id === event.task.activityId)
       taskDuration = taskDuration.timing
       if (taskDuration.type === "constant") {
-        taskDuration = MathHelper.constant({ ...taskDuration.frequency })
+        taskDuration = MathHelper.constant({ value:taskDuration.frequency })
         completionTime = completionTime + taskDuration
       }
       else if (taskDuration.type === "normal distribution") {

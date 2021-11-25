@@ -15,10 +15,10 @@
             "id": "read-book",
             "description": "reading in the book always approx 10 min",
             "timing": {
-                "type": "normal distribution",
+                "type": "random",
                 "frequency": {
-                    "mean": "PT10M",
-                    "sd": "PT2M"
+                    "min": "PT5M",
+                    "max": "PT10M"
                 }
             }
         }
