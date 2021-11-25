@@ -31,6 +31,8 @@ router.post('/config', async function (req, res, next) {
     if (errorResponse) return errorResponse
     // delete any existing configs and store new
     helper.deleteAndStoreConfigs({ dir, req })
+    // delete all data in neo4j
+    await neo4j.executeQuery({ query: "MATCH (n) DETACH DELETE n" })
 
     //parse and update configs
     // translate all regular tasks to serivce tasks
@@ -42,12 +44,13 @@ router.post('/config', async function (req, res, next) {
     input = JSON.parse(input)
 
     //initialize new resoruce graph in neo4j 
-    if(input.initialize_resources){
-      await neo4j.executeQuery({ query: input.initialize_resources })       
-      const result = await neo4j.executeQuery({ query: "MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 25" })       
-      if(result.length<1) throw new Error("Cypher create query produced zero nodes")               
+    if (input.initialize_resources) {
+      await neo4j.executeQuery({ query: input.initialize_resources })
+      // check to see that records were indeed inserted
+      const result = await neo4j.executeQuery({ query: "MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 25" })
+      if (result.length < 1) throw new Error("Cypher create query produced zero nodes")
     }
-     
+
 
     // check that all queries 
 
@@ -86,7 +89,7 @@ router.post('/start', async function (req, res, next) {
   input = JSON.parse(input)
   let startTime = input["start-time"]
   if (!startTime) startTime = new Date()
-  let {tokens, variables} = input
+  let { tokens, variables } = input
   const controller = new Controller({ startTime, runIdentifier: uuidv4(), processKey })
   await controller.init({ tokens, variables })
   controller.input = input
