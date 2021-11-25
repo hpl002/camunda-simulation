@@ -184,7 +184,23 @@
                     "additionalProperties": false
                 },
                 {
-                    "$ref": "#/$defs/distribution"
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "name",
+                        "value"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "distribution"
+                        },
+                        "value": {
+                            "$ref": "#/$defs/distribution"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
                 }
             ]
         },
