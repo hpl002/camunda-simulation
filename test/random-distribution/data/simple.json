@@ -1,0 +1,23 @@
+{
+    "start-time": "2021-11-15T16:00:00+01:00",
+    "tokens": [
+        {
+            "id": "hello, im token",
+            "amount": 2,
+            "distribution": {
+                "type": "constant",
+                "frequency": "PT10M"
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "id": "read-book",
+            "description": "reading in the book always takes 30 min",
+            "timing": {
+                "type": "constant",
+                "frequency": "PT30M"
+            }
+        }
+    ]
+}
