@@ -54,6 +54,19 @@ module.exports = {
             this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })             
           }
         }
+        else if (type.toUpperCase() === "RANDOM") {
+          for (let index = 0; index < amount; index++) {
+            //First event in list always set at time zero (do not offset first event from clock init)
+            if (Object.keys(this.pendingEvents.events).length === 0) {
+              startTime = this.clock
+            }
+            else {
+              startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
+            }
+            this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
+          }
+        }
+
         /*
                   else if (type.toUpperCase() === "BERNOULLI") {                  
                     for (let index = 0; index < amount; index++) {
@@ -81,18 +94,7 @@ module.exports = {
                 }
               }
         
-              else if (type.toUpperCase() === "RANDOM") {
-                for (let index = 0; index < amount; index++) {
-                  //First event in list always set at time zero (do not offset first event from clock init)
-                  if (Object.keys(this.pendingEvents.events).length === 0) {
-                    startTime = this.clock
-                  }
-                  else {
-                    startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
-                  }
-                  this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
-                }
-              } */
+                */
       }
       //const events = this.getPendingEvents()
       //this.pendingEventsCopy = { ...events }
