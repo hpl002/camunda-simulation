@@ -63,7 +63,7 @@ module.exports = {
             else {
               startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
             }
-            this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
+            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })             
           }
         }
 

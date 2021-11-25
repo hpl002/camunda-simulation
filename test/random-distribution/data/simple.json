@@ -5,8 +5,11 @@
             "id": "hello, im token",
             "amount": 2,
             "distribution": {
-                "type": "constant",
-                "frequency": "PT10M"
+                "type": "random",
+                "frequency": {
+                    "min": "PT1M",
+                    "max": "PT10M"
+                }
             }
         }
     ],

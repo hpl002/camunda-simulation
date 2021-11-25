@@ -308,11 +308,15 @@ const Worker = {
       let taskDuration = controller.input.tasks.find(e => e.id === event.task.activityId)
       taskDuration = taskDuration.timing
       if (taskDuration.type === "constant") {
-        taskDuration = MathHelper.constant({ value: taskDuration.frequency })
+        taskDuration = MathHelper.constant({ ...taskDuration.frequency })
         completionTime = completionTime + taskDuration
       }
       else if (taskDuration.type === "normal distribution") {
-        taskDuration = MathHelper.normalDistribution({ mean: taskDuration.frequency.mean, sd: taskDuration.frequency.sd })
+        taskDuration = MathHelper.normalDistribution({ ...taskDuration.frequency })
+        completionTime = completionTime + taskDuration         
+      }
+      else if (taskDuration.type === "random") {
+        taskDuration = MathHelper.random({ ...taskDuration.frequency })
         completionTime = completionTime + taskDuration         
       }
 

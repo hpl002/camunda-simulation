@@ -14,6 +14,7 @@ jest.setTimeout(30000);
 
 
 describe('Test token ingress distribution', () => {
+
     beforeEach(() => {
         // ping service
         const { status } = axios.get(`${appconfigs.controller}/healthz`)
@@ -21,8 +22,8 @@ describe('Test token ingress distribution', () => {
 
     });
 
-    test('Spawn two tokens at 10 min constant interval. Task has a single task with a 30 min constant interval', async () => {
-        const { status } = await upload({ modelPath: `${process.env.PWD}/test/task-duration/data/simple.bpmn`, payload: require(`${process.env.PWD}/test/task-duration/data/simple.json`) })
+    test('Spawn two tokens at random interval that is between 1 and 10 min. Task has a single task with a 30 min constant interval', async () => {
+        const { status } = await upload({ modelPath: `${process.env.PWD}/test/random-distribution/data/simple.bpmn`, payload: require(`${process.env.PWD}/test/random-distribution/data/simple.json`) })
         expect(status === 201).toBe(true);
 
         let config = {
@@ -42,24 +43,18 @@ describe('Test token ingress distribution', () => {
         const process0 = data[0]
         const process1 = data[1]
 
-        expect(getTime(process0, 0) === "16:00:00").toBe(true);
-        expect(getTime(process0, 1) === "16:00:00").toBe(true);
-        expect(getTime(process0, 2) === "16:00:00").toBe(true);
-        expect(getTime(process0, 3) === "16:30:00").toBe(true);
+        const getMinute = (s) => {
+            return parseInt(s.split(":")[1])
+        }
 
+        expect(getMinute(getTime(process0, 0))).toBe(0)         
 
-        expect(getTime(process1, 0) === "16:10:00").toBe(true);
-        expect(getTime(process1, 1) === "16:10:00").toBe(true);
-        expect(getTime(process1, 2) === "16:10:00").toBe(true);
-        expect(getTime(process1, 3) === "16:40:00").toBe(true);
-
-
-
-
+        expect(getMinute(getTime(process1, 0))).toBeGreaterThanOrEqual(1)
+        expect(getMinute(getTime(process1, 0))).toBeLessThan(10)
     });
 
-    /* test('Spawn two tokens at 10 min constant interval. Task has a single task with a 30 min constant interval', async () => {
-        const { status } = await upload({ modelPath: `${process.env.PWD}/test/task-duration/data/normal-distribution/simple.bpmn`, payload: require(`${process.env.PWD}/test/task-duration/data/normal-distribution/simple.json`) })
+    test('Spawn two tokens at constant 10 min interval. Process has a single task with a random interval between 10 and 30', async () => {
+        const { status } = await upload({ modelPath: `${process.env.PWD}/test/random-distribution/data/simple.bpmn`, payload: require(`${process.env.PWD}/test/random-distribution/data/simple_task.json`) })
         expect(status === 201).toBe(true);
 
         let config = {
@@ -79,19 +74,22 @@ describe('Test token ingress distribution', () => {
         const process0 = data[0]
         const process1 = data[1]
 
-        expect(getTime(process0, 0) === "16:00:00").toBe(true);
-        expect(getTime(process0, 1) === "16:00:00").toBe(true);
-        expect(getTime(process0, 2) === "16:00:00").toBe(true);
-        expect(parseInt(getTime(process0, 3).split(":")[2])).toBeGreaterThanOrEqual(0);
+        const getMinute = (s) => {
+            return parseInt(s.split(":")[1])
+        }
 
+        expect(getMinute(getTime(process0, 0))).toBe(0)         
+        expect(getMinute(getTime(process0, 1))).toBe(0)       
+        expect(getMinute(getTime(process0, 2))).toBe(0)         
+        expect(getMinute(getTime(process0, 3))).toBeGreaterThanOrEqual(10)
+        expect(getMinute(getTime(process0, 3))).toBeLessThanOrEqual(30)
 
-        expect(getTime(process1, 0) === "16:10:00").toBe(true);
-        expect(getTime(process1, 1) === "16:10:00").toBe(true);
-        expect(getTime(process1, 2) === "16:10:00").toBe(true);
-        expect(parseInt(getTime(process1, 3).split(":")[2])).toBeGreaterThanOrEqual(10);
+        expect(getMinute(getTime(process1, 0))).toBe(10)         
+        expect(getMinute(getTime(process1, 1))).toBe(10)       
+        expect(getMinute(getTime(process1, 2))).toBe(10)         
+        expect(getMinute(getTime(process1, 3))).toBeGreaterThanOrEqual(20)
+        expect(getMinute(getTime(process1, 3))).toBeLessThanOrEqual(40)
+    });
 
-
-
-
-    }); */
+    //'Spawn two tokens at consant interval task duration is random'
 })
