@@ -69,9 +69,11 @@ module.exports = {
         // fix formatting of variables to aligh with what camunda expects.
         // defining anon objects in json schema is a hassle, we therefore fix this on our end instead
         const helper = class {
-            constructor({ name, value }) {
+            constructor({ name, value, type, refresh=false }) {
                 this.name = name;
-                this.value = value
+                this.value = value;
+                this.type = type;
+                this.refresh = refresh;
             }
         }
         payload.tokens.forEach(token => {
@@ -83,6 +85,17 @@ module.exports = {
             }
             token.variables = newPayload
         });
+
+        const formatGlobalVariables= (variables) => {
+            const newPayload = {}
+            variables.forEach(variable => {
+                newPayload[variable.name] = new helper({ ...variable })                 
+            });
+            payload.variables = newPayload             
+        }
+         
+        
+        if(payload.variables) formatGlobalVariables(payload.variables)
 
         //store payload         
         fs.writeFileSync(`${dir}/payload.json`, JSON.stringify(payload, null, 4));

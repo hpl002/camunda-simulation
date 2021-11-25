@@ -13,6 +13,10 @@
             "format": "date-time",
             "description": "ISO 8601 date-time -- https://json-schema.org/understanding-json-schema/reference/string.html#id8"
         },
+        "variables": {
+            "description": "Process variables which are scoped to all process instances",
+            "$ref": "#/$defs/variables"
+        },
         "tokens": {
             "type": "array",
             "items": {
@@ -27,27 +31,8 @@
                         "type": "string"
                     },
                     "variables": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "type",
-                                "name",
-                                "value"
-                            ],
-                            "properties": {
-                                "type": {
-                                    "const": "string"
-                                },
-                                "value": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                }
-                            },
-                            "additionalProperties": false
-                        }
+                        "description": "Process variables which are scoped to token only that are exposed to process on start",
+                        "$ref": "#/$defs/variables"
                     },
                     "amount": {
                         "type": "integer",
@@ -55,8 +40,8 @@
                         "maximum": 1000
                     },
                     "distribution": {
-                        "description": "distribution is biased and forces zero if it encounters a negative value. The mean must also always be greater than the SD",
-                        "$ref": "#/$defs/distribution"
+                        "description": "Distribution that determines the rate at which tokens are introduced. Must be described in ISO 8601 duration format",
+                        "$ref": "#/$defs/iso8601Distribution"
                     }
                 }
             }
@@ -79,8 +64,8 @@
                         "description": "task description"
                     },
                     "timing": {
-                        "description": "describes task duration as a distribution",
-                        "$ref": "#/$defs/distribution"
+                        "description": "Describes task duration as a distribution. The duration must be described in ISO 8601 duration format",
+                        "$ref": "#/$defs/iso8601Distribution"
                     }
                 }
             }
@@ -101,10 +86,9 @@
                             "const": "constant"
                         },
                         "frequency": {
-                            "type": "string",
-                            "format": "duration",
-                            "description": "Frequency described as a ISO 8601 duration.",
-                            "example": "PT10M"
+                            "type": "number",
+                            "description": "Frequency",
+                            "example": 100
                         }
                     },
                     "additionalProperties": false
@@ -128,21 +112,195 @@
                             ],
                             "properties": {
                                 "mean": {
+                                    "type": "integer",
+                                    "description": "mean value",
+                                    "example": 100
+                                },
+                                "sd": {
+                                    "type": "integer",
+                                    "description": "standard deviation",
+                                    "example": 2
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "random"
+                        },
+                        "frequency": {
+                            "type": "object",
+                            "required": [
+                                "max",
+                                "min"
+                            ],
+                            "properties": {
+                                "min": {
+                                    "type": "number",
+                                    "description": "Min value",
+                                    "example": 10
+                                },
+                                "max": {
+                                    "type": "number",
+                                    "description": "Max value",
+                                    "example": 100
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "iso8601Distribution": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "constant"
+                        },
+                        "frequency": {
+                            "type": "string",
+                            "description": "Frequency",
+                            "example": "PT2M"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "description": "Distribution is biased and forces zero if it encounters a negative value. The mean must also always be greater than the SD",
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "normal distribution"
+                        },
+                        "frequency": {
+                            "type": "object",
+                            "required": [
+                                "mean",
+                                "sd"
+                            ],
+                            "properties": {
+                                "mean": {
                                     "type": "string",
                                     "description": "mean value",
-                                    "format": "duration",
                                     "example": "PT10M"
                                 },
                                 "sd": {
                                     "type": "string",
                                     "description": "standard deviation",
-                                    "format": "duration",
+                                    "example": "PT2M"
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "random"
+                        },
+                        "frequency": {
+                            "type": "object",
+                            "required": [
+                                "max",
+                                "min"
+                            ],
+                            "properties": {
+                                "min": {
+                                    "type": "string",
+                                    "description": "Min value",
+                                    "example": "PT10M"
+                                },
+                                "max": {
+                                    "type": "string",
+                                    "description": "Max value",
                                     "example": "PT10M"
                                 }
                             }
                         }
                     },
                     "additionalProperties": false
+                }
+            ]
+        },         
+        "variable": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "name",
+                        "value"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "string"
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "name",
+                        "value"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "distribution"
+                        },
+                        "value": {
+                            "$ref": "#/$defs/distribution"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "refresh": {
+                            "type": "boolean",
+                            "deafult":false
+                        }
+                    }
+                }
+            ]
+        },
+        "variables": {
+            "type": "array",
+            "items": [
+                {
+                    "$ref": "#/$defs/variable"
                 }
             ]
         }

@@ -1,0 +1,19 @@
+{
+    "tokens": [
+        {
+            "id": "My token id",
+            "amount": 2,
+            "distribution": {
+                "type": "constant",
+                "frequency": "PT1M"
+            }
+        }
+    ],
+    "variables": [
+        {
+            "type": "string",
+            "name": "age",
+            "value": "18"
+        }
+    ]
+}

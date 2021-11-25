@@ -15,6 +15,7 @@ module.exports = {
       this.descriptionsMap = {}
       this.taskMap = {}
       this.tokenMap = {}
+      this.globalVariables = {}
     }
 
     /**
@@ -42,7 +43,7 @@ module.exports = {
             this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
           }
         }
-        else if (type=== "normal distribution") {
+        else if (type === "normal distribution") {
           for (let index = 0; index < amount; index++) {
             //First event in list always set at time zero (do not offset first event from clock init)
             if (Object.keys(this.pendingEvents.events).length === 0) {
@@ -51,9 +52,22 @@ module.exports = {
             else {
               startTime = startTime + MathHelper.normalDistribution({ mean: frequency.mean, sd: frequency.sd })
             }
-            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })             
+            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
           }
         }
+        else if (type.toUpperCase() === "RANDOM") {
+          for (let index = 0; index < amount; index++) {
+            //First event in list always set at time zero (do not offset first event from clock init)
+            if (Object.keys(this.pendingEvents.events).length === 0) {
+              startTime = this.clock
+            }
+            else {
+              startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
+            }
+            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
+          }
+        }
+
         /*
                   else if (type.toUpperCase() === "BERNOULLI") {                  
                     for (let index = 0; index < amount; index++) {
@@ -81,25 +95,15 @@ module.exports = {
                 }
               }
         
-              else if (type.toUpperCase() === "RANDOM") {
-                for (let index = 0; index < amount; index++) {
-                  //First event in list always set at time zero (do not offset first event from clock init)
-                  if (Object.keys(this.pendingEvents.events).length === 0) {
-                    startTime = this.clock
-                  }
-                  else {
-                    startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
-                  }
-                  this.addEvent({ startTime: startTime, event: new Event({ data: token.body, type: "start process" }) })
-                }
-              } */
+                */
       }
       //const events = this.getPendingEvents()
       //this.pendingEventsCopy = { ...events }
     }
 
-    async init({ tokens = [] }) {
+    async init({ tokens = [], variables = {} }) {
       this.initPendingEvents({ tokens })
+      this.globalVariables = variables
       //this.initTasks({ tasks })
       //this.pendingEvents.events
       //this.attributesMap = await modeler.generateAttributesMap()
@@ -156,5 +160,58 @@ module.exports = {
         this.clock = pTime
       }
     };
+    /**
+     * @param  {} variables
+     * joins global and local token variables into single map
+     * refreshed distributions if these have the flag set to true
+     */
+    mergeVariablesAndUpdate({ event }) {
+      const helper = class {
+        constructor({ name, value }) {
+          this.name = name;
+          this.value = value;
+        }
+      }
+
+      const retainRefresh = (obj) => {
+        const final = {}
+        for (const property in obj) {
+          if (!!obj[property].refresh) final[property] = obj[property]
+        }
+        return final
+      }
+
+      const generateVariables = ({ tokenVars, globalVars }) => {
+        let total = {
+          ...tokenVars, ...globalVars
+        }
+        total = JSON.parse(JSON.stringify(total))
+        for (const property in total) {
+          if (total[property].type === "distribution") {
+            //refresh distribution here
+            total[property].value = MathHelper[total[property].value.type]({ ...total[property].value.frequency, iso: false })
+          }
+          total[property] = new helper({ ...total[property] })
+        }
+        return { variables: total }
+      }
+
+      if (event.type == 'start process') {
+        // here we ca use all variables as they need some initial value anyway
+        const tokenVariables = event.token.variables ? event.token.variables : {}
+        return generateVariables({ tokenVars: tokenVariables, globalVars: this.globalVariables })
+      }
+      else {
+        // here we can only use variables which have the refresh flag set
+        let tokenVariables = event.token.variables ? event.token.variables : {}
+        tokenVariables = retainRefresh(tokenVariables)
+        const global = retainRefresh(this.globalVariables)
+
+        return generateVariables({ tokenVars: tokenVariables, globalVars: global })
+
+      }
+
+
+    }
   }
 }

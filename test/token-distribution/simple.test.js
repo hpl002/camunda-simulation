@@ -59,4 +59,27 @@ describe('Test token ingress distribution', () => {
         expect(parseInt(getTime(3).split(":")[1]) < parseInt(getTime(4).split(":")[1])).toBe(true);
         expect(parseInt(getTime(4).split(":")[1]) < parseInt(getTime(5).split(":")[1])).toBe(true);                  
     }); 
+
+    test('Spawn tokens at random interval between 5 to 10 min.  From 16:00 and onwards. 7 tokens in total', async () => {
+        const { status } = await upload({ modelPath: `${process.env.PWD}/test/token-distribution/data/random/simple.bpmn`, payload: require(`${process.env.PWD}/test/token-distribution/data/random/simple.json`) })
+        expect(status === 201).toBe(true);
+
+        let config = {
+            method: 'post',
+            url: `${appconfigs.controller}/start`,
+            headers: {},
+            data: { "response": "json" }
+        };
+
+        let {data} = await axios(config)
+        data = Object.values(data)
+        const getTime = (index) => {
+            return Array.from(new Set(data[index].map(e=>e.activity_start)))[0].split(" ")[1]
+        }
+        expect(getTime(0) === '16:00:00').toBe(true);
+        expect(parseInt(getTime(0).split(":")[1]) < parseInt(getTime(1).split(":")[1])).toBe(true);
+        expect(parseInt(getTime(2).split(":")[1]) < parseInt(getTime(3).split(":")[1])).toBe(true);
+        expect(parseInt(getTime(3).split(":")[1]) < parseInt(getTime(4).split(":")[1])).toBe(true);
+        expect(parseInt(getTime(4).split(":")[1]) < parseInt(getTime(5).split(":")[1])).toBe(true);                  
+    }); 
 })

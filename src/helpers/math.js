@@ -49,15 +49,15 @@ const MathHelper = {
 
         return res
     },
-
+      */
     random({ min, max, iso=true }) {
         if(iso){
             min = Common.isoToMilliseconds(min)
             max = Common.isoToMilliseconds(max)
         }
         return random.int(min, max)
-    }, */
-
+    },
+    
     constant({ value, iso=true }) {
         if(iso){
             return Common.isoToMilliseconds(value)

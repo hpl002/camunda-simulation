@@ -26,26 +26,21 @@ const Common = {
     value = value?.[0]?.value
     return value
   },
-  refreshRandomVariables: async ({ task }) => {
-    try {
-      let variables = await axios.get(`${config.processEngine}/engine-rest/variable-instance?processInstanceIdIn=${task.processInstanceId}`)
-
-      variables = variables.data.filter(e => e.name.toUpperCase().includes("RANDOM"))
-
-      const obj = {
-        "modifications": {
-        }
+  /**
+   * @param  {} {processInstanceId
+   * @param  {} variables}
+   * https://docs.camunda.org/manual/7.5/reference/rest/process-instance/variables/post-variables/
+   * must be packaged in modification obj
+   */
+  refreshRandomVariables: async ({ processInstanceId, variables }) => {
+    const obj = {
+      "modifications": {
+        ...variables
       }
-
-      variables.forEach(element => {
-        obj.modifications[element.name] = {
-          "value": Math.round(Math.random() * 100),
-          "type": "integer"
-        }
-      });
-
-      let response = await axios.post(`${config.processEngine}/engine-rest/process-instance/${task.processInstanceId}/variables`,
-        obj)
+    }
+    try {
+      let response = await axios.post(`${config.processEngine}/engine-rest/process-instance/${processInstanceId}/variables`,
+      obj)
       if (response.status !== 204) throw new Error("could not update variables on process while starting task")
     } catch (error) {
       logger.log("error", "could not update random variables on process")
