@@ -143,6 +143,31 @@
                         }
                     },
                     "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "frequency"
+                    ],
+                    "properties": {
+                        "type": {
+                            "const": "random"
+                        },
+                        "min": {
+                            "type": "string",
+                            "format": "duration",
+                            "description": "Min value described as a ISO 8601 duration.",
+                            "example": "PT10M"
+                        },
+                        "max": {
+                            "type": "string",
+                            "format": "duration",
+                            "description": "Max value described as a ISO 8601 duration.",
+                            "example": "PT10M"
+                        }
+                    },
+                    "additionalProperties": false
                 }
             ]
         }
