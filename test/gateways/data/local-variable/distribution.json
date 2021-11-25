@@ -1,0 +1,25 @@
+{
+    "tokens": [
+        {
+            "id": "My token id",
+            "amount": 2,
+            "variables": [
+                {
+                    "type": "distribution",
+                    "name": "age",
+                    "value": {
+                        "type": "random",
+                        "frequency": {
+                            "min": 12,
+                            "max": 19
+                        }
+                    }
+                }
+            ],
+            "distribution": {
+                "type": "constant",
+                "frequency": "PT1M"
+            }
+        }
+    ]
+}

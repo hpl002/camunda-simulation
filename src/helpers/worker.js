@@ -46,14 +46,11 @@ const Worker = {
    */
   startProcess: async ({ event, controller, mongo }) => {
     const { processKey } = controller     
-    //const globalVariables = controller.updateGlobalVariables()
     const basePath = appConfigs.processEngine
     ///process-definition/key/{key}/start
     const reqUrl = `${basePath}/engine-rest/process-definition/key/${processKey}/start`
     // get variables on token
-    let processData = { variables: event && event.token && event.token.variables ? event.token.variables : {} }
-    // add global variables if exist and refresh all values if refresh enabled
-    processData.variables = controller.updateGlobalVariables(processData.variables)
+    let processData = controller.mergeVariablesAndUpdate({event})
     processData.businessKey = "simulation-controller"
     try {
       const { data } = await axios.post(reqUrl, processData, {
@@ -78,8 +75,8 @@ const Worker = {
 
       start: async ({ resources, completionTime }) => {
         try {
-          //await Common.refreshRandomVariables({ task })
-          //task.workerId = resources.join()
+          let {variables} = controller.mergeVariablesAndUpdate({event})
+          if(Object.keys(variables).length>0) await Common.refreshRandomVariables({ variables, processInstanceId:task.processInstanceId })
           const body = {
             "workerId": "task.workerId",
             "lockDuration": 1800000
@@ -307,7 +304,7 @@ const Worker = {
     }
   },
 
-  fetchAndAppendNewTasks: async ({ processInstanceId, controller, mongo }) => {
+  fetchAndAppendNewTasks: async ({ processInstanceId, controller, mongo, token }) => {
 
     await Worker.checkIfProcessComplete({ processInstanceId, mongo, controller })
 
@@ -323,7 +320,7 @@ const Worker = {
       }
 
       let startTime = controller.clock
-      controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task: { ...currTask, ...controller.taskMap[currTask.activityId] }, type: "start task" }) })
+      controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({token,  task: { ...currTask, ...controller.taskMap[currTask.activityId] }, type: "start task" }) })
       await Worker.setPriority({ processInstanceId: currTask.id })
     }
   },

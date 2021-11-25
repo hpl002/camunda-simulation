@@ -6,6 +6,7 @@ jest.setTimeout(30000);
 
 
 describe('Test gateways and variables', () => {
+    
     beforeEach(() => {
         // ping service
         const { status } = axios.get(`${appconfigs.controller}/healthz`)
@@ -67,7 +68,7 @@ describe('Test gateways and variables', () => {
         });
     });
 
-    test('Process with parallle gateway', async () => {
+    test('Process with parallel gateway', async () => {
         const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/parallel.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/parallel.json`) })
         expect(status === 201).toBe(true);
 
@@ -104,9 +105,163 @@ describe('Test gateways and variables', () => {
 
         try {
             await axios(config)
-        } catch (error) {             
-            expect(error.response.status === 500).toBe(true);             
+        } catch (error) {
+            expect(error.response.status === 500).toBe(true);
             expect(error.response.data.message.includes("Unknown property used in expression: ${someOtherValue}. Cause: Cannot resolve identifier 'someOtherValue'")).toBe(true);
         }
     });
+
+    
+    describe("Local variables", () => {
+        test('Process with single exclusive gateway. Uses local distribution variable that is refreshed', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/local-variable/distribution-refresh.json`) })
+            expect(status === 201).toBe(true);
+    
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+    
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect(Object.keys(response.data).length === 2).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e => e.activity_id)
+                expect(activities.length === 4).toBe(true);
+                expect(activities.filter(e => ["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+    
+            // first process should have bene routed to the less than route
+    
+            const process1 = response.data[Object.keys(response.data)[0]]
+            expect(!!process1.find(e => e.activity_id === "age-gt-20")).toBe(true);
+            // second process should have bene routed to the greater than route
+            const process2 = response.data[Object.keys(response.data)[1]]
+            expect(!!process2.find(e => e.activity_id === "age-gt-20")).toBe(true);
+        });
+    
+        test('Process with single exclusive gateway. Uses local distribution variable that is not refreshed', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/local-variable/distribution-refresh.json`) })
+            expect(status === 201).toBe(true);
+    
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+    
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect(Object.keys(response.data).length === 2).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e => e.activity_id)
+                expect(activities.length === 4).toBe(true);
+                expect(activities.filter(e => ["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+    
+            // first process should have bene routed to the less than route
+    
+            const process1 = response.data[Object.keys(response.data)[0]]
+            expect(!!process1.find(e => e.activity_id === "age-gt-20")).toBe(true);
+            // second process should have bene routed to the greater than route
+            const process2 = response.data[Object.keys(response.data)[1]]
+            expect(!!process2.find(e => e.activity_id === "age-gt-20")).toBe(true);
+        });
+        
+    })
+
+    describe("Global variables", () => {
+        test('Process with single exclusive gateway. Uses global constant variable instead of local', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/global-variable/constant.json`) })
+            expect(status === 201).toBe(true);
+
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect(Object.keys(response.data).length === 2).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e => e.activity_id)
+                expect(activities.length === 4).toBe(true);
+                expect(activities.filter(e => ["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+
+            // first process should have bene routed to the less than route
+
+            const process1 = response.data[Object.keys(response.data)[0]]
+            expect(!!process1.find(e => e.activity_id === "age-lt-20")).toBe(true);
+            // second process should have bene routed to the greater than route
+            const process2 = response.data[Object.keys(response.data)[1]]
+            expect(!!process2.find(e => e.activity_id === "age-lt-20")).toBe(true);
+        });
+
+        test('Process with single exclusive gateway. Uses global distribution variable that is refreshed', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/global-variable/distribution-refresh.json`) })
+            expect(status === 201).toBe(true);
+
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect(Object.keys(response.data).length === 2).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e => e.activity_id)
+                expect(activities.length === 4).toBe(true);
+                expect(activities.filter(e => ["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+
+            // first process should have bene routed to the less than route
+
+            const process1 = response.data[Object.keys(response.data)[0]]
+            expect(!!process1.find(e => e.activity_id === "age-gt-20")).toBe(true);
+            // second process should have bene routed to the greater than route
+            const process2 = response.data[Object.keys(response.data)[1]]
+            expect(!!process2.find(e => e.activity_id === "age-gt-20")).toBe(true);
+        });
+
+        test('Process with single exclusive gateway. Uses global distribution variable that is not refreshed', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/gateways/data/exclusive.bpmn`, payload: require(`${process.env.PWD}/test/gateways/data/global-variable/distribution.json`) })
+            expect(status === 201).toBe(true);
+
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            const response = await axios(config)
+            expect(response.status === 200).toBe(true);
+            expect(Object.keys(response.data).length === 2).toBe(true);
+            Object.keys(response.data).forEach(key => {
+                const activities = response.data[key].map(e => e.activity_id)
+                expect(activities.length === 4).toBe(true);
+                expect(activities.filter(e => ["start", "end"].includes(e)).length === 2).toBe(true);
+            });
+
+            // first process should have bene routed to the less than route
+
+            const process1 = response.data[Object.keys(response.data)[0]]
+            expect(!!process1.find(e => e.activity_id === "age-lt-20")).toBe(true);
+            // second process should have bene routed to the greater than route
+            const process2 = response.data[Object.keys(response.data)[1]]
+            expect(!!process2.find(e => e.activity_id === "age-lt-20")).toBe(true);
+        });
+
+    })
+
+
 })

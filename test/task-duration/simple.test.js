@@ -84,13 +84,13 @@ describe('Test token ingress distribution', () => {
         expect(getTime(process0, 0) === "16:00:00").toBe(true);
         expect(getTime(process0, 1) === "16:00:00").toBe(true);
         expect(getTime(process0, 2) === "16:00:00").toBe(true);
-        expect(parseInt(getTime(process0, 3).split(":")[2])).toBeGreaterThanOrEqual(0);
+        expect(parseInt(getTime(process0, 3).split(":")[1])).toBeGreaterThanOrEqual(0);
 
 
         expect(getTime(process1, 0) === "16:10:00").toBe(true);
         expect(getTime(process1, 1) === "16:10:00").toBe(true);
         expect(getTime(process1, 2) === "16:10:00").toBe(true);
-        expect(parseInt(getTime(process1, 3).split(":")[2])).toBeGreaterThanOrEqual(10);
+        expect(parseInt(getTime(process1, 3).split(":")[1])).toBeGreaterThanOrEqual(10);
 
 
 

@@ -6,7 +6,7 @@
     "start": "nodemon --trace-warnings ./src/api/bin/www",
     "debug": "node --inspect ./src/api/bin/www",
     "debug-brk": "nodemon --inspect-brk ./src/api/bin/www",
-    "test": "jest",
+    "test": "jest -i -b",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand"
   },
   "nodemonConfig": {

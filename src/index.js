@@ -50,17 +50,17 @@ try {
     while (arr.length !== 0) {
       const event = arr.pop()
       if (event.type === "start process") {
-        const { id } = await Worker.startProcess({ event, controller, mongo })
-        await Worker.fetchAndAppendNewTasks({ processInstanceId: id, controller, mongo })
+        const { id} = await Worker.startProcess({ event, controller, mongo })
+        await Worker.fetchAndAppendNewTasks({ processInstanceId: id, controller, mongo, token:event.token })
       }
       else if (event.type === "start task") {
         const data = await Worker.startTask({ event, controller, mongo })           
         const { startTime, task, type } = data
-        controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task, type }) })
+        controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task, type, token:event.token }) })
       }
       else if (event.type === "complete task") {
         await Worker.completeTask({ event, controller, mongo })
-        await Worker.fetchAndAppendNewTasks({ ...event.task, controller, mongo })
+        await Worker.fetchAndAppendNewTasks({ ...event.task, controller, mongo, token:event.token })
       }
       else {
         throw new Error("could not read event type")
