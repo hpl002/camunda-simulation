@@ -1,0 +1,33 @@
+{
+    "tokens": [
+        {
+            "id": "pizza",
+            "amount": 1,
+            "distribution": {
+                "type": "constant",
+                "frequency": "PT1M"
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "id": "cook-pizza",
+            "resource-query": "MATCH (nodes)  Where nodes.id='pizza oven' return nodes",
+            "timing": {
+                "type": "constant",
+                "frequency": "PT1M"
+            }
+        }
+    ],
+    "resources": [
+        {
+            "id": "pizza oven",
+            "description": "some description of this nice oven",
+            "efficiency": {
+                "type": "constant",
+                "frequency": 80
+            }
+        }
+    ],
+    "initialize_resources": "CREATE ({id: 'pizza oven'}),({id: 'pizza oven'})"
+}

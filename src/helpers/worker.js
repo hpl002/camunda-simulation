@@ -64,19 +64,19 @@ const Worker = {
 
   updateNodesInNeo4j: async ({ query, driver, taskId, lockedUntil }) => {
     let modifiedQuery = query
-    modifiedQuery.split("return nodes")[0]
-    const modifiedQuery_taskId = `${modifiedQuery} SET nodes.taskId = ${taskId} return nodes`
-    const modifiedQuery_lockedUntil = `${modifiedQuery} SET nodes.lockedUntil = ${lockedUntil} return nodes`
+    modifiedQuery = modifiedQuery.split("return nodes")[0]
+    const modifiedQuery_taskId = `${modifiedQuery} SET nodes.taskId = '${taskId}' return nodes`
+    const modifiedQuery_lockedUntil = `${modifiedQuery} SET nodes.lockedUntil = '${lockedUntil}' return nodes`
 
     // check that the records were indeed updated
     const records_taskId = await neo4j.executeQuery({ query: modifiedQuery_taskId, driver })
     records_taskId.records.forEach(element => {
-      if (_get(element, "_fields[0].properties.taskId", false)) throw new Error("did not manage to successfully set taskId on nodes when marking as locked in neo4j ")
+      if (!_get(element, "_fields[0].properties.taskId", false)) throw new Error("did not manage to successfully set taskId on nodes when marking as locked in neo4j ")
     });
 
     const records_lockedUntil = await neo4j.executeQuery({ query: modifiedQuery_lockedUntil, driver })
     records_lockedUntil.records.forEach(element => {
-      if (_get(element, "_fields[0].properties.lockedUntil", false)) throw new Error("did not manage to successfully set lockedUntil on nodes when marking as locked in neo4j ")
+      if (!_get(element, "_fields[0].properties.lockedUntil", false)) throw new Error("did not manage to successfully set lockedUntil on nodes when marking as locked in neo4j ")
     });
   },
 
@@ -128,6 +128,7 @@ const Worker = {
     const accountForResources = async ({ driver, completionTime, controller, query = undefined, limit = undefined }) => {
       let type = undefined
       let res = completionTime
+      let resourceIds = []
 
       // only bother with this is the task has a resource query a all
       if (query) {
@@ -168,8 +169,7 @@ const Worker = {
           type = "schedule"
           //if there exists multiple resourecs then averate their efficiencies
           // if no efficiency is declared then assume this to be 100
-          let sumEfficiency = undefined
-          let resourceIds = []
+          let sumEfficiency = undefined           
           // check if resources have some assigned efficiency
           available.forEach(resource => {
             const id = _get(resource, "_fields[0].properties.id", undefined)
