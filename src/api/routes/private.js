@@ -114,17 +114,21 @@ module.exports = {
         }
 
         const changeAllTasksToServiceTask = (xml, ids) => {
-            xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"].forEach(element => {
-                element["$"]["camunda:topic"] = "topic"
-                element["$"]["camunda:type"] = "external"
-            })
-            if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]) {
-                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = [...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"], ...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]]
+            //convert all regular tasks to servicetasks
+            if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]) {
+                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"].forEach(element => {
+                    element["$"]["camunda:topic"] = "topic"
+                    element["$"]["camunda:type"] = "external"
+                })
+
+                if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]) {
+                    xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = [...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"], ...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]]
+                }
+                else {
+                    xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
+                }
+                delete xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
             }
-            else {
-                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
-            }
-            delete xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
         }
 
         const getAllServiceTaskIds = (xml) => {
@@ -174,10 +178,16 @@ module.exports = {
                 data: form
             };
 
-            const { status, data } = await axios(config)
-            let id = Object.keys(data.deployedProcessDefinitions).pop().split(":").shift()
-            if (status !== 200) throw new Error("failed while trying to upload bpmn model to camunda")
-            return { id }
+            try {
+                const { status, data } = await axios(config)
+                let id = Object.keys(data.deployedProcessDefinitions).pop().split(":").shift()
+                if (status !== 200) throw new Error("failed while trying to upload bpmn model to camunda")
+                return { id }
+            } catch (error) {
+                console.log("failed while trying to upload file to camunda", error.response.data)
+                throw error
+            }
+
         },
 
         delete: async () => {

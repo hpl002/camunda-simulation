@@ -32,29 +32,35 @@ router.post('/config', async function (req, res, next) {
     // delete any existing configs and store new
     helper.deleteAndStoreConfigs({ dir, req })
     // delete all data in neo4j
-    await neo4j.executeQuery({ query: "MATCH (n) DETACH DELETE n" })
+    const driver = neo4j.init()
+    await neo4j.executeQuery({ query: "MATCH (n) DETACH DELETE n", driver })
 
     //parse and update configs
     // translate all regular tasks to serivce tasks
     // create array of all service task ids
     const { serviceTaskIds } = await helper.parseAndUpdateConfig({ dir, req })
-
     // ensure that all references tasks exist
     let input = fs.readFileSync(`${process.env.PWD}/work/payload.json`, "utf-8")
     input = JSON.parse(input)
 
     //initialize new resoruce graph in neo4j 
     if (input.initialize_resources) {
-      await neo4j.executeQuery({ query: input.initialize_resources })
+      await neo4j.executeQuery({ query: input.initialize_resources, driver })
       // check to see that records were indeed inserted
-      const result = await neo4j.executeQuery({ query: "MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 25" })
+      const result = await neo4j.executeQuery({ query: "MATCH (n) RETURN n LIMIT 25", driver })
       if (result.length < 1) throw new Error("Cypher create query produced zero nodes")
+
+      if (input.tasks) {
+        const q = input.tasks.find(e => e["resource-query"])
+        if (q) {
+          const result = await neo4j.executeQuery({ query: q["resource-query"], driver })
+          if (result.records.length < 1) throw new Error("Could not find any hits for resource query", q["resource-query"])
+        }
+      }
     }
 
 
-    // check that all queries 
-
-    if (input && input.tasks) {
+    if (input.tasks) {
       input.tasks.forEach(task => {
         if (!serviceTaskIds.find(e => e === task.id)) throw new Error(`could not find a matching task in .bpmn model for task in payload: ${task.id}`)
       });
@@ -66,7 +72,7 @@ router.post('/config', async function (req, res, next) {
     //upload bpmn to camunda
     const { id } = await helper.camunda.upload({ dir })
     processKey = id
-    neo4j.close()
+    neo4j.close({ driver })
     res.status(201).send(`model uploaded: ${id}`)
   } catch (error) {
     logger.log("error", error)

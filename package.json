@@ -32,6 +32,7 @@
     "jsonschema": "^1.4.0",
     "lodash": "^4.17.21",
     "lodash.find": "^4.6.0",
+    "lodash.get": "^4.4.2",
     "moment": "^2.29.1",
     "mongodb": "^3.6.6",
     "mongoose": "^5.12.7",
