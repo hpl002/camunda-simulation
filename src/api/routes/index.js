@@ -50,10 +50,12 @@ router.post('/config', async function (req, res, next) {
       const result = await neo4j.executeQuery({ query: "MATCH (n) RETURN n LIMIT 25", driver })
       if (result.length < 1) throw new Error("Cypher create query produced zero nodes")
 
-      for (const task of input.tasks) {
-        if (task["resource-query"]) {
-          const result = await neo4j.executeQuery({ query: task["resource-query"], driver })
-          if (result.records.length < 1) throw new Error("Could not find any hits for resource query", task["resource-query"])
+      if(input.tasks){
+        for (const task of input.tasks) {
+          if (task["resource-query"]) {
+            const result = await neo4j.executeQuery({ query: task["resource-query"], driver })
+            if (result.records.length < 1) throw new Error("Could not find any hits for resource query", task["resource-query"])
+          }
         }
       }
     }

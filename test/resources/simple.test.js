@@ -16,7 +16,12 @@ describe('resources', () => {
     describe('positive', () => {
         //upload config 
         test('upload config with neo4j query - simply create graph', async () => {
-            const { status } = await upload({ modelPath: `${process.env.PWD}/test/resources/data/common/cook-pizza.bpmn`, payload: require(`${process.env.PWD}/test/resources/data/positive/config.json`) })
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/resources/data/common/cook-pizza.bpmn`, payload: require(`${process.env.PWD}/test/resources/data/positive/config-no-task.json`) })
+            expect(status === 201).toBe(true);
+        });
+
+        test('upload config with neo4j query and task array- simply create graph', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/resources/data/common/cook-pizza.bpmn`, payload: require(`${process.env.PWD}/test/resources/data/positive/config-single-task.json`) })
             expect(status === 201).toBe(true);
         });
 

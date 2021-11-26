@@ -1,0 +1,13 @@
+{
+    "tokens": [
+        {
+            "id": "pizza",
+            "amount": 1,
+            "distribution": {
+                "type": "constant",
+                "frequency": "PT1M"
+            }
+        }
+    ],     
+    "initialize_resources": "CREATE ({id: 'pizza oven'}),({id: 'pizza oven'})"
+}
