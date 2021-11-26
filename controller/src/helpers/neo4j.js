@@ -20,7 +20,7 @@ const executeQuery = async ({ query, driver }) => {
         return {records:result.records}
     } catch (error) {
         console.log("error", `error on query: ${query}`)
-        console.error(err)
+        console.error(error)
         session.close({ driver });
         throw err
     }
