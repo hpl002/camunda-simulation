@@ -115,6 +115,23 @@ module.exports = {
 
         const changeAllTasksToServiceTask = (xml, ids) => {
             //convert all regular tasks to servicetasks
+            const newHeader = {
+                "xmlns:bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+                "xmlns:bpmndi": "http://www.omg.org/spec/BPMN/20100524/DI",
+                "xmlns:dc": "http://www.omg.org/spec/DD/20100524/DC",
+                "xmlns:camunda": "http://camunda.org/schema/1.0/bpmn",
+                "xmlns:di": "http://www.omg.org/spec/DD/20100524/DI",
+                "xmlns:modeler": "http://camunda.org/schema/modeler/1.0",
+                id: "Definitions_1cdvo57",
+                targetNamespace: "http://bpmn.io/schema/bpmn",
+                exporter: "Camunda Modeler",
+                exporterVersion: "4.9.0",
+                "modeler:executionPlatform": "Camunda Platform",
+                "modeler:executionPlatformVersion": "7.15.0",
+            }
+
+            xml["bpmn:definitions"]["$"] = newHeader
+
             if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]) {
                 xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"].forEach(element => {
                     element["$"]["camunda:topic"] = "topic"
