@@ -56,7 +56,11 @@ try {
       else if (event.type === "start task") {
         const data = await Worker.startTask({ event, controller, mongo })           
         const { startTime, task, type, camundaTask } = data
-        controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({camundaTask, task, type, token:event.token }) })
+        let priority = -1
+        if(type==="complete task"){
+          priority=1 
+        }        
+        controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({camundaTask, task, type, token:event.token, priority }) })
       }
       else if (event.type === "complete task") {
         await Worker.completeTask({ event, controller, mongo })
