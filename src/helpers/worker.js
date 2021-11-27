@@ -82,7 +82,8 @@ const Worker = {
 
   startTask: async ({ event, controller, mongo }) => {
     const driver = neo4j.init()
-    const {camundaTask, task} = event
+    const { camundaTask, task } = event
+    if(!!(camundaTask &&  task) === false) throw new Error("missing required params")
     const start = async ({ resources, completionTime }) => {
       try {
         let { variables } = controller.mergeVariablesAndUpdate({ event })
@@ -99,43 +100,36 @@ const Worker = {
         //logger.log("process", `Starting task ${task.activityId} at ${Common.formatClock(controller.clock)} with resoruce ${task.workerId}}`)
         logger.log("process", `Starting task ${camundaTask.activityId} at ${Common.formatClock(controller.clock)}`)
         await mongo.startTask({ token_id: event.token.id, id: controller.runIdentifier, case_id: camundaTask.processInstanceId, activity_id: camundaTask.activityId, activity_start: Common.formatClock(controller.clock), resource_id: camundaTask.workerId })
-        return {camundaTask, task, startTime: completionTime, type: "complete task" }
+        return { camundaTask, task, startTime: completionTime, type: "complete task" }
       } catch (error) {
         logger.log("error", error)
         throw error
       }
     }
 
-    const addTaskDuration = ({ taskDuration, currentclock }) => {
-      let res = currentclock
-      if (taskDuration) {
-        if (taskDuration.type === "constant") {
-          const time = MathHelper.constant({ value: taskDuration.frequency })
-          res = currentclock + time
-        }
-        else if (taskDuration.type === "normal distribution") {
-          const time = MathHelper.normalDistribution({ ...taskDuration.frequency })
-          res = currentclock + time
-        }
-        else if (taskDuration.type === "random") {
-          const time = MathHelper.random({ ...taskDuration.frequency })
-          res = currentclock + time
-        }
+    const calculateTaskDuration = ({ taskDuration }) => {
+      let res = 0
+      if (taskDuration.type === "constant") {
+        res = MathHelper.constant({ value: taskDuration.frequency })
+      }
+      else if (taskDuration.type === "normal distribution") {
+        res = MathHelper.normalDistribution({ ...taskDuration.frequency })
+      }
+      else if (taskDuration.type === "random") {
+        res = MathHelper.random({ ...taskDuration.frequency })
       }
       return res
     }
 
-    const accountForResources = async ({ driver, completionTime, controller, query = undefined, limit = undefined }) => {
-      let type = undefined
-      let res = completionTime
+    const accountForResources = async ({ driver, taskDuration, controller, query = undefined, limit = undefined }) => {
       let resourceIds = []
 
-      // only bother with this is the task has a resource query a all
-      if (query) {
-        // if a limit has been set then this is appended to the query string
+      const getAvailableAndUnavailableResources = async ({ limit }) => {
         if (limit) {
           query = `${query} LIMIT ${parseInt(limit)}`
         }
+
+        // if a limit has been set then this is appended to the query string
         const { records } = await neo4j.executeQuery({ query, driver })
         // array of all matched resoruces that are available
         const available = []
@@ -145,7 +139,8 @@ const Worker = {
         records.forEach(record => {
           const properties = _get(record, "_fields[0].properties", {})
           //if it does not have locked property then it is assumed to be available
-          const isAvaialble = !!!properties.locked
+          if(properties.lockedUntil && properties.lockedUntil.toUpperCase() === "NULL") properties.lockedUntil = undefined
+          const isAvaialble = !!!properties.lockedUntil
           if (isAvaialble) {
             available.push(record)
           }
@@ -154,91 +149,93 @@ const Worker = {
           }
         });
 
-        if (unavailble.length > 0) {
-          type = "reschedule"
-          let temp = 0
-
-          unavailble.forEach(record => {
-            // get time at which resource is available again
-            const v = parseInt(_get(record, "_fields[0].properties.locked", undefined))
-            if (v > temp) temp = v
-          });
-          res = temp
-
-        } else {
-          type = "schedule"
-          //if there exists multiple resourecs then averate their efficiencies
-          // if no efficiency is declared then assume this to be 100
-          let sumEfficiency = undefined           
-          // check if resources have some assigned efficiency
-          available.forEach(resource => {
-            const id = _get(resource, "_fields[0].properties.id", undefined)
-            if (!!!id) throw new Error("could not find id property on record returned from neo4j")
-            resourceIds.push(id)
-            let res = 100
-            const resourceConfig = controller.input.resources && controller.input.resources.find(e => e.id === id)
-            if (resourceConfig.efficiency) {
-              const resourceEfficiency = resourceConfig.efficiency
-              if (resourceEfficiency.type === "constant") {
-                res = MathHelper.constant({ value: resourceEfficiency.frequency, iso: false })
-              }
-              else if (resourceEfficiency.type === "normal distribution") {
-                res = MathHelper.normalDistribution({ ...resourceEfficiency.frequency, iso: false })
-              }
-              else if (resourceEfficiency.type === "random") {
-                res = MathHelper.random({ ...resourceEfficiency.frequency, iso: false })
-              }
-            }
-            sumEfficiency += res
-
-          });
-          //--> calculate new completion time
-          // average efficiency by accounting for all resources
-          sumEfficiency = sumEfficiency / available.length
-          // get calcualted percentage of original value and add this to the original value
-          res += parseInt(completionTime * (sumEfficiency / 100))
-
-          await Worker.updateNodesInNeo4j({ driver, query, taskId: camundaTask.id, lockedUntil: res })
-        }
-
-
-
-        // are any of these resources occupied?(occuped resources have a property on the node itslef, same level as id)
-        // are any of these resources occupied?
+        return { available, unavailble }
       }
-      const permittedTypes = ["schedule", "reschedule"]
-      if (!permittedTypes.includes(type)) throw new Error("tried to retur some invlid type from resource scheduler function")
-      return { completionTime: res, resourceIds, type }
+
+      const { available, unavailble } = await getAvailableAndUnavailableResources({ limit })
+      if (unavailble.length > 0) {
+        let resourceAvailableAt = 0
+        unavailble.forEach(record => {
+          // get time at which resource is available again
+          const v = parseInt(_get(record, "_fields[0].properties.lockedUntil", undefined))
+          if (v > resourceAvailableAt) resourceAvailableAt = v
+        });
+        if(resourceAvailableAt<1) throw new Error("Error in resoruce lockedUntil timepoint. Value must be greater than 0")
+        return { time: resourceAvailableAt, resourceIds, type: "reschedule" }
+      }
+      else {
+        //if there exists multiple resourecs then averate their efficiencies
+        // if no efficiency is declared then assume this to be 100
+        let sumPercentage=0;
+        // check if resources have some assigned efficiency
+        available.forEach(resource => {
+          const id = _get(resource, "_fields[0].properties.id", undefined)
+          if (!!!id) throw new Error("could not find id property on record returned from neo4j")
+          resourceIds.push(id)
+          let percentage = 0
+          const resourceConfig = controller.input.resources && controller.input.resources.find(e => e.id === id)
+          if (resourceConfig && resourceConfig.efficiency) {
+            const resourceEfficiency = resourceConfig.efficiency
+            if (resourceEfficiency.type === "constant") {
+              percentage = MathHelper.constant({ value: resourceEfficiency.frequency, iso: false })
+            }
+            else if (resourceEfficiency.type === "normal distribution") {
+              percentage = MathHelper.normalDistribution({ ...resourceEfficiency.frequency, iso: false })
+            }
+            else if (resourceEfficiency.type === "random") {
+              percentage = MathHelper.random({ ...resourceEfficiency.frequency, iso: false })
+            }
+          }
+          sumPercentage += percentage
+        });
+        //--> calculate new completion time
+        // average efficiency by accounting for all resources
+        sumPercentage = sumPercentage / available.length
+        // get calcualted percentage of original value and add this to the original value
+
+        //TODO: not completion time but rather task duration that should be used
+        const calculatedOffset = parseInt((taskDuration * (sumPercentage / 100)))
+        return { time: calculatedOffset, resourceIds, type: "schedule" }
+      }
+
+
+
+
+
 
     }
 
     // add task duration if it is declared at all
     let completionTime = controller.clock
+    let taskDuration = 0
     if (task.timing) {
-      completionTime = addTaskDuration({ taskDuration: task.timing, currentclock: controller.clock })
+      taskDuration = calculateTaskDuration({ taskDuration: task.timing, currentclock: controller.clock })
+      // add calculated task timing to the task complion time
+      completionTime += taskDuration
     }
 
-
-    if (task["resource-query"]) {
-      // account for resource unavailability or resource duration
-      const res = await accountForResources({ limit: task["resource-query-limit"], query: task["resource-query"], driver, completionTime, controller })
-      completionTime = res.completionTime
-      if (res.type === "schedule") {
+    // if there exists a resource + there is a task duration to offset       
+    if (task["resource-query"] && taskDuration > 0) {
+      const { type, time, resourceIds } = await accountForResources({ limit: task["resource-query-limit"], query: task["resource-query"], driver, taskDuration, controller })
+      if (type === "schedule") {
         // resources were available
         // resources are marked as occupied in neo4j with a refernce to this task
         // resource efficiency has also been accounted for if it exists for a given resource
         // resource with no explicit efficiency are assumed to work at 100 percent
         // if multiple resources then their efficiency is averaged
         // all retrieved nodes are locked
-        return await start({ resources: res.resourceIds, completionTime })
+        completionTime += time
+        // are any of these resources occupied?(occuped resources have a property on the node itslef, same level as id)
+        // are any of these resources occupied?
+        await Worker.updateNodesInNeo4j({ driver, query:task["resource-query"], taskId: camundaTask.id, lockedUntil: completionTime })
+        return await start({task,  resources: resourceIds, completionTime })
       }
-      else if (res.type === "reschedule") {
-        // reschedule by adding a startTask event instead
-        return { task, startTime: res.completionTime, type: "start task" }
+      else {         
+        return { camundaTask, task, startTime: time, type: "start task" }
       }
     }
     else {
-      return await start({ resources: ["no-resource"], completionTime })
+      return await start({task, resources: ["no-resource"], completionTime })
     }
 
 
@@ -250,9 +247,9 @@ const Worker = {
 
   completeTask: async ({ event, controller, mongo }) => {
     const driver = neo4j.init()
-    const {task, camundaTask} = event
+    const { task, camundaTask } = event
     // updating vals to null is the same as deleting them
-    if(task["resource-query"]){
+    if (task["resource-query"]) {
       await Worker.updateNodesInNeo4j({ driver, query: task["resource-query"], taskId: null, lockedUntil: null })
     }
     try {
@@ -261,7 +258,7 @@ const Worker = {
         "variables": {}
       }
       response = await axios.post(`${appConfigs.processEngine}/engine-rest/external-task/${camundaTask.id}/complete`, body)
-      if (response.status !== 204) throw new Error("could not complete task")       
+      if (response.status !== 204) throw new Error("could not complete task")
       logger.log("process", `Completing task ${camundaTask.activityId}at ${Common.formatClock(controller.clock)}`)
       await mongo.completeTask({ token_id: event.token.id, id: controller.runIdentifier, case_id: camundaTask.processInstanceId, activity_id: camundaTask.activityId, activity_end: Common.formatClock(controller.clock) })
     } catch (error) {
@@ -284,7 +281,7 @@ const Worker = {
       if (controller.input.tasks) {
         t = controller.input.tasks.find(e => e.id === currTask.activityId)
       }
-      controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token, camundaTask: currTask, task:t, type: "start task" }) })
+      controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token, camundaTask: currTask, task: t, type: "start task" }) })
       await Worker.setPriority({ processInstanceId: currTask.id })
     }
   },
