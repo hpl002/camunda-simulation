@@ -55,6 +55,7 @@ router.post('/config', async function (req, res, next) {
           if (task["resource-query"]) {
             const result = await neo4j.executeQuery({ query: task["resource-query"], driver })
             if (result.records.length < 1) throw new Error("Could not find any hits for resource query", task["resource-query"])
+            if ( task["resources-required"] && result.records.length < task["resources-required"]) throw new Error("Task has a resource requirement that is greater than the number of hits on query. Requirement can never be met", task["resource-query"])
           }
         }
       }
