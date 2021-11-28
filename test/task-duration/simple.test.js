@@ -5,7 +5,7 @@ const { upload } = require("../helper")
 jest.setTimeout(30000);
 
 
-describe('Test token ingress distribution', () => {
+describe('Test task durations', () => {
     beforeEach(() => {
         // ping service
         const { status } = axios.get(`${appconfigs.controller}/healthz`)
@@ -23,7 +23,7 @@ describe('Test token ingress distribution', () => {
 
     });
 
-    test('Spawn two tokens at 10 min constant interval. Process has a single task with a 30 min constant interval', async () => {
+    test('Process has a single task with a 30 min constant interval', async () => {
         const { status } = await upload({ modelPath: `${process.env.PWD}/test/task-duration/data/constant/simple.bpmn`, payload: require(`${process.env.PWD}/test/task-duration/data/constant/simple.json`) })
         expect(status === 201).toBe(true);
 
@@ -60,7 +60,7 @@ describe('Test token ingress distribution', () => {
 
     });
 
-    test('Spawn two tokens at 10 min constant interval. Process has a single task that takes about 10 min(normal distribution)', async () => {
+    test('Process has a single task that takes about 10 min(normal distribution)', async () => {
         const { status } = await upload({ modelPath: `${process.env.PWD}/test/task-duration/data/normal-distribution/simple.bpmn`, payload: require(`${process.env.PWD}/test/task-duration/data/normal-distribution/simple.json`) })
         expect(status === 201).toBe(true);
 
@@ -97,7 +97,7 @@ describe('Test token ingress distribution', () => {
 
     });
 
-    test('Spawn two tokens at 10 min constant interval. Process has a single task takes some random time from 5 to 10 min', async () => {
+    test('Process has a single task takes some random time from 5 to 10 min', async () => {
         const { status } = await upload({ modelPath: `${process.env.PWD}/test/task-duration/data/random/simple.bpmn`, payload: require(`${process.env.PWD}/test/task-duration/data/random/simple.json`) })
         expect(status === 201).toBe(true);
 
