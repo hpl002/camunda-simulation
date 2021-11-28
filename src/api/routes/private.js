@@ -8,8 +8,7 @@ var FormData = require('form-data');
 var xml2js = require('xml2js');
 var parser = new xml2js.Parser();
 var builder = new xml2js.Builder();
-
-
+const neo4j = require("../../../controller/src/helpers/neo4j")
 
 const writeBPMN = ({ sourceFile, targetDir }) => {
     if (!fs.existsSync(targetDir)) {
@@ -69,7 +68,7 @@ module.exports = {
         // fix formatting of variables to aligh with what camunda expects.
         // defining anon objects in json schema is a hassle, we therefore fix this on our end instead
         const helper = class {
-            constructor({ name, value, type, refresh=false }) {
+            constructor({ name, value, type, refresh = false }) {
                 this.name = name;
                 this.value = value;
                 this.type = type;
@@ -86,16 +85,16 @@ module.exports = {
             token.variables = newPayload
         });
 
-        const formatGlobalVariables= (variables) => {
+        const formatGlobalVariables = (variables) => {
             const newPayload = {}
             variables.forEach(variable => {
-                newPayload[variable.name] = new helper({ ...variable })                 
+                newPayload[variable.name] = new helper({ ...variable })
             });
-            payload.variables = newPayload             
+            payload.variables = newPayload
         }
-         
-        
-        if(payload.variables) formatGlobalVariables(payload.variables)
+
+
+        if (payload.variables) formatGlobalVariables(payload.variables)
 
         //store payload         
         fs.writeFileSync(`${dir}/payload.json`, JSON.stringify(payload, null, 4));
@@ -115,26 +114,48 @@ module.exports = {
         }
 
         const changeAllTasksToServiceTask = (xml, ids) => {
-            xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"].forEach(element => {
-                element["$"]["camunda:topic"] = "topic"
-                element["$"]["camunda:type"] = "external"
-            })
-            if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]) {
-                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = [...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"], ...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]]
+            //convert all regular tasks to servicetasks
+            const newHeader = {
+                "xmlns:bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL",
+                "xmlns:bpmndi": "http://www.omg.org/spec/BPMN/20100524/DI",
+                "xmlns:dc": "http://www.omg.org/spec/DD/20100524/DC",
+                "xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance",
+                "xmlns:di": "http://www.omg.org/spec/DD/20100524/DI",
+                "xmlns:modeler": "http://camunda.org/schema/modeler/1.0",
+                id: "Definitions_1cdvo57",
+                targetNamespace: "http://bpmn.io/schema/bpmn",
+                exporter: "Camunda Modeler",
+                "xmlns:camunda": "http://camunda.org/schema/1.0/bpmn",
+                exporterVersion: "4.9.0",
+                "modeler:executionPlatform": "Camunda Platform",
+                "modeler:executionPlatformVersion": "7.15.0",
             }
-            else {
-                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
+
+            xml["bpmn:definitions"]["$"] = newHeader
+
+            if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]) {
+                xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"].forEach(element => {
+                    element["$"]["camunda:topic"] = "topic"
+                    element["$"]["camunda:type"] = "external"
+                })
+
+                if (xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]) {
+                    xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = [...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"], ...xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]]
+                }
+                else {
+                    xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"] = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
+                }
+                delete xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
             }
-            delete xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:task"]
         }
 
         const getAllServiceTaskIds = (xml) => {
             const final = []
             const tasks = xml["bpmn:definitions"]["bpmn:process"][0]["bpmn:serviceTask"]
-                    tasks.forEach(task => {
-                        final.push(task["$"].id)
-                    });
-                    return final
+            tasks.forEach(task => {
+                final.push(task["$"].id)
+            });
+            return final
         }
 
         // read xml from file to string
@@ -153,7 +174,7 @@ module.exports = {
         // store xml
         xml = fs.writeFileSync(`${dir}/simulation.bpmn`, xml)
 
-        return {serviceTaskIds:ids}
+        return { serviceTaskIds: ids }
 
     },
 
@@ -175,10 +196,16 @@ module.exports = {
                 data: form
             };
 
-            const { status, data } = await axios(config)
-            let id = Object.keys(data.deployedProcessDefinitions).pop().split(":").shift()
-            if (status !== 200) throw new Error("failed while trying to upload bpmn model to camunda")
-            return { id }
+            try {
+                const { status, data } = await axios(config)
+                let id = Object.keys(data.deployedProcessDefinitions).pop().split(":").shift()
+                if (status !== 200) throw new Error("failed while trying to upload bpmn model to camunda")
+                return { id }
+            } catch (error) {
+                console.log("failed while trying to upload file to camunda", error.response.data)
+                throw error
+            }
+
         },
 
         delete: async () => {

@@ -66,7 +66,46 @@
                     "timing": {
                         "description": "Describes task duration as a distribution. The duration must be described in ISO 8601 duration format",
                         "$ref": "#/$defs/iso8601Distribution"
+                    },
+                    "resource-query": {
+                        "type": "string",
+                        "description": "Cypher query that resolves to one or more resources which must have a id prperty(remember to add a limit to your query. The controller grabs all resources which are not occupied. QUERY MUST END WITH 'return nodes'"
+                    },
+                    "resources-required": {
+                        "type": "number",
+                        "min":1,
+                        "description": "Limit that is appended to the cypher query. This can be used to restric the number of resources one wished to lock if the query is generic"
                     }
+                }
+            }
+        },
+        "initialize_resources":{
+            "type": "string",
+            "description": "Cypher query used to initialize resources in neo4j. Can be modeled and exported in arrows.app"
+        },
+        "resources":{
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "efficiency"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "id must match some task in model"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "task description"
+                    },
+                    "efficiency": {
+                        "description": "Describes resource efficiency as distribution. Efficiency as percentage, where 100 is peak efficiency",
+                        "max":"100",
+                        "min":"1",
+                        "$ref": "#/$defs/distribution"
+                    }                     
                 }
             }
         }

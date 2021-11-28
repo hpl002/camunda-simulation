@@ -21,6 +21,16 @@ describe('core functionality', () => {
                 const { status } = await upload({ modelPath: `${process.env.PWD}/test/core-functionality/data/test.bpmn`, payload: require(`${process.env.PWD}/test/core-functionality/data/payload.json`) })
                 expect(status === 201).toBe(true);
             });
+
+            test('upload config with model that has no service tasks', async () => {
+                const { status } = await upload({ modelPath: `${process.env.PWD}/test/core-functionality/data/test-no-service.bpmn`, payload: require(`${process.env.PWD}/test/core-functionality/data/payload.json`) })
+                expect(status === 201).toBe(true);
+            });
+
+            test('upload config with neo4j query', async () => {
+                const { status } = await upload({ modelPath: `${process.env.PWD}/test/core-functionality/data/test.bpmn`, payload: require(`${process.env.PWD}/test/core-functionality/data/payload_neo4j.json`) })
+                expect(status === 201).toBe(true);
+            });
         })
 
         describe('negative', () => {

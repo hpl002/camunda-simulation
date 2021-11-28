@@ -39,7 +39,7 @@ Sorting strategies:
   - are there certain events that should be prioritized?
      - some acitivities which should always be performed first?
 
-
+   
 */
 const Executor = {
   execute: async ({ controller, mongo }) => {
@@ -55,12 +55,16 @@ try {
       }
       else if (event.type === "start task") {
         const data = await Worker.startTask({ event, controller, mongo })           
-        const { startTime, task, type } = data
-        controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ task, type, token:event.token }) })
+        const { startTime, task, type, camundaTask } = data
+        let priority = -1
+        if(type==="complete task"){
+          priority=1 
+        }        
+        controller.pendingEvents.addEvent({ timestamp: startTime, event: new Event({camundaTask, task, type, token:event.token, priority }) })
       }
       else if (event.type === "complete task") {
         await Worker.completeTask({ event, controller, mongo })
-        await Worker.fetchAndAppendNewTasks({ ...event.task, controller, mongo, token:event.token })
+        await Worker.fetchAndAppendNewTasks({ ...event.camundaTask, controller, mongo, token:event.token })
       }
       else {
         throw new Error("could not read event type")

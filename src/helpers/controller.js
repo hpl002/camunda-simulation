@@ -10,10 +10,10 @@ module.exports = {
       this.readableTime = Common.convertToReadableTime(Date.parse(startTime))
       this.pendingEvents = new PendingEvents()
       //this.pendingEventsCopy = {}
-      this.resourceArr = []
+      //this.resourceArr = []
       this.runIdentifier = runIdentifier
       this.descriptionsMap = {}
-      this.taskMap = {}
+      //this.taskMap = {}
       this.tokenMap = {}
       this.globalVariables = {}
     }
