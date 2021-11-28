@@ -214,22 +214,13 @@ describe('Test gateways and variables', () => {
                 data: { "response": "json" }
             };
 
-            const response = await axios(config)
+            let response = await axios(config)
             expect(response.status === 200).toBe(true);
-            expect(Object.keys(response.data).length === 2).toBe(true);
-            Object.keys(response.data).forEach(key => {
-                const activities = response.data[key].map(e => e.activity_id)
-                expect(activities.length === 4).toBe(true);
-                expect(activities.filter(e => ["start", "end"].includes(e)).length === 2).toBe(true);
-            });
-
-            // first process should have bene routed to the less than route
-
-            const process1 = response.data[Object.keys(response.data)[0]]
-            expect(!!process1.find(e => e.activity_id === "age-gt-20")).toBe(true);
-            // second process should have bene routed to the greater than route
-            const process2 = response.data[Object.keys(response.data)[1]]
-            expect(!!process2.find(e => e.activity_id === "age-gt-20")).toBe(true);
+            response = Object.values(response.data)
+            response = response.map(e=>e[2].activity_id)
+            response = new Set(response)
+            response = Array.from(response)
+            expect(response.length === 2).toBe(true);
         });
 
         test('Process with single exclusive gateway. Uses global distribution variable that is not refreshed', async () => {
