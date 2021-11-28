@@ -189,6 +189,7 @@ module.exports = {
         for (const property in total) {
           if (total[property].type === "distribution") {
             //refresh distribution here
+            if(total[property].value.type === "normal distribution") total[property].value.type = "normalDistribution"
             total[property].value = MathHelper[total[property].value.type]({ ...total[property].value.frequency, iso: false })
           }
           total[property] = new helper({ ...total[property] })

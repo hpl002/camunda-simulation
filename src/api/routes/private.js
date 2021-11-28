@@ -122,6 +122,7 @@ module.exports = {
                 "xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance",
                 "xmlns:di": "http://www.omg.org/spec/DD/20100524/DI",
                 "xmlns:modeler": "http://camunda.org/schema/modeler/1.0",
+                "xmlns:bioc":"http://bpmn.io/schema/bpmn/biocolor/1.0",
                 id: "Definitions_1cdvo57",
                 targetNamespace: "http://bpmn.io/schema/bpmn",
                 exporter: "Camunda Modeler",
