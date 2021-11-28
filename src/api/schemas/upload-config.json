@@ -319,6 +319,26 @@
                     ],
                     "properties": {
                         "type": {
+                            "const": "number"
+                        },
+                        "value": {
+                            "type": "number"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "name",
+                        "value"
+                    ],
+                    "properties": {
+                        "type": {
                             "const": "distribution"
                         },
                         "value": {

@@ -1,0 +1,42 @@
+{
+    "start-time": "2021-11-15T16:00:00+01:00",
+    "tokens": [
+        {
+            "id": "specimen",
+            "amount": 1,
+            "distribution": {
+                "type": "constant",
+                "frequency": "PT10M"
+            },
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "requisition",
+                    "value": "cytology"
+                },
+                {
+                    "type": "number",
+                    "name": "cytologyPreparation",
+                    "value": 50
+                },
+                {
+                    "type": "number",
+                    "name": "cytologyStaining",
+                    "value": 50
+                }
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "type": "number",
+            "name": "invalid",
+            "value": 50
+        },
+        {
+            "type": "number",
+            "name": "additionalIinformation",
+            "value": 50
+        }
+    ]
+}

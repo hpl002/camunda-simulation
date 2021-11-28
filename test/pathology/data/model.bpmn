@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_05luoc4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.9.0">
+  <bpmn:category id="Category_0i9rilp">
+    <bpmn:categoryValue id="CategoryValue_002glkg" value="processing" />
+  </bpmn:category>
+  <bpmn:category id="Category_1qsbi1x">
+    <bpmn:categoryValue id="CategoryValue_0fxctif" value="Histology" />
+  </bpmn:category>
+  <bpmn:collaboration id="pathology-1">
+    <bpmn:participant id="Pathology-baseline-2" name="High level pathology workflow" processRef="Pathologybaseline2" />
+    <bpmn:group id="Group_1l74gee" categoryValueRef="CategoryValue_0fxctif" />
+    <bpmn:group id="Group_17iz07b" categoryValueRef="CategoryValue_1sfcez5" />
+  </bpmn:collaboration>
+  <bpmn:process id="Pathologybaseline2" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1j8l5si" />
+    <bpmn:exclusiveGateway id="Gateway_11bk2ts" name="what type of requisition">
+      <bpmn:incoming>Flow_1vhjehw</bpmn:incoming>
+      <bpmn:incoming>Flow_0rx0kie</bpmn:incoming>
+      <bpmn:outgoing>Flow_14qlv1s</bpmn:outgoing>
+      <bpmn:outgoing>Flow_027p5ua</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Cytology-filtration" name="Cytology-filtration" camunda:type="external" camunda:topic="a">
+      <bpmn:documentation>requries machinery</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT30M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1gqb4o5</bpmn:incoming>
+      <bpmn:outgoing>Flow_01f2uik</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Cytology-centrifugation" name="Cytology-centrifugation" camunda:type="external" camunda:topic="a">
+      <bpmn:documentation>requiers machinery
+
+
+10 min</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0eyr6yl</bpmn:incoming>
+      <bpmn:outgoing>Flow_1hboq13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1h2w6wy">
+      <bpmn:incoming>Flow_0wtx7zg</bpmn:incoming>
+      <bpmn:outgoing>Flow_1gqb4o5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0eyr6yl</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Cytology-preparation" name="Cytology-preparation">
+      <bpmn:incoming>Flow_027p5ua</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wtx7zg</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Cytology-deposit" name="Cytology-deposit" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1hboq13</bpmn:incoming>
+      <bpmn:outgoing>Flow_0kr0p30</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0df65pi">
+      <bpmn:incoming>Flow_0kr0p30</bpmn:incoming>
+      <bpmn:incoming>Flow_01f2uik</bpmn:incoming>
+      <bpmn:outgoing>Flow_0samo9p</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Cytology-fixation" name="Cytology-fixation" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0samo9p</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mlermy</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1f8jn7w">
+      <bpmn:incoming>Flow_0mlermy</bpmn:incoming>
+      <bpmn:outgoing>Flow_043be6e</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0zq9vk8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Cytology-manual-staining" name="Cytology-manual-staining">
+      <bpmn:incoming>Flow_043be6e</bpmn:incoming>
+      <bpmn:outgoing>Flow_0b1eag5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1frcdxx">
+      <bpmn:incoming>Flow_0b1eag5</bpmn:incoming>
+      <bpmn:incoming>Flow_1219cwb</bpmn:incoming>
+      <bpmn:outgoing>Flow_16niqho</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Cytology-apply-cover-slip" name="Cytology-apply-cover-slip">
+      <bpmn:documentation>automatically applied to slide</bpmn:documentation>
+      <bpmn:incoming>Flow_16niqho</bpmn:incoming>
+      <bpmn:outgoing>Flow_1494bl1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_02kgpkf">
+      <bpmn:incoming>Flow_1yi8vyl</bpmn:incoming>
+      <bpmn:incoming>Flow_1494bl1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0a4c30a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1m0s1pt</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Common-request-additional-information" name="Common-request-additional-information" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION" value="PT3M" />
+          <camunda:property name="DURATION_TYPE" value="CONSTANT" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;back-desk&#39;})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1m0s1pt</bpmn:incoming>
+      <bpmn:outgoing>Flow_1vhjehw</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Common-archive" name="Common-archive" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT8H" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT3H" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;back-desk&#39;})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0a4c30a</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xvoyi9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Histology-grossing" name="Histology-grossing" camunda:type="external" camunda:topic="a">
+      <bpmn:documentation>required a grossing resource / person¨
+
+
+requires a human resource for grossing</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT30M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Surgical&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14qlv1s</bpmn:incoming>
+      <bpmn:outgoing>Flow_07u77tj</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0g79fq4" sourceRef="Common-invalid-requisition" targetRef="Event_1vgbldu" />
+    <bpmn:sequenceFlow id="Flow_1mwyrbm" name="5%" sourceRef="Gateway_1kywhne" targetRef="Common-invalid-requisition">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${invalid&lt;=5}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_18xp2pu" name="95%" sourceRef="Gateway_1kywhne" targetRef="Common-accessioning" />
+    <bpmn:sequenceFlow id="Flow_027p5ua" name="Cytology" sourceRef="Gateway_11bk2ts" targetRef="Cytology-preparation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${requisition=="cytology"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_19jr31f" sourceRef="Event_09n85it" targetRef="Common-reception" />
+    <bpmn:sequenceFlow id="Flow_1hic2p6" sourceRef="Common-reception" targetRef="Gateway_1kywhne" />
+    <bpmn:sequenceFlow id="Flow_0rx0kie" sourceRef="Common-accessioning" targetRef="Gateway_11bk2ts" />
+    <bpmn:sequenceFlow id="Flow_14qlv1s" name="Histology" sourceRef="Gateway_11bk2ts" targetRef="Histology-grossing">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${requisition=="surgical"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_07u77tj" sourceRef="Histology-grossing" targetRef="Histology-fixation" />
+    <bpmn:sequenceFlow id="Flow_0kr0p30" sourceRef="Cytology-deposit" targetRef="Gateway_0df65pi" />
+    <bpmn:sequenceFlow id="Flow_1m0s1pt" name="20%" sourceRef="Gateway_02kgpkf" targetRef="Common-request-additional-information">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${additionalIinformation&gt;=80}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1vhjehw" sourceRef="Common-request-additional-information" targetRef="Gateway_11bk2ts" />
+    <bpmn:sequenceFlow id="Flow_0a4c30a" name="80%" sourceRef="Gateway_02kgpkf" targetRef="Common-archive">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${additionalIinformation&lt;80}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0sehcjd" sourceRef="Common-send-report" targetRef="Event_0ld5t9j" />
+    <bpmn:sequenceFlow id="Flow_1gqb4o5" name="&#60;50%" sourceRef="Gateway_1h2w6wy" targetRef="Cytology-filtration">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${cytologyPreparation&lt;50}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_01f2uik" sourceRef="Cytology-filtration" targetRef="Gateway_0df65pi" />
+    <bpmn:sequenceFlow id="Flow_0eyr6yl" name="&#62;50%" sourceRef="Gateway_1h2w6wy" targetRef="Cytology-centrifugation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${cytologyPreparation&gt;=50}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1xvoyi9" sourceRef="Common-archive" targetRef="Common-send-report" />
+    <bpmn:sequenceFlow id="Flow_1hboq13" sourceRef="Cytology-centrifugation" targetRef="Cytology-deposit" />
+    <bpmn:sequenceFlow id="Flow_0samo9p" sourceRef="Gateway_0df65pi" targetRef="Cytology-fixation" />
+    <bpmn:sequenceFlow id="Flow_0mlermy" sourceRef="Cytology-fixation" targetRef="Gateway_1f8jn7w" />
+    <bpmn:sequenceFlow id="Flow_043be6e" name="&#62;50%" sourceRef="Gateway_1f8jn7w" targetRef="Cytology-manual-staining">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${cytologyStaining&gt;=50}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0zq9vk8" name="&#60;50%" sourceRef="Gateway_1f8jn7w" targetRef="Cytology-automatic-staining">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${cytologyStaining&lt;50}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0b1eag5" sourceRef="Cytology-manual-staining" targetRef="Gateway_1frcdxx" />
+    <bpmn:sequenceFlow id="Flow_1219cwb" sourceRef="Cytology-automatic-staining" targetRef="Gateway_1frcdxx" />
+    <bpmn:sequenceFlow id="Flow_16niqho" sourceRef="Gateway_1frcdxx" targetRef="Cytology-apply-cover-slip" />
+    <bpmn:sequenceFlow id="Flow_0wtx7zg" sourceRef="Cytology-preparation" targetRef="Gateway_1h2w6wy" />
+    <bpmn:sequenceFlow id="Flow_1yi8vyl" sourceRef="Histology-staining" targetRef="Gateway_02kgpkf" />
+    <bpmn:sequenceFlow id="Flow_1494bl1" sourceRef="Cytology-apply-cover-slip" targetRef="Gateway_02kgpkf" />
+    <bpmn:sequenceFlow id="Flow_0o1msts" sourceRef="Histology-fixation" targetRef="Histology-processing" />
+    <bpmn:sequenceFlow id="Flow_1v5ltpq" sourceRef="Histology-processing" targetRef="Histology-sectioning" />
+    <bpmn:sequenceFlow id="Flow_16jct3w" sourceRef="Histology-sectioning" targetRef="Histology-deposit" />
+    <bpmn:sequenceFlow id="Flow_0p2ja20" sourceRef="Histology-deposit" targetRef="Histology-staining" />
+    <bpmn:task id="Cytology-automatic-staining" name="Cytology-automatic-staining">
+      <bpmn:incoming>Flow_0zq9vk8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1219cwb</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Histology-fixation" name="Histology-fixation" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_07u77tj</bpmn:incoming>
+      <bpmn:outgoing>Flow_0o1msts</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Histology-processing" name="Histology-processing" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0o1msts</bpmn:incoming>
+      <bpmn:outgoing>Flow_1v5ltpq</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Histology-sectioning" name="Histology-sectioning" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1v5ltpq</bpmn:incoming>
+      <bpmn:outgoing>Flow_16jct3w</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Histology-staining" name="Histology-staining" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0p2ja20</bpmn:incoming>
+      <bpmn:outgoing>Flow_1yi8vyl</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Histology-deposit" name="Histology-deposit" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT20M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;Processing&#39;})-[REQUIRES]-(s:Specialization {category: &#39;Cytology&#39;})-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_16jct3w</bpmn:incoming>
+      <bpmn:outgoing>Flow_0p2ja20</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Common-send-report" name="Common-send-report" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT10M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT5M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;back-desk&#39;})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1xvoyi9</bpmn:incoming>
+      <bpmn:outgoing>Flow_0sehcjd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_0ld5t9j" name="end">
+      <bpmn:incoming>Flow_0sehcjd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Common-accessioning" name="Accessioning" camunda:type="external" camunda:topic="a">
+      <bpmn:documentation>Create a case where all data and information created later in the pathology process can be attached</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT10M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT2M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;front-desk&#39;})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_18xp2pu</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rx0kie</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:startEvent id="Event_09n85it" name="Recieve requisition and material">
+      <bpmn:outgoing>Flow_19jr31f</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Common-reception" name="Common-reception" camunda:type="external" camunda:topic="a">
+      <bpmn:documentation>Specimen and request are checked for validity
+
+Rejected if there are any problems</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION_MEAN" value="PT10M" />
+          <camunda:property name="DURATION_STANDARDDEVIATION" value="PT2M" />
+          <camunda:property name="DURATION_TYPE" value="NORMAL_DISTRIBUTION" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;front-desk&#39;})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_19jr31f</bpmn:incoming>
+      <bpmn:outgoing>Flow_1hic2p6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1kywhne" default="Flow_18xp2pu">
+      <bpmn:incoming>Flow_1hic2p6</bpmn:incoming>
+      <bpmn:outgoing>Flow_18xp2pu</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1mwyrbm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Common-invalid-requisition" name="Common-invalid-requisition" camunda:type="external" camunda:topic="a">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="DURATION" value="PT01M" />
+          <camunda:property name="RESOURCE" value="MATCH (t:Task {category: &#39;front-desk&#39;})-[REQUIRES]-(s:Specialization)-[HAS]-(r:Resource) return r" />
+          <camunda:property name="DURATION_TYPE" value="CONSTANT" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1mwyrbm</bpmn:incoming>
+      <bpmn:outgoing>Flow_0g79fq4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_1vgbldu" name="end">
+      <bpmn:incoming>Flow_0g79fq4</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:category id="Category_1cs766q">
+    <bpmn:categoryValue id="CategoryValue_1sfcez5" value="Cytology" />
+  </bpmn:category>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="pathology-1">
+      <bpmndi:BPMNShape id="Participant_1qvzswa_di" bpmnElement="Pathology-baseline-2" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2340" height="840" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0p2ja20_di" bpmnElement="Flow_0p2ja20">
+        <di:waypoint x="1730" y="770" />
+        <di:waypoint x="1870" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16jct3w_di" bpmnElement="Flow_16jct3w">
+        <di:waypoint x="1510" y="770" />
+        <di:waypoint x="1630" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1v5ltpq_di" bpmnElement="Flow_1v5ltpq">
+        <di:waypoint x="1270" y="770" />
+        <di:waypoint x="1410" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0o1msts_di" bpmnElement="Flow_0o1msts">
+        <di:waypoint x="1110" y="770" />
+        <di:waypoint x="1170" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1494bl1_di" bpmnElement="Flow_1494bl1">
+        <di:waypoint x="1960" y="480" />
+        <di:waypoint x="2030" y="480" />
+        <di:waypoint x="2030" y="620" />
+        <di:waypoint x="2175" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1yi8vyl_di" bpmnElement="Flow_1yi8vyl">
+        <di:waypoint x="1970" y="770" />
+        <di:waypoint x="2030" y="770" />
+        <di:waypoint x="2030" y="620" />
+        <di:waypoint x="2175" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wtx7zg_di" bpmnElement="Flow_0wtx7zg">
+        <di:waypoint x="880" y="490" />
+        <di:waypoint x="935" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16niqho_di" bpmnElement="Flow_16niqho">
+        <di:waypoint x="1785" y="480" />
+        <di:waypoint x="1860" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1219cwb_di" bpmnElement="Flow_1219cwb">
+        <di:waypoint x="1730" y="580" />
+        <di:waypoint x="1760" y="580" />
+        <di:waypoint x="1760" y="505" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0b1eag5_di" bpmnElement="Flow_0b1eag5">
+        <di:waypoint x="1730" y="400" />
+        <di:waypoint x="1760" y="400" />
+        <di:waypoint x="1760" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zq9vk8_di" bpmnElement="Flow_0zq9vk8">
+        <di:waypoint x="1560" y="515" />
+        <di:waypoint x="1560" y="590" />
+        <di:waypoint x="1630" y="590" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1561" y="552" width="29" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_043be6e_di" bpmnElement="Flow_043be6e">
+        <di:waypoint x="1560" y="465" />
+        <di:waypoint x="1560" y="400" />
+        <di:waypoint x="1630" y="400" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1561" y="430" width="29" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mlermy_di" bpmnElement="Flow_0mlermy">
+        <di:waypoint x="1510" y="490" />
+        <di:waypoint x="1535" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0samo9p_di" bpmnElement="Flow_0samo9p">
+        <di:waypoint x="1365" y="490" />
+        <di:waypoint x="1410" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hboq13_di" bpmnElement="Flow_1hboq13">
+        <di:waypoint x="1110" y="390" />
+        <di:waypoint x="1170" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xvoyi9_di" bpmnElement="Flow_1xvoyi9">
+        <di:waypoint x="2200" y="450" />
+        <di:waypoint x="2200" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0eyr6yl_di" bpmnElement="Flow_0eyr6yl">
+        <di:waypoint x="960" y="465" />
+        <di:waypoint x="960" y="390" />
+        <di:waypoint x="1010" y="390" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="961" y="425" width="29" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01f2uik_di" bpmnElement="Flow_01f2uik">
+        <di:waypoint x="1110" y="600" />
+        <di:waypoint x="1340" y="600" />
+        <di:waypoint x="1340" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gqb4o5_di" bpmnElement="Flow_1gqb4o5">
+        <di:waypoint x="960" y="515" />
+        <di:waypoint x="960" y="600" />
+        <di:waypoint x="1010" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="961" y="555" width="29" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0sehcjd_di" bpmnElement="Flow_0sehcjd">
+        <di:waypoint x="2250" y="360" />
+        <di:waypoint x="2342" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0a4c30a_di" bpmnElement="Flow_0a4c30a">
+        <di:waypoint x="2200" y="595" />
+        <di:waypoint x="2200" y="530" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2204" y="550" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vhjehw_di" bpmnElement="Flow_1vhjehw">
+        <di:waypoint x="2200" y="830" />
+        <di:waypoint x="2200" y="880" />
+        <di:waypoint x="610" y="880" />
+        <di:waypoint x="610" y="660" />
+        <di:waypoint x="664" y="629" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1m0s1pt_di" bpmnElement="Flow_1m0s1pt">
+        <di:waypoint x="2200" y="645" />
+        <di:waypoint x="2200" y="750" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2218" y="693" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0kr0p30_di" bpmnElement="Flow_0kr0p30">
+        <di:waypoint x="1270" y="390" />
+        <di:waypoint x="1340" y="390" />
+        <di:waypoint x="1340" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07u77tj_di" bpmnElement="Flow_07u77tj">
+        <di:waypoint x="870" y="770" />
+        <di:waypoint x="1010" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14qlv1s_di" bpmnElement="Flow_14qlv1s">
+        <di:waypoint x="680" y="645" />
+        <di:waypoint x="680" y="770" />
+        <di:waypoint x="770" y="770" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="627" y="705" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rx0kie_di" bpmnElement="Flow_0rx0kie">
+        <di:waypoint x="610" y="400" />
+        <di:waypoint x="610" y="580" />
+        <di:waypoint x="664" y="611" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hic2p6_di" bpmnElement="Flow_1hic2p6">
+        <di:waypoint x="420" y="360" />
+        <di:waypoint x="465" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19jr31f_di" bpmnElement="Flow_19jr31f">
+        <di:waypoint x="268" y="360" />
+        <di:waypoint x="320" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_027p5ua_di" bpmnElement="Flow_027p5ua">
+        <di:waypoint x="680" y="595" />
+        <di:waypoint x="680" y="490" />
+        <di:waypoint x="780" y="490" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="628" y="540" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18xp2pu_di" bpmnElement="Flow_18xp2pu">
+        <di:waypoint x="515" y="360" />
+        <di:waypoint x="560" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="524" y="373" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mwyrbm_di" bpmnElement="Flow_1mwyrbm">
+        <di:waypoint x="490" y="335" />
+        <di:waypoint x="490" y="240" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="497" y="283" width="16" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0g79fq4_di" bpmnElement="Flow_0g79fq4">
+        <di:waypoint x="540" y="200" />
+        <di:waypoint x="592" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_11bk2ts_di" bpmnElement="Gateway_11bk2ts" isMarkerVisible="true" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="655" y="595" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="570" y="606" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_10933ko_di" bpmnElement="Cytology-filtration" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1010" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1k2dsf7_di" bpmnElement="Cytology-centrifugation" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1010" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1h2w6wy_di" bpmnElement="Gateway_1h2w6wy" isMarkerVisible="true" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="935" y="465" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="856" y="490" width="28" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1b1jj7e_di" bpmnElement="Cytology-preparation" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="780" y="450" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rgghcy_di" bpmnElement="Cytology-deposit" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1170" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0df65pi_di" bpmnElement="Gateway_0df65pi" isMarkerVisible="true" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1315" y="465" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rptoe7_di" bpmnElement="Cytology-fixation" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1410" y="450" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1f8jn7w_di" bpmnElement="Gateway_1f8jn7w" isMarkerVisible="true" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1535" y="465" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1d4se6b_di" bpmnElement="Cytology-manual-staining" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1630" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1frcdxx_di" bpmnElement="Gateway_1frcdxx" isMarkerVisible="true" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1735" y="455" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ryryqe_di" bpmnElement="Cytology-apply-cover-slip" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1860" y="440" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_02kgpkf_di" bpmnElement="Gateway_02kgpkf" isMarkerVisible="true" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="2175" y="595" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1wxjn2o_di" bpmnElement="Common-request-additional-information" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="2150" y="750" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1qcb8f5_di" bpmnElement="Common-archive" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="2150" y="450" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1vmie0g_di" bpmnElement="Histology-grossing" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="770" y="730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1kje3r5_di" bpmnElement="Cytology-automatic-staining" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1630" y="540" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0j06sxl_di" bpmnElement="Histology-fixation" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="1010" y="730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_09yufbc_di" bpmnElement="Histology-processing" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="1170" y="730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1vyuwbi_di" bpmnElement="Histology-sectioning" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="1410" y="730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_147n341_di" bpmnElement="Histology-staining" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="1870" y="730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_01pe22k_di" bpmnElement="Histology-deposit" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="1630" y="730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0khaedd_di" bpmnElement="Common-send-report" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="2150" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ld5t9j_di" bpmnElement="Event_0ld5t9j" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
+        <dc:Bounds x="2342" y="342" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2351" y="385" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1vz3w2o_di" bpmnElement="Common-accessioning" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="560" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_09n85it_di" bpmnElement="Event_09n85it" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="232" y="342" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="214" y="385" width="72" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0h3b9re_di" bpmnElement="Common-reception" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="320" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1kywhne_di" bpmnElement="Gateway_1kywhne" isMarkerVisible="true" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="465" y="335" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_06ost4a_di" bpmnElement="Common-invalid-requisition" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="440" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1vgbldu_di" bpmnElement="Event_1vgbldu" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
+        <dc:Bounds x="592" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="601" y="225" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_1l74gee_di" bpmnElement="Group_1l74gee" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="760" y="700" width="1230" height="140" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1352" y="707" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_17iz07b_di" bpmnElement="Group_17iz07b" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="760" y="340" width="1230" height="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1353" y="347" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
