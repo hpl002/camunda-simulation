@@ -22,7 +22,7 @@ const executeQuery = async ({ query, driver }) => {
         console.log("error", `error on query: ${query}`)
         console.error(error)
         session.close({ driver });
-        throw err
+        throw error
     }
 }
 

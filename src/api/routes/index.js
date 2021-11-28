@@ -5,6 +5,7 @@ const axios = require('axios');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { parse } = require('json2csv');
+const _get = require('lodash.get');
 
 const helper = require("./private");
 const appConfigs = require("../../../config");
@@ -49,7 +50,17 @@ router.post('/config', async function (req, res, next) {
       // check to see that records were indeed inserted
       const result = await neo4j.executeQuery({ query: "MATCH (n) RETURN n LIMIT 25", driver })
       if (result.length < 1) throw new Error("Cypher create query produced zero nodes")
+      let ids = []
+      result.records.forEach(record => {
+        const c = _get(record, "_fields[0].properties.id", false)
+        if (!c) throw new Error("could not find id on node")        
+        ids.push(c)
+      });
 
+      function hasDuplicates(array) {
+        return (new Set(array)).size !== array.length;
+    }
+    if(hasDuplicates(ids)) throw new Error("Found multiple nodes with the same id. All nodes most have a unique id")        
       if(input.tasks){
         for (const task of input.tasks) {
           if (task["resource-query"]) {

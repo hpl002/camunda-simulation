@@ -30,5 +30,5 @@
             }
         }
     ],
-    "initialize_resources": "CREATE ({id: 'pizza oven'}),({id: 'pizza oven'}),({id: 'pizza oven'})"
+    "initialize_resources": "CREATE ({id: 'pizza oven 1'}),({id: 'pizza oven 2'}),({id: 'pizza oven 3'})"
 }

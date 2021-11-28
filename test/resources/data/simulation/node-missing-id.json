@@ -1,33 +1,34 @@
 {
+    "start-time": "2021-11-15T16:00:00+01:00",
     "tokens": [
         {
             "id": "pizza",
             "amount": 1,
             "distribution": {
                 "type": "constant",
-                "frequency": "PT1M"
+                "frequency": "PT5M"
             }
         }
     ],
     "tasks": [
         {
             "id": "cook-pizza",
-            "resource-query": "MATCH (nodes)  Where nodes.id='pizza oven' return nodes",
+            "resource-query": "MATCH (nodes) return nodes",
+            "resources-required": 100, 
             "timing": {
                 "type": "constant",
-                "frequency": "PT1M"
+                "frequency": "PT10M"
             }
         }
     ],
     "resources": [
         {
             "id": "pizza oven",
-            "description": "some description of this nice oven",
             "efficiency": {
                 "type": "constant",
-                "frequency": 80
+                "frequency": 50
             }
         }
     ],
-    "initialize_resources": "CREATE ({id: 'pizza oven'}),({id: 'pizza oven 1'})"
+    "initialize_resources": "CREATE ({other: 'pizza oven'})"
 }

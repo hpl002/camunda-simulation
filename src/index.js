@@ -39,7 +39,7 @@ Sorting strategies:
   - are there certain events that should be prioritized?
      - some acitivities which should always be performed first?
 
-
+   
 */
 const Executor = {
   execute: async ({ controller, mongo }) => {

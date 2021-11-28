@@ -62,28 +62,43 @@ const Worker = {
 
   //--> update nodes in neo4j 
 
-  updateNodesInNeo4j: async ({ query, driver, taskId, lockedUntil }) => {
-    let modifiedQuery = query
-    modifiedQuery = modifiedQuery.split("return nodes")[0]
-    const modifiedQuery_taskId = `${modifiedQuery} SET nodes.taskId = '${taskId}' return nodes`
-    const modifiedQuery_lockedUntil = `${modifiedQuery} SET nodes.lockedUntil = '${lockedUntil}' return nodes`
+  updateNodesInNeo4j: async ({ query, driver, taskId, lockedUntil, resourceIds }) => {
 
-    // check that the records were indeed updated
-    const records_taskId = await neo4j.executeQuery({ query: modifiedQuery_taskId, driver })
-    records_taskId.records.forEach(element => {
-      if (!_get(element, "_fields[0].properties.taskId", false)) throw new Error("did not manage to successfully set taskId on nodes when marking as locked in neo4j ")
+    const updatePropertyOnRecord = async ({ id }) => {
+      //MATCH (nodes)  Where nodes.other='common' SET nodes.lockedUntil = '${lockedUntil}'  return nodes
+
+      const match = `MATCH (nodes) Where nodes.id = '${id}'`
+      const modifiedQuery_taskId = `${match} SET nodes.taskId = '${taskId}' return nodes`
+      const modifiedQuery_lockedUntil = `${match} SET nodes.lockedUntil = '${lockedUntil}' return nodes`
+
+      // check that the records were indeed updated
+      const records_taskId = await neo4j.executeQuery({ query: modifiedQuery_taskId, driver })
+      records_taskId.records.forEach(element => {
+        if (!_get(element, "_fields[0].properties.taskId", false)) throw new Error("did not manage to successfully set taskId on nodes when marking as locked in neo4j ")
+      });
+
+      const records_lockedUntil = await neo4j.executeQuery({ query: modifiedQuery_lockedUntil, driver })
+      records_lockedUntil.records.forEach(element => {
+        if (!_get(element, "_fields[0].properties.lockedUntil", false)) throw new Error("did not manage to successfully set lockedUntil on nodes when marking as locked in neo4j ")
+      });
+
+      return true
+    }
+
+    const updates = []
+    resourceIds.forEach(id => {
+      updates.push(updatePropertyOnRecord({ id }))
     });
 
-    const records_lockedUntil = await neo4j.executeQuery({ query: modifiedQuery_lockedUntil, driver })
-    records_lockedUntil.records.forEach(element => {
-      if (!_get(element, "_fields[0].properties.lockedUntil", false)) throw new Error("did not manage to successfully set lockedUntil on nodes when marking as locked in neo4j ")
-    });
+    const c = await Promise.all(updates)
+    console.log("asd")
+
   },
 
   startTask: async ({ event, controller, mongo }) => {
     const driver = neo4j.init()
     const { camundaTask, task } = event
-    if(!!(camundaTask &&  task) === false) throw new Error("missing required params")
+    if (!!(camundaTask && task) === false) throw new Error("missing required params")
     const start = async ({ resources, completionTime }) => {
       try {
         let { variables } = controller.mergeVariablesAndUpdate({ event })
@@ -121,14 +136,10 @@ const Worker = {
       return res
     }
 
-    const accountForResources = async ({ driver, taskDuration, controller, query = undefined, limit = undefined }) => {
+    const accountForResources = async ({ driver, taskDuration, controller, query = undefined, requirement = undefined }) => {
       let resourceIds = []
 
-      const getAvailableAndUnavailableResources = async ({ limit }) => {
-        if (limit) {
-          query = `${query} LIMIT ${parseInt(limit)}`
-        }
-
+      const getAvailableAndUnavailableResources = async ({ query, requirement }) => {
         // if a limit has been set then this is appended to the query string
         const { records } = await neo4j.executeQuery({ query, driver })
         // array of all matched resoruces that are available
@@ -139,10 +150,16 @@ const Worker = {
         records.forEach(record => {
           const properties = _get(record, "_fields[0].properties", {})
           //if it does not have locked property then it is assumed to be available
-          if(properties.lockedUntil && properties.lockedUntil.toUpperCase() === "NULL") properties.lockedUntil = undefined
+          if (properties.lockedUntil && properties.lockedUntil.toUpperCase() === "NULL") properties.lockedUntil = undefined
           const isAvaialble = !!!properties.lockedUntil
           if (isAvaialble) {
-            available.push(record)
+            //TODO: do not add any more resource if limit is met
+            if (requirement && available.length < requirement) {
+              available.push(record)
+            }
+            else if (!requirement) {
+              available.push(record)
+            }
           }
           else {
             unavailble.push(record)
@@ -152,7 +169,7 @@ const Worker = {
         return { available, unavailble }
       }
 
-      const { available, unavailble } = await getAvailableAndUnavailableResources({ limit })
+      const { available, unavailble } = await getAvailableAndUnavailableResources({ requirement, query })
       if (unavailble.length > 0) {
         let resourceAvailableAt = 0
         unavailble.forEach(record => {
@@ -160,13 +177,13 @@ const Worker = {
           const v = parseInt(_get(record, "_fields[0].properties.lockedUntil", undefined))
           if (v > resourceAvailableAt) resourceAvailableAt = v
         });
-        if(resourceAvailableAt<1) throw new Error("Error in resoruce lockedUntil timepoint. Value must be greater than 0")
+        if (resourceAvailableAt < 1) throw new Error("Error in resoruce lockedUntil timepoint. Value must be greater than 0")
         return { time: resourceAvailableAt, resourceIds, type: "reschedule" }
       }
       else {
         //if there exists multiple resourecs then averate their efficiencies
         // if no efficiency is declared then assume this to be 100
-        let sumPercentage=0;
+        let sumPercentage = 0;
         // check if resources have some assigned efficiency
         available.forEach(resource => {
           const id = _get(resource, "_fields[0].properties.id", undefined)
@@ -197,12 +214,6 @@ const Worker = {
         const calculatedOffset = parseInt((taskDuration * (sumPercentage / 100)))
         return { time: calculatedOffset, resourceIds, type: "schedule" }
       }
-
-
-
-
-
-
     }
 
     // add task duration if it is declared at all
@@ -216,7 +227,7 @@ const Worker = {
 
     // if there exists a resource + there is a task duration to offset       
     if (task["resource-query"] && taskDuration > 0) {
-      const { type, time, resourceIds } = await accountForResources({ limit: task["resource-query-limit"], query: task["resource-query"], driver, taskDuration, controller })
+      const { type, time, resourceIds } = await accountForResources({ requirement: task["resources-required"], query: task["resource-query"], driver, taskDuration, controller })
       if (type === "schedule") {
         // resources were available
         // resources are marked as occupied in neo4j with a refernce to this task
@@ -227,15 +238,19 @@ const Worker = {
         completionTime += time
         // are any of these resources occupied?(occuped resources have a property on the node itslef, same level as id)
         // are any of these resources occupied?
-        await Worker.updateNodesInNeo4j({ driver, query:task["resource-query"], taskId: camundaTask.id, lockedUntil: completionTime })
-        return await start({task,  resources: resourceIds, completionTime })
+        //TODO: use ids when unlocking resoruces
+
+
+        task.resourceIds = resourceIds
+        await Worker.updateNodesInNeo4j({ driver, query: task["resource-query"], taskId: camundaTask.id, lockedUntil: completionTime, resourceIds })
+        return await start({ task, resources: resourceIds, completionTime })
       }
-      else {         
+      else {
         return { camundaTask, task, startTime: time, type: "start task" }
       }
     }
     else {
-      return await start({task, resources: ["no-resource"], completionTime })
+      return await start({ task, resources: ["no-resource"], completionTime })
     }
 
 
@@ -250,7 +265,7 @@ const Worker = {
     const { task, camundaTask } = event
     // updating vals to null is the same as deleting them
     if (task["resource-query"]) {
-      await Worker.updateNodesInNeo4j({ driver, query: task["resource-query"], taskId: null, lockedUntil: null })
+      await Worker.updateNodesInNeo4j({ driver, query: task["resource-query"], taskId: null, lockedUntil: null, resourceIds:event.task.resourceIds })
     }
     try {
       const body = {
