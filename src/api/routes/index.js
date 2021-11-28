@@ -110,9 +110,8 @@ router.post('/start', async function (req, res, next) {
   if (!startTime) startTime = new Date()
   let { tokens, variables } = input
   const controller = new Controller({ startTime, runIdentifier: uuidv4(), processKey })
-  await controller.init({ tokens, variables })
+  await controller.init({ tokens, variables, shuffle:input["shuffle-tokens"] })
   controller.input = input
-  // return execution log
 
   try {
     await Executor.execute({ controller, mongo })

@@ -23,49 +23,66 @@ module.exports = {
      * init list of start events
      * First event in list always set at time zero (do not offset first event from clock init)
      */
-    initPendingEvents({ tokens = [] }) {
+    initPendingEvents({ tokens = [], shuffle }) {
+
+      function shuffleArray(array) {
+        for (var i = array.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var temp = array[i];
+          array[i] = array[j];
+          array[j] = temp;
+        }
+      }
+
+      const final = []
+
+      tokens.forEach(token => {
+        const { amount } = token
+        for (let index = 0; index < amount; index++) {
+          final.push(token)
+        }
+      });
+
+      if(shuffle) shuffleArray(final)
+
+      //parse all tokens into a single ordered array
+
       let startTime = this.clock;
-      for (const token of tokens) {
+      for (const token of final) {
         const { id, variables, amount, distribution } = token
         const { frequency } = distribution
         const { type } = distribution
 
 
         if (type == "constant") {
-          for (let index = 0; index < amount; index++) {
-            if (Object.keys(this.pendingEvents.events).length === 0) {
-              // first event starts at time zero
-              startTime = this.clock
-            }
-            else {
-              startTime = startTime + MathHelper.constant({ value: frequency })
-            }
-            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
+          if (Object.keys(this.pendingEvents.events).length === 0) {
+            // first event starts at time zero
+            startTime = this.clock
           }
+          else {
+            startTime = startTime + MathHelper.constant({ value: frequency })
+          }
+          this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
         }
         else if (type === "normal distribution") {
-          for (let index = 0; index < amount; index++) {
-            //First event in list always set at time zero (do not offset first event from clock init)
-            if (Object.keys(this.pendingEvents.events).length === 0) {
-              startTime = this.clock
-            }
-            else {
-              startTime = startTime + MathHelper.normalDistribution({ mean: frequency.mean, sd: frequency.sd })
-            }
-            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
+          //First event in list always set at time zero (do not offset first event from clock init)
+          if (Object.keys(this.pendingEvents.events).length === 0) {
+            startTime = this.clock
           }
+          else {
+            startTime = startTime + MathHelper.normalDistribution({ mean: frequency.mean, sd: frequency.sd })
+          }
+          this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
         }
         else if (type.toUpperCase() === "RANDOM") {
-          for (let index = 0; index < amount; index++) {
-            //First event in list always set at time zero (do not offset first event from clock init)
-            if (Object.keys(this.pendingEvents.events).length === 0) {
-              startTime = this.clock
-            }
-            else {
-              startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
-            }
-            this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
+          //First event in list always set at time zero (do not offset first event from clock init)
+          if (Object.keys(this.pendingEvents.events).length === 0) {
+            startTime = this.clock
           }
+          else {
+            startTime = startTime + MathHelper.random({ min: frequency.min, max: frequency.max })
+          }
+          this.pendingEvents.addEvent({ timestamp: startTime, event: new Event({ token: token, type: "start process", originatingToken: id }) })
         }
 
         /*
@@ -101,8 +118,8 @@ module.exports = {
       //this.pendingEventsCopy = { ...events }
     }
 
-    async init({ tokens = [], variables = {} }) {
-      this.initPendingEvents({ tokens })
+    async init({ tokens = [], variables = {}, shuffle = false }) {
+      this.initPendingEvents({ tokens, shuffle })
       this.globalVariables = variables
       //this.initTasks({ tasks })
       //this.pendingEvents.events
@@ -189,7 +206,7 @@ module.exports = {
         for (const property in total) {
           if (total[property].type === "distribution") {
             //refresh distribution here
-            if(total[property].value.type === "normal distribution") total[property].value.type = "normalDistribution"
+            if (total[property].value.type === "normal distribution") total[property].value.type = "normalDistribution"
             total[property].value = MathHelper[total[property].value.type]({ ...total[property].value.frequency, iso: false })
           }
           total[property] = new helper({ ...total[property] })

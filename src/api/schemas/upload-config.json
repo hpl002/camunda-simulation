@@ -13,6 +13,11 @@
             "format": "date-time",
             "description": "ISO 8601 date-time -- https://json-schema.org/understanding-json-schema/reference/string.html#id8"
         },
+        "shuffle-tokens": {
+            "type": "boolean",
+            "default":false,
+            "description": "Shuffle start process events by use of the Durstenfeld Algorithm"
+        },
         "variables": {
             "description": "Process variables which are scoped to all process instances",
             "$ref": "#/$defs/variables"
