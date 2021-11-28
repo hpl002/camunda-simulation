@@ -1,0 +1,91 @@
+{
+    "start-time": "2021-11-15T16:00:00+01:00",
+    "shuffle-tokens":true,
+    "tokens": [
+        {
+            "id": "specimen-cytology",
+            "amount": 40,
+            "distribution": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean":"PT10M",
+                    "sd":"PT2M"
+                }
+            },
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "requisition",
+                    "value": "cytology"
+                },
+                {
+                    "type": "distribution",
+                    "name": "cytologyPreparation",
+                    "refresh": true,
+                    "value": {
+                        "type": "random",
+                        "frequency": {
+                            "min": 0,
+                            "max": 100
+                        }
+                    }
+                },
+                {
+                    "type": "distribution",
+                    "name": "cytologyStaining",
+                    "refresh": true,
+                    "value": {
+                        "type": "random",
+                        "frequency": {
+                            "min": 0,
+                            "max": 100
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "specimen-histology",
+            "amount": 20,
+            "distribution": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean":"PT10M",
+                    "sd":"PT2M"
+                }
+            },
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "requisition",
+                    "value": "surgical"
+                }
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "type": "distribution",
+            "name": "invalid",
+            "value": {
+                "type": "random",
+                "frequency": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        },
+        {
+            "type": "distribution",
+            "name": "additionalIinformation",
+            "refresh": true,
+            "value": {
+                "type": "random",
+                "frequency": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        }
+    ]
+}

@@ -2,7 +2,9 @@ const { beforeEach } = require("jest-circus");
 const appconfigs = require("../../config")
 const axios = require('axios');
 const { upload } = require("../helper")
-jest.setTimeout(30000);
+const fs = require("fs")
+
+jest.setTimeout(3000000);
 
 const getTime = (data, index) => {
     return data[index].activity_start.split(" ")[1]
@@ -43,38 +45,72 @@ describe('core', () => {
             expect(response[0]["activity_start"].split(" ")[1]).toEqual("16:00:00");
             expect(response[11]["activity_start"].split(" ")[1]).toEqual("16:00:00");
         });
+
+        test('Happy path: 5 cytology specimen ', async () => {
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/cytology-10-happy-path.json`) })
+
+            expect(status === 201).toBe(true);
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            let response = await axios(config)
+            let counter = 0
+            Object.values(response.data).forEach(element => {
+                expect(element.length).toEqual(12);
+                expect(element.length).toEqual(12);
+                expect(element[0]["activity_start"].split(" ")[1]).toEqual(`16:${counter * 10 === 0 ? "00" : counter * 10}:00`);
+                expect(element[11]["activity_start"].split(" ")[1]).toEqual(`16:${counter * 10 === 0 ? "00" : counter * 10}:00`);
+                counter += 1
+            });
+        });
     })
 
-    test.only('Happy path: 5 cytology specimen ', async () => {
-        const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/cytology-10-happy-path.json`) })
+    describe('experiments', () => {
+        test.only('experiment 1 - token ingress + local and global variables', async () => {
+            // Local and global variables
+            // Token ingress 
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment1/config.json`) })
 
-        expect(status === 201).toBe(true);
-        let config = {
-            method: 'post',
-            url: `${appconfigs.controller}/start`,
-            headers: {},
-            data: { "response": "json" }
-        };
+            expect(status === 201).toBe(true);
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
 
-        let response = await axios(config)
-        let counter = 0
-        Object.values(response.data).forEach(element => {             
-            expect(element.length).toEqual(12);
-            expect(element.length).toEqual(12);
-            expect(element[0]["activity_start"].split(" ")[1]).toEqual(`16:${counter*10===0?"00":counter*10}:00`);
-            expect(element[11]["activity_start"].split(" ")[1]).toEqual(`16:${counter*10===0?"00":counter*10}:00`);
-            counter += 1
+            let response = await axios(config)
+            expect(Object.values(response.data).length).toEqual(60);
+
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment1/log.json`, JSON.stringify(response.data, null, 4));
+
         });
-    });
 
-    
+        test('experiment 2 - token ingress + local and global variables + tak duration', async () => {
+            // Local and global variables
+            // Token ingress 
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment2/config.json`) })
+
+            expect(status === 201).toBe(true);
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            let response = await axios(config)
+            expect(Object.values(response.data).length).toEqual(60);
+
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment2/log.json`, JSON.stringify(response.data, null, 4));
+
+        });
+
+    })
+
+
 })
-
-
-
-
-
-
-            // run slightly more comlpex simulation with no resource efficiency(gateway)
-            // run slightly more comlpex simulation with no resource efficiency(gateway)
-
