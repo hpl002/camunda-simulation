@@ -70,7 +70,7 @@ describe('core', () => {
     })
 
     describe('experiments', () => {
-        test.only('experiment 1 - token ingress + local and global variables', async () => {
+        test('experiment 1 - token ingress + local and global variables', async () => {
             // Local and global variables
             // Token ingress 
             const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment1/config.json`) })
@@ -107,7 +107,44 @@ describe('core', () => {
             expect(Object.values(response.data).length).toEqual(60);
 
             fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment2/log.json`, JSON.stringify(response.data, null, 4));
+        });
 
+        test('experiment 3 - token ingress + local and global variables + tak duration + resources', async () => {
+            // Local and global variables
+            // Token ingress 
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment3/config.json`) })
+
+            expect(status === 201).toBe(true);
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            let response = await axios(config)
+            expect(Object.values(response.data).length).toEqual(60);
+
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment3/log.json`, JSON.stringify(response.data, null, 4));
+        });
+
+        test.only('experiment 4 - token ingress + local and global variables + tak duration + resources + resource efficiency', async () => {
+            // Local and global variables
+            // Token ingress 
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment4/config.json`) })
+
+            expect(status === 201).toBe(true);
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "json" }
+            };
+
+            let response = await axios(config)
+            expect(Object.values(response.data).length).toEqual(60);
+
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment4/log.json`, JSON.stringify(response.data, null, 4));
         });
 
     })

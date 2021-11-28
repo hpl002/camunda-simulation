@@ -1,0 +1,250 @@
+{
+    "start-time": "2021-11-15T16:00:00+01:00",
+    "shuffle-tokens": true,
+    "tokens": [
+        {
+            "id": "specimen-cytology",
+            "amount": 40,
+            "distribution": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT600M",
+                    "sd": "PT30M"
+                }
+            },
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "requisition",
+                    "value": "cytology"
+                },
+                {
+                    "type": "distribution",
+                    "name": "cytologyPreparation",
+                    "refresh": true,
+                    "value": {
+                        "type": "random",
+                        "frequency": {
+                            "min": 0,
+                            "max": 100
+                        }
+                    }
+                },
+                {
+                    "type": "distribution",
+                    "name": "cytologyStaining",
+                    "refresh": true,
+                    "value": {
+                        "type": "random",
+                        "frequency": {
+                            "min": 0,
+                            "max": 100
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "specimen-histology",
+            "amount": 20,
+            "distribution": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT120M",
+                    "sd": "PT60M"
+                }
+            },
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "requisition",
+                    "value": "surgical"
+                }
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "type": "distribution",
+            "name": "invalid",
+            "value": {
+                "type": "random",
+                "frequency": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        },
+        {
+            "type": "distribution",
+            "name": "additionalIinformation",
+            "refresh": true,
+            "value": {
+                "type": "random",
+                "frequency": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "id": "Common-reception",
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-accessioning",
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-archive",
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-send-report",
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-preparation",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-centrifugation",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-deposit",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-fixation",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-manual-staining",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-apply-cover-slip",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Histology-grossing",
+            "timing": {
+                "type": "constant",
+                "frequency": "PT30M"
+            }
+        },
+        {
+            "id": "Histology-fixation",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-processing",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-sectioning",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-deposit",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-staining",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        }
+    ]
+}
