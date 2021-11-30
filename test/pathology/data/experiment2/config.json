@@ -100,6 +100,26 @@
             }
         },
         {
+            "id": "Common-invalid-requisition",
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-request-additional-information",
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },         
+        {
             "id": "Common-accessioning",
             "timing": {
                 "type": "random",
@@ -141,6 +161,26 @@
         },
         {
             "id": "Cytology-centrifugation",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-filtration",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-automatic-staining",
             "timing": {
                 "type": "normal distribution",
                 "frequency": {
