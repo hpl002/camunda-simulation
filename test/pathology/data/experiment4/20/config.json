@@ -1,0 +1,443 @@
+{
+    "start-time": "2021-11-15T16:00:00+01:00",
+    "shuffle-tokens": true,
+    "tokens": [
+        {
+            "id": "specimen-cytology",
+            "amount": 80,
+            "distribution": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT600M",
+                    "sd": "PT30M"
+                }
+            },
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "requisition",
+                    "value": "cytology"
+                },
+                {
+                    "type": "distribution",
+                    "name": "cytologyPreparation",
+                    "refresh": true,
+                    "value": {
+                        "type": "random",
+                        "frequency": {
+                            "min": 0,
+                            "max": 100
+                        }
+                    }
+                },
+                {
+                    "type": "distribution",
+                    "name": "cytologyStaining",
+                    "refresh": true,
+                    "value": {
+                        "type": "random",
+                        "frequency": {
+                            "min": 0,
+                            "max": 100
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "specimen-histology",
+            "amount": 40,
+            "distribution": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT120M",
+                    "sd": "PT60M"
+                }
+            },
+            "variables": [
+                {
+                    "type": "string",
+                    "name": "requisition",
+                    "value": "surgical"
+                }
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "type": "distribution",
+            "name": "invalid",
+            "value": {
+                "type": "random",
+                "frequency": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        },
+        {
+            "type": "distribution",
+            "name": "additionalIinformation",
+            "refresh": true,
+            "value": {
+                "type": "random",
+                "frequency": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        }
+    ],
+    "initialize_resources": "CREATE ({id: 'Herman'})-[:profession]->(n13 {type: 'histology', id: 'histology'})<-[:profession]-({id: 'Mathias'}), ({id: 'Arien'})-[:profession]->(n13)<-[:_RELATED]-({id: 'Jon'})-[:_RELATED]->(n15 {type: 'cytology', id: 'cytology'})<-[:_RELATED]-(n12 {id: 'Oda'}), ({id: 'George'})-[:_RELATED]->({type: 'office', id: 'office'})<-[:_RELATED]-({id: 'Lisa'}),(n12)-[:_RELATED]->(n13), ({id: 'Ola'})-[:_RELATED]->(n15)<-[:_RELATED]-({id: 'Jacob'}),({id: 'Kari'})-[:_RELATED]->(n15)<-[:_RELATED]-({id: 'John'})",
+    "tasks": [
+        {
+            "id": "Common-invalid-requisition",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='office') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-request-additional-information",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='office') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },   
+        {
+            "id": "Cytology-filtration",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 2,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-automatic-staining",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 2,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Common-reception",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='office') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-accessioning",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='office') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-archive",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='office') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Common-send-report",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='office') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "random",
+                "frequency": {
+                    "min": "PT5M",
+                    "max": "PT20M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-preparation",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 2,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-centrifugation",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-deposit",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-fixation",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 2,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-manual-staining",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Cytology-apply-cover-slip",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='cytology') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT10M"
+                }
+            }
+        },
+        {
+            "id": "Histology-grossing",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='histology') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "constant",
+                "frequency": "PT30M"
+            }
+        },
+        {
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (nodes.id='Oda') RETURN nodes",
+            "resources-required": 1,
+            "id": "Histology-fixation",
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-processing",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='histology') RETURN nodes",
+            "resources-required": 2,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-sectioning",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='histology') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-deposit",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='histology') RETURN nodes",
+            "resources-required": 2,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        },
+        {
+            "id": "Histology-staining",
+            "resource-query": "MATCH (nodes)-[]->(profession) WHERE (profession.id='histology') RETURN nodes",
+            "resources-required": 1,
+            "timing": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": "PT1H",
+                    "sd": "PT30M"
+                }
+            }
+        }
+    ],
+    "resources": [
+        {
+            "id": "John",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Kari",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Jacob",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Ola",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Jon",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Oda",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Herman",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Mathias",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Arien",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "George",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        },
+        {
+            "id": "Lisa",
+            "efficiency": {
+                "type": "normal distribution",
+                "frequency": {
+                    "mean": 70,
+                    "sd": 30
+                }
+            }
+        }
+    ]
+}
