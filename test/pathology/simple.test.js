@@ -69,7 +69,7 @@ describe('core', () => {
         });
     })
 
-    describe('experiments', () => {
+    describe.only('experiments', () => {
         test('experiment 1 - token ingress + local and global variables', async () => {
             // Local and global variables
             // Token ingress 
@@ -80,13 +80,14 @@ describe('core', () => {
                 method: 'post',
                 url: `${appconfigs.controller}/start`,
                 headers: {},
-                data: { "response": "json" }
+                data: { "response": "csv" }
             };
 
             let response = await axios(config)
-            expect(Object.values(response.data).length).toEqual(60);
+            //expect(Object.values(response.data).length).toEqual(60);
+            expect(response.status).toEqual(200);
 
-            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment1/log.json`, JSON.stringify(response.data, null, 4));
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment1/experiment-1.csv`, response.data);
 
         });
 
@@ -100,13 +101,12 @@ describe('core', () => {
                 method: 'post',
                 url: `${appconfigs.controller}/start`,
                 headers: {},
-                data: { "response": "json" }
+                data: { "response": "csv" }
             };
 
             let response = await axios(config)
-            expect(Object.values(response.data).length).toEqual(60);
-
-            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment2/log.json`, JSON.stringify(response.data, null, 4));
+            expect(response.status).toEqual(200);
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment2/experiment-2.csv`, response.data);
         });
 
         test('experiment 3 - token ingress + local and global variables + tak duration + resources', async () => {
@@ -119,16 +119,15 @@ describe('core', () => {
                 method: 'post',
                 url: `${appconfigs.controller}/start`,
                 headers: {},
-                data: { "response": "json" }
+                data: { "response": "csv" }
             };
 
             let response = await axios(config)
-            expect(Object.values(response.data).length).toEqual(60);
-
-            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment3/log.json`, JSON.stringify(response.data, null, 4));
+            expect(response.status).toEqual(200);
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment3/experiment-3.csv`, response.data);
         });
 
-        test.only('experiment 4 - token ingress + local and global variables + tak duration + resources + resource efficiency', async () => {
+        test('experiment 4 - token ingress + local and global variables + tak duration + resources + resource efficiency', async () => {
             // Local and global variables
             // Token ingress 
             const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment4/config.json`) })
@@ -138,15 +137,49 @@ describe('core', () => {
                 method: 'post',
                 url: `${appconfigs.controller}/start`,
                 headers: {},
-                data: { "response": "json" }
+                data: { "response": "csv" }
             };
 
             let response = await axios(config)
-            expect(Object.values(response.data).length).toEqual(60);
-
-            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment4/log.json`, JSON.stringify(response.data, null, 4));
+            expect(response.status).toEqual(200);
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment4/experiment-4.csv`, response.data);
         });
 
+        test('experiment 4.1 - token ingress + local and global variables + tak duration + resources + resource efficiency + ingress increased by factor of 1.5', async () => {
+            // Local and global variables
+            // Token ingress 
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment4/15/config.json`) })
+
+            expect(status === 201).toBe(true);
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "csv" }
+            };
+
+            let response = await axios(config)
+            expect(response.status).toEqual(200);
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment4/15/experiment-415.csv`, response.data);
+        });
+
+        test.only('experiment 4.2 - token ingress + local and global variables + tak duration + resources + resource efficiency + ingress increased by factor of 2', async () => {
+            // Local and global variables
+            // Token ingress 
+            const { status } = await upload({ modelPath: `${process.env.PWD}/test/pathology/data/model.bpmn`, payload: require(`${process.env.PWD}/test/pathology/data/experiment4/20/config.json`) })
+
+            expect(status === 201).toBe(true);
+            let config = {
+                method: 'post',
+                url: `${appconfigs.controller}/start`,
+                headers: {},
+                data: { "response": "csv" }
+            };
+
+            let response = await axios(config)
+            expect(response.status).toEqual(200);
+            fs.writeFileSync(`${process.env.PWD}/test/pathology/data/experiment4/20/experiment.csv`, response.data);
+        });        
     })
 
 
